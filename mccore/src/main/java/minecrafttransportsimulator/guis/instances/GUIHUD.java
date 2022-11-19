@@ -109,8 +109,8 @@ public class GUIHUD extends AGUIBase {
         if (seat.canControlGuns && !InterfaceManager.clientInterface.isChatOpen()) {
             gunTypeLabel.visible = true;
             gunTypeLabel.text = "Active Gun: ";
-            if (seat.activeGunItem != null) {
-                gunTypeLabel.text += seat.activeGunItem.getItemName() + (seat.activeGunItem.definition.gun.fireSolo ? " [" + (seat.gunIndex + 1) + "]" : "");
+            if (seat.activeLauncherItem != null) {
+                gunTypeLabel.text += seat.activeLauncherItem.getItemName() + (seat.activeLauncherItem.definition.gun.fireSolo ? " [" + (seat.launcherIndex + 1) + "]" : "");
             } else {
                 gunTypeLabel.text += "None";
             }

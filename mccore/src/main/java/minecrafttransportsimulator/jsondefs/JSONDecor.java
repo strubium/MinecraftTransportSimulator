@@ -12,7 +12,7 @@ public class JSONDecor extends AJSONMultiModelProvider {
     public JSONDecorGeneric decor;
 
     public static class JSONDecorGeneric {
-        @JSONDescription("An optional type for this decor to give it functionality.")
+        @JSONDescription("An optional trackingType for this decor to give it functionality.")
         public DecorComponentType type;
 
         @JSONRequired

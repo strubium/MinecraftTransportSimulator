@@ -12,7 +12,7 @@ public class JSONRendering {
     @JSONDescription("Text objects are used to render text on models.  This can be used for license plates on cars, tail numbers on planes, status information on fuel pumps, etc.  Every entry is its own text section, and therefore you can have multiple objects for different things.  For example, you may want to make a bus with light-up route signs with multiple characters, but also with two license plates that are limited to 7 characters.")
     public List<JSONText> textObjects;
 
-    @JSONDescription("Animated objects are the most complex part of rendering and will likely result in a few pack reloads before you get them right.  However, they are a powerful system that allows any type of rotation, including multi-axis for things like driveshafts and steering assemblies. The animated objects section is composed of a few fields, and a listing of one or more animations to apply on the object.  Objects require no special naming in the model, though some objects may require special names to work with other systems.  For example, a light would have to be named according to the light convention, but could also be specified in this section to rotate it.")
+    @JSONDescription("Animated objects are the most complex part of rendering and will likely result in a few pack reloads before you get them right.  However, they are a powerful system that allows any trackingType of rotation, including multi-axis for things like driveshafts and steering assemblies. The animated objects section is composed of a few fields, and a listing of one or more animations to apply on the object.  Objects require no special naming in the model, though some objects may require special names to work with other systems.  For example, a light would have to be named according to the light convention, but could also be specified in this section to rotate it.")
     public List<JSONAnimatedObject> animatedObjects;
 
     @JSONDescription("Light objects are used to make parts of the model light.  No big surprise here.  Lights can either be as simple as a light-up texture, or more complex lighting operations like emissive textures and beams/flares.")
@@ -37,7 +37,7 @@ public class JSONRendering {
     public List<JSONParticle> particles;
 
     @JSONRequired
-    @JSONDescription("The type of model that this entity will render from.")
+    @JSONDescription("The trackingType of model that this entity will render from.")
     public ModelType modelType;
 
     public enum ModelType {

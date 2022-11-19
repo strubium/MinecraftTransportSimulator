@@ -177,7 +177,7 @@ public class GUIPackEditor extends JFrame {
         });
         filePanel.add(saveButton);
 
-        //Create drop-down for JSON type selection.
+        //Create drop-down for JSON trackingType selection.
         //Create map to store entries.  Putting these in directly messes up the box formatting.
         Map<String, Class<?>> jsonClasses = new LinkedHashMap<>();
         jsonClasses.put("JSON Type - Select first!.", null);

@@ -19,7 +19,7 @@ import minecrafttransportsimulator.packloading.PackParser;
 
 /**
  * Class that handles all configuration settings. This file is responsible for saving and loading
- * the config, and representing that config as an instance object of type {@link JSONConfigSettings} for access in the code.
+ * the config, and representing that config as an instance object of trackingType {@link JSONConfigSettings} for access in the code.
  * This class is NOT responsible for detecting config changes.  It is up to the code that calls this class to ensure the
  * changes made are valid and can be saved to the disk.  This also cuts down on saves in some instances where configs
  * cam be saved/modified in a batch rather than as single values.

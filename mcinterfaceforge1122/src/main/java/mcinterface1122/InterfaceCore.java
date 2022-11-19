@@ -1,8 +1,5 @@
 package mcinterface1122;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import minecrafttransportsimulator.items.components.AItemBase;
 import minecrafttransportsimulator.mcinterface.IInterfaceCore;
 import minecrafttransportsimulator.mcinterface.IWrapperItemStack;
@@ -14,6 +11,9 @@ import net.minecraft.util.NonNullList;
 import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.oredict.OreDictionary;
+
+import java.util.ArrayList;
+import java.util.List;
 
 class InterfaceCore implements IInterfaceCore {
     @Override
@@ -35,10 +35,10 @@ class InterfaceCore implements IInterfaceCore {
     public String getModName(String modID) {
         return Loader.instance().getIndexedModList().get(modID).getName();
     }
-    
+
     @Override
     public void logError(String message) {
-    	InterfaceLoader.LOGGER.error(message);
+        InterfaceLoader.LOGGER.error(message);
     }
 
     @Override

@@ -12,7 +12,7 @@ public class JSONPoleComponent extends AJSONMultiModelProvider {
 
     public static class JSONPoleGeneric {
         @JSONRequired
-        @JSONDescription("The type of this pole.  This defines its properties.")
+        @JSONDescription("The trackingType of this pole.  This defines its properties.")
         public PoleComponentType type;
 
         @JSONRequired

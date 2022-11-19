@@ -57,7 +57,7 @@ public abstract class APacketEntity<EntityType extends AEntityA_Base> extends AP
     /**
      * Handler method with an extra parameter for the entity that this packet
      * is associated with. If the entity is null,  then this method won't be called.
-     * Saves having to do null checks for every packet type.  If this is handled on the
+     * Saves having to do null checks for every packet trackingType.  If this is handled on the
      * server, and a packet shouldn't be sent to all clients (like if the action failed due
      * to an issue) return false.  Otherwise, return true to send this packet on to all clients.
      * Return method has no function on clients.

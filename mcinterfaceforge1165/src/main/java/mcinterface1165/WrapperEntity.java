@@ -321,7 +321,7 @@ public class WrapperEntity implements IWrapperEntity {
     @Override
     public void attack(Damage damage) {
         if (damage.language == null) {
-            throw new IllegalArgumentException("ERROR: Cannot attack an entity with a damage of no type and language component!");
+            throw new IllegalArgumentException("ERROR: Cannot attack an entity with a damage of no trackingType and language component!");
         }
         DamageSource newSource = new DamageSource(damage.language.value) {
             @Override

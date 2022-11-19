@@ -199,7 +199,7 @@ public final class PartInteractable extends APart {
      * Only call on the server-side, except for electric furnaces.
      */
     private void addFurnaceFuel() {
-        //Try to fill the furnace with the appropriate fuel type, if we have it.
+        //Try to fill the furnace with the appropriate fuel trackingType, if we have it.
         switch (furnace.definition.furnaceType) {
             case STANDARD: {
                 IWrapperItemStack currentFuel = furnace.getStack(EntityFurnace.FUEL_ITEM_SLOT);

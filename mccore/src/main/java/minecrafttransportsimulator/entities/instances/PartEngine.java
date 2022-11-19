@@ -140,7 +140,7 @@ public class PartEngine extends APart {
         }
 
         //Verify the vehicle has the right fuel for us.  If not, clear it out.
-        //This allows us to swap in an engine with a different fuel type than the last one.
+        //This allows us to swap in an engine with a different fuel trackingType than the last one.
         if (!vehicleOn.fuelTank.getFluid().isEmpty()) {
             switch (definition.engine.type) {
                 case ELECTRIC: {
@@ -153,7 +153,7 @@ public class PartEngine extends APart {
                 default: {
                     //Check for matching fuel from configs.
                     if (!ConfigSystem.settings.fuel.fuels.containsKey(definition.engine.fuelType)) {
-                        throw new IllegalArgumentException("Engine:" + definition.packID + ":" + definition.systemName + " wanted fuel configs for fuel of type:" + definition.engine.fuelType + ", but these do not exist in the config file.  Fuels currently in the file are:" + ConfigSystem.settings.fuel.fuels.keySet() + "If you are on a server, this means the server and client configs are not the same.  If this is a modpack, TELL THE AUTHOR IT IS BROKEN!");
+                        throw new IllegalArgumentException("Engine:" + definition.packID + ":" + definition.systemName + " wanted fuel configs for fuel of trackingType:" + definition.engine.fuelType + ", but these do not exist in the config file.  Fuels currently in the file are:" + ConfigSystem.settings.fuel.fuels.keySet() + "If you are on a server, this means the server and client configs are not the same.  If this is a modpack, TELL THE AUTHOR IT IS BROKEN!");
                     } else if (!ConfigSystem.settings.fuel.fuels.get(definition.engine.fuelType).containsKey(vehicleOn.fuelTank.getFluid())) {
                         vehicleOn.fuelTank.drain(vehicleOn.fuelTank.getFluid(), vehicleOn.fuelTank.getFluidLevel(), true);
                     }

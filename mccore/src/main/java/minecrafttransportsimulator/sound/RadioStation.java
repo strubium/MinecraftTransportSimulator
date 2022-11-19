@@ -248,7 +248,7 @@ public class RadioStation {
                 return false;
             }
 
-            //Check to make sure stream isn't an invalid type.
+            //Check to make sure stream isn't an invalid trackingType.
             switch (contentType) {
                 case ("audio/mpeg"):
                 case ("application/ogg"):
@@ -316,7 +316,7 @@ public class RadioStation {
 
         @Override
         public void run() {
-            //Act based on our stream type.
+            //Act based on our stream trackingType.
             try {
                 if (contentURL != null) {
                     switch (contentType) {

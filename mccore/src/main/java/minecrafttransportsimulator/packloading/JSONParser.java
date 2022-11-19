@@ -53,7 +53,7 @@ import minecrafttransportsimulator.systems.ConfigSystem;
 
 /**
  * This class contains various methods to parse out JSON data from JSON files.
- * Contains  custom type adapters used in JSON parsing operations, and annotations for fields.
+ * Contains  custom trackingType adapters used in JSON parsing operations, and annotations for fields.
  * Put here to customize how we import/export JSONs.  For importing, this is pretty much
  * un-changed, sans for checks on the null-ness of fields.  For exporting, this prevents writing
  * default values to the JSON for clarity and changes how lists are written to make the JSONs more compact.
@@ -425,7 +425,7 @@ public class JSONParser {
                     lowercaseToEnum.put(enumConstant.toString().toLowerCase(), enumConstant);
                 }
 
-                //Return the new type adapter.
+                //Return the new trackingType adapter.
                 return new TypeAdapter<EnumType>() {
                     @Override
                     public void write(JsonWriter writer, EnumType value) throws IOException {
@@ -450,7 +450,7 @@ public class JSONParser {
         }
     };
 
-    //This needs to go down here AFTER we create the type adapters.
+    //This needs to go down here AFTER we create the trackingType adapters.
     private static final Gson packParser = getPackParserWithAdapters();
 
     private static Gson getPackParserWithAdapters() {
@@ -462,7 +462,7 @@ public class JSONParser {
                 }.getType(), colorListAdapter).registerTypeAdapterFactory(lowercaseEnumFactory).create();
     }
 
-    //This needs to go down here AFTER we create the type adapters.
+    //This needs to go down here AFTER we create the trackingType adapters.
     private static final Gson configParser = getConfigParserWithAdapters();
 
     private static Gson getConfigParserWithAdapters() {
@@ -473,7 +473,7 @@ public class JSONParser {
     }
 
     /**
-     * Parses the passed in stream to the passed-in JSON type.
+     * Parses the passed in stream to the passed-in JSON trackingType.
      *
      * @throws IOException
      */
@@ -595,7 +595,7 @@ public class JSONParser {
                     break;
                 }
                 default:
-                    return "\nERROR: Attempted to hotload unsuppoorted JSON type:" + definitionToOverride.classification;
+                    return "\nERROR: Attempted to hotload unsuppoorted JSON trackingType:" + definitionToOverride.classification;
             }
 
             //Do generic loading.

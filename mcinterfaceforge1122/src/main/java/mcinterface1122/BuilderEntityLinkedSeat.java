@@ -1,7 +1,5 @@
 package mcinterface1122;
 
-import java.util.List;
-
 import minecrafttransportsimulator.entities.components.AEntityB_Existing;
 import minecrafttransportsimulator.mcinterface.InterfaceManager;
 import net.minecraft.entity.Entity;
@@ -14,6 +12,9 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.registry.EntityEntry;
 import net.minecraftforge.fml.common.registry.EntityEntryBuilder;
 
+import javax.annotation.Nonnull;
+import java.util.List;
+
 /**
  * Builder for an entity to sit in so they can ride another entity.  We use this rather
  * than a direct linking as entities with riders are removed by MC when the rider logs out.
@@ -24,7 +25,6 @@ import net.minecraftforge.fml.common.registry.EntityEntryBuilder;
  */
 @EventBusSubscriber
 public class BuilderEntityLinkedSeat extends ABuilderEntityBase {
-
     /**
      * Current entity we are a seat on.  This MAY be null if we haven't loaded NBT from the server yet.
      **/
@@ -106,7 +106,7 @@ public class BuilderEntityLinkedSeat extends ABuilderEntityBase {
     }
 
     @Override
-    public void updatePassenger(Entity passenger) {
+    public void updatePassenger(@Nonnull Entity passenger) {
         //Forward passenger updates to the entity.
         //Need to verify the entity has a rider, it might not if we are on the
         //client and waiting for the rider packet.  Or on the server and waiting for loading of the player.
@@ -123,7 +123,7 @@ public class BuilderEntityLinkedSeat extends ABuilderEntityBase {
     }
 
     @Override
-    protected void removePassenger(Entity passenger) {
+    protected void removePassenger(@Nonnull Entity passenger) {
         super.removePassenger(passenger);
         dismountedRider = true;
     }
@@ -133,8 +133,9 @@ public class BuilderEntityLinkedSeat extends ABuilderEntityBase {
         return entity != null ? InterfaceEventsEntityRendering.renderCurrentRiderSitting : super.shouldRiderSit();
     }
 
+    @Nonnull
     @Override
-    public NBTTagCompound writeToNBT(NBTTagCompound tag) {
+    public NBTTagCompound writeToNBT(@Nonnull NBTTagCompound tag) {
         super.writeToNBT(tag);
         if (entity != null) {
             //Entity is valid, save UUID and return the modified tag.

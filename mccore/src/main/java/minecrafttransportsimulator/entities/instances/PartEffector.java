@@ -20,7 +20,6 @@ import minecrafttransportsimulator.mcinterface.InterfaceManager;
 import minecrafttransportsimulator.packets.instances.PacketPartEffector;
 
 public class PartEffector extends APart {
-
     private final List<IWrapperItemStack> drops = new ArrayList<>();
 
     //Variables used for drills.

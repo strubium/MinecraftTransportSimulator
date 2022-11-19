@@ -6,7 +6,7 @@ import minecrafttransportsimulator.packloading.JSONParser.JSONRequired;
 
 public class JSONAnimationDefinition {
     @JSONRequired
-    @JSONDescription("The type of animation this definition will perform.")
+    @JSONDescription("The trackingType of animation this definition will perform.")
     public AnimationComponentType animationType;
 
     @JSONRequired
@@ -38,10 +38,10 @@ public class JSONAnimationDefinition {
     @JSONDescription("The duration of this animation, in ticks.  Causes the animation to be interpolated over the duration for smooth movement.  Useful for things like doors.  Only works for variables that go from 0-1.")
     public int duration;
 
-    @JSONDescription("The type of easing interpolation to apply on the forwards animation.")
+    @JSONDescription("The trackingType of easing interpolation to apply on the forwards animation.")
     public AnimationEasingType forwardsEasing;
 
-    @JSONDescription("The type of easing interpolation to apply on the reverse animation.")
+    @JSONDescription("The trackingType of easing interpolation to apply on the reverse animation.")
     public AnimationEasingType reverseEasing;
 
     @JSONDescription("How long this animation waits to start after the variable goes to 1, in ticks.  For example, an animation with a forwardsDelay of 20 and a duration of 40 would wait one second before moving, and then take two seconds to move its entire animation.")

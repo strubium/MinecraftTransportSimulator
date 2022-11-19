@@ -128,7 +128,7 @@ public final class LegacyCompatSystem {
             definition.general.repairMaterials = null;
         }
 
-        //Check if the model needs a model type or has extraMaterials to convert..
+        //Check if the model needs a model trackingType or has extraMaterials to convert..
         if (definition instanceof AJSONMultiModelProvider) {
             AJSONMultiModelProvider provider = (AJSONMultiModelProvider) definition;
             for (JSONSubDefinition subDef : provider.definitions) {
@@ -204,7 +204,7 @@ public final class LegacyCompatSystem {
             definition.motorized.isRearWheelDrive = false;
         }
 
-        //If we still have the old type parameter and are an aircraft, set the flag to true.
+        //If we still have the old trackingType parameter and are an aircraft, set the flag to true.
         if (definition.general.type != null) {
             if (definition.general.type.equals("plane") || definition.general.type.equals("blimp") || definition.general.type.equals("helicopter")) {
                 definition.motorized.isAircraft = true;
@@ -617,12 +617,12 @@ public final class LegacyCompatSystem {
 
         //Set engine new parameters.
         if (definition.engine != null) {
-            //Add engine type if it is missing.
+            //Add engine trackingType if it is missing.
             if (definition.engine.type == null) {
                 definition.engine.type = JSONPart.EngineType.NORMAL;
             }
 
-            //Add fuel type, if it is missing.
+            //Add fuel trackingType, if it is missing.
             if (definition.engine.fuelType == null) {
                 definition.engine.fuelType = "diesel";
             }
@@ -1473,19 +1473,19 @@ public final class LegacyCompatSystem {
             definition.general.items = null;
         }
 
-        //If we are a decor without a type, set us to generic.
+        //If we are a decor without a trackingType, set us to generic.
         if (definition.decor.type == null) {
             definition.decor.type = DecorComponentType.GENERIC;
         }
 
-        //If we are a decor with a type of item loader, then set defaults for invalid/missing values.
+        //If we are a decor with a trackingType of item loader, then set defaults for invalid/missing values.
         if (definition.decor.type.equals(DecorComponentType.ITEM_LOADER) || definition.decor.type.equals(DecorComponentType.ITEM_UNLOADER)) {
             if (definition.decor.inventoryUnits == 0) {
                 definition.decor.inventoryUnits = 1F / 9F;
             }
         }
 
-        //If we are a decor with a type of fuel pump or fluid loader, then set defaults for invalid/missing values.
+        //If we are a decor with a trackingType of fuel pump or fluid loader, then set defaults for invalid/missing values.
         if (definition.decor.type.equals(DecorComponentType.FUEL_PUMP) || definition.decor.type.equals(DecorComponentType.FLUID_LOADER) || definition.decor.type.equals(DecorComponentType.FLUID_UNLOADER)) {
             if (definition.decor.fuelCapacity == 0) {
                 definition.decor.fuelCapacity = 15000;
@@ -1618,7 +1618,7 @@ public final class LegacyCompatSystem {
     }
 
     private static void performItemLegacyCompats(JSONItem definition) {
-        //Move item type if required.
+        //Move item trackingType if required.
         if (definition.item == null) {
             definition.item = new JSONItem.JSONItemGeneric();
             if (definition.general.type != null) {
@@ -1627,7 +1627,7 @@ public final class LegacyCompatSystem {
             }
         }
 
-        //Set item type to NONE if null.
+        //Set item trackingType to NONE if null.
         if (definition.item.type == null) {
             definition.item.type = ItemComponentType.NONE;
         }

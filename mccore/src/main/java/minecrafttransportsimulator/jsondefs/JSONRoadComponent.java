@@ -15,22 +15,22 @@ public class JSONRoadComponent extends AJSONMultiModelProvider {
 
     public class JSONRoadGeneric {
         //Common variables.
-        @JSONDescription("The type of this road component.  This defines its properties.")
+        @JSONDescription("The trackingType of this road component.  This defines its properties.")
         public RoadComponent type;
 
-        @JSONRequired(dependentField = "type", dependentValues = {"CORE_DYNAMIC"})
+        @JSONRequired(dependentField = "trackingType", dependentValues = {"CORE_DYNAMIC"})
         @JSONDescription("The offset from the center of the road to the back-right corner when placed.  This will always be negative because the back-right corner is in the -X and -Z direction.")
         public Point3D cornerOffset;
 
-        @JSONRequired(dependentField = "type", dependentValues = {"CORE_DYNAMIC"})
+        @JSONRequired(dependentField = "trackingType", dependentValues = {"CORE_DYNAMIC"})
         @JSONDescription("The width of the road, if this is a dynamic component.")
         public float roadWidth;
 
-        @JSONRequired(dependentField = "type", dependentValues = {"CORE_DYNAMIC"})
+        @JSONRequired(dependentField = "trackingType", dependentValues = {"CORE_DYNAMIC"})
         @JSONDescription("The offsets for the lanes for this road if this is a dynamic core component.  0 starts at X=0.")
         public float[] laneOffsets;
 
-        @JSONRequired(dependentField = "type", dependentValues = {"CORE_DYNAMIC"})
+        @JSONRequired(dependentField = "trackingType", dependentValues = {"CORE_DYNAMIC"})
         @JSONDescription("How long each segment in this road is.  This allows for variable-length repeating model segments.")
         public float segmentLength;
 
@@ -38,11 +38,11 @@ public class JSONRoadComponent extends AJSONMultiModelProvider {
         @JSONDescription("How high collision should be for this dynamic core component, in pixels.  Normally a low value.")
         public int collisionHeight;
 
-        @JSONRequired(dependentField = "type", dependentValues = {"CORE_STATIC"})
+        @JSONRequired(dependentField = "trackingType", dependentValues = {"CORE_STATIC"})
         @JSONDescription("A list of lane sectors that define the paths for this road.  These contain a start position, angle, and lanes.  Each sector is basically an intersection, with a 4-way intersection having 4 sectors.  The nproperties in a sector is used to determine what lanes can connect to the sector, and where these connections are.")
         public List<JSONLaneSector> sectors;
 
-        @JSONRequired(dependentField = "type", dependentValues = {"CORE_STATIC"})
+        @JSONRequired(dependentField = "trackingType", dependentValues = {"CORE_STATIC"})
         @JSONDescription("A list of collision areas.  This allows for collision to be applied in a multi-block format for this road.  Normally just a single square entry, but may extend in the +Y direction for complex road components like bridges.  Think of how you seelect ares with the World Edit mod.")
         public List<JSONRoadCollisionArea> collisionAreas;
     }

@@ -10,7 +10,7 @@ import minecrafttransportsimulator.guis.instances.GUIOverlay;
 import minecrafttransportsimulator.mcinterface.InterfaceManager;
 
 /**
- * Base GUI class.  This type is used in lieu of the MC GUI class to allow us to use
+ * Base GUI class.  This trackingType is used in lieu of the MC GUI class to allow us to use
  * completely custom GUI code that is not associated with MC's standard GUI code.  Allows us to only
  * update the IWrapper rather than the whole GUI. In essence, this class holds the data and state of the
  * GUI, while the IWrapper chooses how to interpret and render said state.

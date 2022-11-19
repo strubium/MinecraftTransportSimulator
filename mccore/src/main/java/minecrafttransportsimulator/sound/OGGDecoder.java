@@ -105,7 +105,7 @@ public class OGGDecoder implements IStreamDecoder {
                 int pageStatus = syncState.pageout(page);
                 if (pageStatus == 1) {
                     //Found page, process data.
-                    //Init streamState to the page type if required on first page.
+                    //Init streamState to the page trackingType if required on first page.
                     //For all pages, feed page into streamState for processing,
                     //then get packet out to be used by info and comment objects.
                     if (++packetCount == 1) {

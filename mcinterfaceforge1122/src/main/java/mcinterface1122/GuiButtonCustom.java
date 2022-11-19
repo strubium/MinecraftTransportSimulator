@@ -6,6 +6,8 @@ import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.util.ResourceLocation;
 
+import javax.annotation.Nonnull;
+
 public class GuiButtonCustom extends GuiButton {
     protected static final ResourceLocation BACKGROUND_TEXTURE = new ResourceLocation("mts:textures/guis/treated_wood_button.png");
 
@@ -25,7 +27,7 @@ public class GuiButtonCustom extends GuiButton {
         this.displayString = buttonText;
     }
 
-    public void drawButton(Minecraft minecraft, int mouseX, int mouseY, float partialTicks) {
+    public void drawButton(@Nonnull Minecraft minecraft, int mouseX, int mouseY, float partialTicks) {
         if (this.visible) {
             FontRenderer fontrenderer = minecraft.fontRenderer;
             minecraft.getTextureManager().bindTexture(BACKGROUND_TEXTURE);

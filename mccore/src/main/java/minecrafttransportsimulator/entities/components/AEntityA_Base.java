@@ -12,7 +12,7 @@ import minecrafttransportsimulator.mcinterface.IWrapperNBT;
  * is responsible for assigning them a global ID number when created.  This can be used to
  * obtain their instances via packets as the ID is the same between clients and servers.
  * <br><br>
- * Note that all entities of this type never "load" saved data.  Rather, they are created from it.
+ * Note that all entities of this trackingType never "load" saved data.  Rather, they are created from it.
  * This means that there is no method call to load properties from data. Instead, data required
  * for loading will be passed-in to the constructor.  This data should be used to create the entity
  * in its loaded state.  For saving, which can happen multiple times in the entity's lifetime,

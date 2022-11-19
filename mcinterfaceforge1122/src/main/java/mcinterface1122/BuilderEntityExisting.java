@@ -1,18 +1,9 @@
 package mcinterface1122;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.annotation.Nullable;
-
 import minecrafttransportsimulator.baseclasses.BoundingBox;
 import minecrafttransportsimulator.baseclasses.Damage;
 import minecrafttransportsimulator.baseclasses.Point3D;
-import minecrafttransportsimulator.entities.components.AEntityB_Existing;
-import minecrafttransportsimulator.entities.components.AEntityD_Definable;
-import minecrafttransportsimulator.entities.components.AEntityE_Interactable;
-import minecrafttransportsimulator.entities.components.AEntityF_Multipart;
-import minecrafttransportsimulator.entities.components.AEntityG_Towable;
+import minecrafttransportsimulator.entities.components.*;
 import minecrafttransportsimulator.entities.instances.APart;
 import minecrafttransportsimulator.items.components.AItemPack;
 import minecrafttransportsimulator.items.components.IItemEntityProvider;
@@ -35,6 +26,11 @@ import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.registry.EntityEntry;
 import net.minecraftforge.fml.common.registry.EntityEntryBuilder;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Builder for the main entity classes for MTS.  This builder allows us to create a new entity
@@ -163,7 +159,7 @@ public class BuilderEntityExisting extends ABuilderEntityBase {
     }
 
     @Override
-    public boolean attackEntityFrom(DamageSource source, float amount) {
+    public boolean attackEntityFrom(@Nonnull DamageSource source, float amount) {
         if (ConfigSystem.settings.damage.allowExternalDamage.value && !world.isRemote && entity instanceof AEntityE_Interactable) {
             AEntityE_Interactable<?> interactable = ((AEntityE_Interactable<?>) entity);
             Entity attacker = source.getImmediateSource();
@@ -210,6 +206,7 @@ public class BuilderEntityExisting extends ABuilderEntityBase {
         return true;
     }
 
+    @Nonnull
     @Override
     public AxisAlignedBB getEntityBoundingBox() {
         //Override this to make interaction checks work with the multiple collision points.
@@ -225,8 +222,9 @@ public class BuilderEntityExisting extends ABuilderEntityBase {
         return collisionBoxes != null ? collisionBoxes : super.getCollisionBoundingBox();
     }
 
+    @Nonnull
     @Override
-    public ItemStack getPickedResult(RayTraceResult target) {
+    public ItemStack getPickedResult(@Nonnull RayTraceResult target) {
         if (entity instanceof AEntityF_Multipart) {
             for (APart part : ((AEntityF_Multipart<?>) entity).parts) {
                 for (BoundingBox box : part.interactionBoxes) {
@@ -248,8 +246,9 @@ public class BuilderEntityExisting extends ABuilderEntityBase {
         return collisionBoxes != null && !collisionBoxes.boxes.isEmpty();
     }
 
+    @Nonnull
     @Override
-    public NBTTagCompound writeToNBT(NBTTagCompound tag) {
+    public NBTTagCompound writeToNBT(@Nonnull NBTTagCompound tag) {
         super.writeToNBT(tag);
         if (entity != null) {
             //Entity is valid, save it and return the modified tag.

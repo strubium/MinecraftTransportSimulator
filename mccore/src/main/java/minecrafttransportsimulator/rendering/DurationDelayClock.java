@@ -169,7 +169,7 @@ public class DurationDelayClock {
     }
 
     /**
-     * This is used to check the easing type defined in the JSON fields
+     * This is used to check the easing trackingType defined in the JSON fields
      * and call the respective easing function to return a value
      *
      * @param direction The JSON field either {@code forwardsEasing} or {@code reverseEasing}.
@@ -266,7 +266,7 @@ public class DurationDelayClock {
             case EASEINOUTBOUNCE:
                 return time < 0.5 ? (1 - getEasingType(JSONAnimationDefinition.AnimationEasingType.EASEOUTBOUNCE, 1 - 2 * time)) / 2 : (1 + getEasingType(JSONAnimationDefinition.AnimationEasingType.EASEINBOUNCE, 2 * time - 1)) / 2;
 
-            //Easing type is invalid. Default to linear.
+            //Easing trackingType is invalid. Default to linear.
             default:
                 return time;
         }

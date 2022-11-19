@@ -27,16 +27,16 @@ public class ItemPartGun extends AItemPart {
 
     @Override
     public PartGun createPart(AEntityF_Multipart<?> entity, IWrapperPlayer placingPlayer, JSONPartDefinition packVehicleDef, IWrapperNBT partData) {
-        return new PartGun(entity, placingPlayer, packVehicleDef, partData);
+        return new PartGun(entity, placingPlayer, packVehicleDef, partData, definition.gun);
     }
 
     @Override
     public void addTooltipLines(List<String> tooltipLines, IWrapperNBT data) {
         super.addTooltipLines(tooltipLines, data);
         tooltipLines.add(JSONConfigLanguage.ITEMINFO_GUN_DIAMETER.value + definition.gun.diameter);
-        tooltipLines.add(JSONConfigLanguage.ITEMINFO_GUN_CASERANGE.value + definition.gun.minCaseLength + "-" + definition.gun.maxCaseLength);
+        tooltipLines.add(JSONConfigLanguage.ITEMINFO_GUN_CASERANGE.value + definition.gun.minLength + "-" + definition.gun.maxLength);
         tooltipLines.add(JSONConfigLanguage.ITEMINFO_GUN_FIREDELAY.value + definition.gun.fireDelay);
-        tooltipLines.add(JSONConfigLanguage.ITEMINFO_GUN_MUZZLEVELOCITY.value + definition.gun.muzzleVelocity);
+        tooltipLines.add(JSONConfigLanguage.ITEMINFO_GUN_MUZZLEVELOCITY.value + definition.gun.exitVelocity);
         tooltipLines.add(JSONConfigLanguage.ITEMINFO_GUN_CAPACITY.value + definition.gun.capacity);
         if (definition.gun.autoReload) {
             tooltipLines.add(JSONConfigLanguage.ITEMINFO_GUN_AUTORELOAD.value);
@@ -53,7 +53,7 @@ public class ItemPartGun extends AItemPart {
     @Override
     public void registerEntities(Map<String, IItemEntityFactory> entityMap) {
         super.registerEntities(entityMap);
-        entityMap.put(EntityPlayerGun.class.getSimpleName(), (world, placingPlayer, data) -> new EntityPlayerGun(world, placingPlayer, data));
+        entityMap.put(EntityPlayerGun.class.getSimpleName(), EntityPlayerGun::new);
     }
 
     public static final AItemPartCreator CREATOR = new AItemPartCreator() {

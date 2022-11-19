@@ -73,7 +73,7 @@ public class BuilderTileEntity extends TileEntity implements ITickable {
 
     public BuilderTileEntity(TileEntityType<?> teType) {
         super(teType);
-        //Override type constructor.
+        //Override trackingType constructor.
     }
 
     @Override

@@ -47,7 +47,7 @@ public abstract class AJSONItem {
     public General general;
 
     public static class General {
-        @JSONDescription("The name of this content.  Will be displayed in item form.  Note that if the content is a type that has a set of definitions, then this name is ignored and the appropriate definition name is used instead.")
+        @JSONDescription("The name of this content.  Will be displayed in item form.  Note that if the content is a trackingType that has a set of definitions, then this name is ignored and the appropriate definition name is used instead.")
         public String name;
 
         @JSONDescription("An optional description.  Will be rendered as an item tooltip.  Unlike the name parameter, descriptions on definitions are appended to this description, and do not overwrite it.  The idea behind this is that some variants need extra text to tell why they are different from one another, but shouldn't require re-writing the main description.")
@@ -70,11 +70,11 @@ public abstract class AJSONItem {
         public String oreDict;
 
         //Moved from multiple locations.
-        //Vehicle was deprecated for vehicle type.
-        //Part was for part type, and went to generic.
-        //Decor was for decor type, and went to decor
-        //Pole was for pole type, and went to pole.
-        //Item was for item type, and went in item.
+        //Vehicle was deprecated for vehicle trackingType.
+        //Part was for part trackingType, and went to generic.
+        //Decor was for decor trackingType, and went to decor
+        //Pole was for pole trackingType, and went to pole.
+        //Item was for item trackingType, and went in item.
         @Deprecated
         public String type;
 

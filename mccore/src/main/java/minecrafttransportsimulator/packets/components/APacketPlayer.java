@@ -46,7 +46,7 @@ public abstract class APacketPlayer extends APacketBase {
     /**
      * Handler method with an extra parameter for the player for this packet.
      * If the player is null,  then this method won't be called.
-     * Saves having to do null checks for every packet type.
+     * Saves having to do null checks for every packet trackingType.
      */
     protected abstract void handle(AWrapperWorld world, IWrapperPlayer player);
 }

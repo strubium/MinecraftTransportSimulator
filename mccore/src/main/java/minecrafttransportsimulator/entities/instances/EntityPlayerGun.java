@@ -8,7 +8,7 @@ import minecrafttransportsimulator.baseclasses.BoundingBox;
 import minecrafttransportsimulator.baseclasses.RotationMatrix;
 import minecrafttransportsimulator.entities.components.AEntityB_Existing;
 import minecrafttransportsimulator.entities.components.AEntityF_Multipart;
-import minecrafttransportsimulator.entities.instances.PartGun.GunState;
+import minecrafttransportsimulator.entities.instances.PartProjectileLauncher.LauncherState;
 import minecrafttransportsimulator.items.components.AItemBase;
 import minecrafttransportsimulator.items.components.AItemPack;
 import minecrafttransportsimulator.items.instances.ItemPartGun;
@@ -90,7 +90,7 @@ public class EntityPlayerGun extends AEntityF_Multipart<JSONDummyPartProvider> {
     public JSONDummyPartProvider generateDefaultDefinition() {
         JSONDummyPartProvider defaultDefinition = JSONDummyPartProvider.generateDummy();
 
-        //Look though all gun types and add them.
+        //Look through all gun types and add them.
         JSONPartDefinition fakeDef = defaultDefinition.parts.get(0);
         for (AItemPack<?> packItem : PackParser.getAllPackItems()) {
             if (packItem instanceof ItemPartGun) {
@@ -195,7 +195,7 @@ public class EntityPlayerGun extends AEntityF_Multipart<JSONDummyPartProvider> {
 
                 if (!world.isClient()) {
                     //Save gun data if we stopped firing the prior tick.
-                    if (activeGun.state.isAtLeast(GunState.FIRING_CURRENTLY)) {
+                    if (activeGun.state.isAtLeast(LauncherState.FIRING_CURRENTLY)) {
                         didGunFireLastTick = true;
                     } else if (didGunFireLastTick) {
                         saveGun(false);
@@ -211,7 +211,7 @@ public class EntityPlayerGun extends AEntityF_Multipart<JSONDummyPartProvider> {
 
         //If we have a gun, and the player is spectating, don't allow the gun to render.
         if (activeGun != null) {
-            activeGun.isInvisible = player != null && player.isSpectator();
+            activeGun.isInvisible = player.isSpectator();
         }
     }
 

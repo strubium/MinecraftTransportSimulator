@@ -13,6 +13,8 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.registry.EntityEntry;
 import net.minecraftforge.fml.common.registry.EntityEntryBuilder;
 
+import javax.annotation.Nonnull;
+
 /**
  * Builder for an entity to forward rendering calls to all internal renderer.  This is due to prevent
  * MC from culling entities when it should be rendering them instead.  MC does this when you can't see
@@ -23,7 +25,6 @@ import net.minecraftforge.fml.common.registry.EntityEntryBuilder;
 @EventBusSubscriber
 public class BuilderEntityRenderForwarder extends ABuilderEntityBase {
     protected static BuilderEntityRenderForwarder lastClientInstance;
-
     protected EntityPlayer playerFollowing;
     private final long[] lastTickRendered = new long[]{0L, 0L, 0L};
     private final float[] lastPartialTickRendered = new float[]{0F, 0F, 0F};
@@ -128,8 +129,9 @@ public class BuilderEntityRenderForwarder extends ABuilderEntityBase {
         }
     }
 
+    @Nonnull
     @Override
-    public NBTTagCompound writeToNBT(NBTTagCompound tag) {
+    public NBTTagCompound writeToNBT(@Nonnull NBTTagCompound tag) {
         super.writeToNBT(tag);
         if (playerFollowing != null) {
             //Player valid, save it and return the modified tag.

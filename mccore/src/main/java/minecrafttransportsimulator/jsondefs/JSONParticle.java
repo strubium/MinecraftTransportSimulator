@@ -9,7 +9,7 @@ import minecrafttransportsimulator.packloading.JSONParser.JSONRequired;
 
 public class JSONParticle {
     @JSONRequired
-    @JSONDescription("Which type of particle to use.")
+    @JSONDescription("Which trackingType of particle to use.")
     public ParticleType type;
 
     @JSONDescription("Foces this particle to spawn every tick it is active.  Useful for constant particle flows, like smoke.")
@@ -21,7 +21,7 @@ public class JSONParticle {
     @JSONDescription("How many of this particle to spawn at a time. Defaults to 1.")
     public int quantity;
 
-    @JSONDescription("How long, in ticks, the particle should remain.  If not set on a defined type, the age will be auto-calculated the same way it would be for a Vanilla particle.  Defaults to 200 on any other types.")
+    @JSONDescription("How long, in ticks, the particle should remain.  If not set on a defined trackingType, the age will be auto-calculated the same way it would be for a Vanilla particle.  Defaults to 200 on any other types.")
     public int duration;
 
     @JSONDescription("A number between 0.0 and 1.0 describing how transparent the particle should be.  If both this and toTransparency are not set, they are assumed to be 1.0 for both and no transparency changes will be performed.")

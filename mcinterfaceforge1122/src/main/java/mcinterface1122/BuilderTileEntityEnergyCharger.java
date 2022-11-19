@@ -15,7 +15,6 @@ import net.minecraftforge.energy.IEnergyStorage;
  * @author don_bruce
  */
 public class BuilderTileEntityEnergyCharger<EnergyTileEntity extends ATileEntityBase<?> & ITileEntityEnergyCharger> extends BuilderTileEntity<EnergyTileEntity> implements IEnergyStorage {
-
     private static final int MAX_BUFFER = 1000;
     private int buffer;
 

@@ -31,16 +31,16 @@ public class JSONCollisionBox {
     public String variableName;
 
     @JSONRequired(dependentField = "variableName")
-    @JSONDescription("The type of variable this box represents, and how to act when clicked.")
+    @JSONDescription("The trackingType of variable this box represents, and how to act when clicked.")
     public VariableType variableType;
 
     @JSONDescription("The value to set the variable to for SET types, or the amount to increment by for INCREMENT types.")
     public float variableValue;
 
-    @JSONDescription("The min value for this box to set.  Only used when the variable type is increment.")
+    @JSONDescription("The min value for this box to set.  Only used when the variable trackingType is increment.")
     public float clampMin;
 
-    @JSONDescription("The max value for this box to set.  Only used when the variable type is increment.")
+    @JSONDescription("The max value for this box to set.  Only used when the variable trackingType is increment.")
     public float clampMax;
 
     public enum VariableType {

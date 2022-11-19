@@ -1,19 +1,12 @@
 package mcinterface1122;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import minecrafttransportsimulator.entities.components.AEntityB_Existing;
 import minecrafttransportsimulator.entities.instances.PartSeat;
 import minecrafttransportsimulator.items.components.AItemBase;
 import minecrafttransportsimulator.items.instances.ItemItem;
 import minecrafttransportsimulator.jsondefs.JSONConfigLanguage.LanguageEntry;
 import minecrafttransportsimulator.jsondefs.JSONItem.ItemComponentType;
-import minecrafttransportsimulator.mcinterface.IWrapperEntity;
-import minecrafttransportsimulator.mcinterface.IWrapperInventory;
-import minecrafttransportsimulator.mcinterface.IWrapperItemStack;
-import minecrafttransportsimulator.mcinterface.IWrapperPlayer;
-import minecrafttransportsimulator.mcinterface.InterfaceManager;
+import minecrafttransportsimulator.mcinterface.*;
 import minecrafttransportsimulator.packets.components.APacketBase;
 import net.minecraft.block.BlockWorkbench;
 import net.minecraft.client.Minecraft;
@@ -28,6 +21,10 @@ import net.minecraft.util.text.TextComponentString;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+
+import javax.annotation.Nonnull;
+import java.util.HashMap;
+import java.util.Map;
 
 @EventBusSubscriber
 public class WrapperPlayer extends WrapperEntity implements IWrapperPlayer {
@@ -153,14 +150,16 @@ public class WrapperPlayer extends WrapperEntity implements IWrapperPlayer {
         InterfaceManager.packetInterface.sendToPlayer(packet, this);
     }
 
+    @SuppressWarnings("ConstantConditions")
     @Override
     public void openCraftingGUI() {
         player.displayGui(new BlockWorkbench.InterfaceCraftingTable(player.world, null) {
+            @Nonnull
             @Override
-            public Container createContainer(InventoryPlayer playerInventory, EntityPlayer playerAccessing) {
+            public Container createContainer(@Nonnull InventoryPlayer playerInventory, @Nonnull EntityPlayer playerAccessing) {
                 return new ContainerWorkbench(playerInventory, playerAccessing.world, playerAccessing.getPosition()) {
                     @Override
-                    public boolean canInteractWith(EntityPlayer playerIn) {
+                    public boolean canInteractWith(@Nonnull EntityPlayer playerIn) {
                         return true;
                     }
                 };

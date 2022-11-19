@@ -196,7 +196,7 @@ public class JSONConfigLanguage {
     public static final LanguageEntry INTERACT_KEY_WRONGKEY = new LanguageEntry("interact.key.wrongkey", "This key does not go to this vehicle!");
 
     public static final LanguageEntry INTERACT_FUELPUMP_TOOFAR = new LanguageEntry("interact.fuelpump.toofar", "The pump is too far away from the vehicle.  The pump should be no more than 16 blocks away.");
-    public static final LanguageEntry INTERACT_FUELPUMP_WRONGTYPE = new LanguageEntry("interact.fuelpump.wrongtype", "This pump does not contain the same fuel type as what is in the vehicle.");
+    public static final LanguageEntry INTERACT_FUELPUMP_WRONGTYPE = new LanguageEntry("interact.fuelpump.wrongtype", "This pump does not contain the same fuel trackingType as what is in the vehicle.");
     public static final LanguageEntry INTERACT_FUELPUMP_WRONGENGINES = new LanguageEntry("interact.fuelpump.wrongengines", "The contents in this pump is not a valid fuel for the engines in the vehicle.  Check the manual for details.");
     public static final LanguageEntry INTERACT_FUELPUMP_CONNECT = new LanguageEntry("interact.fuelpump.connect", "Connected and fueling.");
     public static final LanguageEntry INTERACT_FUELPUMP_COMPLETE = new LanguageEntry("interact.fuelpump.complete", "Vehicle is full, disconnecting.");
@@ -247,7 +247,7 @@ public class JSONConfigLanguage {
     public static final LanguageEntry INTERACT_TRAILER_NOTFOUND = new LanguageEntry("interact.trailer.notfound", "No trailers were found anywhere near this vehicle.");
     public static final LanguageEntry INTERACT_TRAILER_TOOFAR = new LanguageEntry("interact.trailer.toofar", "The trailer is too far from the vehicle.");
     public static final LanguageEntry INTERACT_TRAILER_WRONGHITCH = new LanguageEntry("interact.trailer.wronghitch", "This vehicle does not have the correct hitch for this trailer.");
-    public static final LanguageEntry INTERACT_TRAILER_MISMATCH = new LanguageEntry("interact.trailer.mismatch", "A hitch was found that is close enough to connect, but was not the correct type.  Also, a matching hitch was found, but it was too far to connect.  Are you trying to use the wrong hitch?");
+    public static final LanguageEntry INTERACT_TRAILER_MISMATCH = new LanguageEntry("interact.trailer.mismatch", "A hitch was found that is close enough to connect, but was not the correct trackingType.  Also, a matching hitch was found, but it was too far to connect.  Are you trying to use the wrong hitch?");
     public static final LanguageEntry INTERACT_TRAILER_ALREADYTOWED = new LanguageEntry("interact.trailer.alreadytowed", "The only nearby vehicle is already being towed.");
     public static final LanguageEntry INTERACT_TRAILER_FEEDBACKLOOP = new LanguageEntry("interact.trailer.feedbackloop", "The only nearby vehicles are being towed by this vehicle, towing would result in an infinite towing loop.");
 
@@ -261,7 +261,7 @@ public class JSONConfigLanguage {
     public static final LanguageEntry ITEMINFO_ENGINE_FUELCONSUMPTION = new LanguageEntry("iteminfo.engine.fuelconsumption", "Fuel use (mb/t): ");
     public static final LanguageEntry ITEMINFO_ENGINE_SUPERCHARGERFUELCONSUMPTION = new LanguageEntry("iteminfo.engine.superchargerfuelconsumption", "Supercharger fuel use (mb/t): ");
     public static final LanguageEntry ITEMINFO_ENGINE_SUPERCHARGEREFFICIENCY = new LanguageEntry("iteminfo.engine.superchargerefficiency", "Supercharger efficiency: ");
-    public static final LanguageEntry ITEMINFO_ENGINE_FUELTYPE = new LanguageEntry("iteminfo.engine.fueltype", "Fuel type: ");
+    public static final LanguageEntry ITEMINFO_ENGINE_FUELTYPE = new LanguageEntry("iteminfo.engine.fueltype", "Fuel trackingType: ");
     public static final LanguageEntry ITEMINFO_ENGINE_FLUIDS = new LanguageEntry("iteminfo.engine.fluids", "Takes Fluids: ");
     public static final LanguageEntry ITEMINFO_ENGINE_HOURS = new LanguageEntry("iteminfo.engine.hours", "Runtime hours: ");
     public static final LanguageEntry ITEMINFO_ENGINE_OILLEAK = new LanguageEntry("iteminfo.engine.oilleak", "§cHas an oil leak!");
@@ -283,17 +283,17 @@ public class JSONConfigLanguage {
 
     public static final LanguageEntry ITEMINFO_GUN_DIAMETER = new LanguageEntry("iteminfo.gun.diameter", "Barrel Diameter (mm): ");
     public static final LanguageEntry ITEMINFO_GUN_CASERANGE = new LanguageEntry("iteminfo.gun.caseRange", "Case Range (mm): ");
-    public static final LanguageEntry ITEMINFO_GUN_FIREDELAY = new LanguageEntry("iteminfo.gun.fireDelay", "Fire Delay (ticks): ");
-    public static final LanguageEntry ITEMINFO_GUN_MUZZLEVELOCITY = new LanguageEntry("iteminfo.gun.muzzleVelocity", "Velocity (blk/s): ");
+    public static final LanguageEntry ITEMINFO_GUN_FIREDELAY = new LanguageEntry("iteminfo.gun.launchDelay", "Fire Delay (ticks): ");
+    public static final LanguageEntry ITEMINFO_GUN_MUZZLEVELOCITY = new LanguageEntry("iteminfo.gun.exitVelocity", "Velocity (blk/s): ");
     public static final LanguageEntry ITEMINFO_GUN_CAPACITY = new LanguageEntry("iteminfo.gun.capacity", "Bullet Capacity: ");
     public static final LanguageEntry ITEMINFO_GUN_AUTORELOAD = new LanguageEntry("iteminfo.gun.autoReload", "Auto-Reloads");
     public static final LanguageEntry ITEMINFO_GUN_YAWRANGE = new LanguageEntry("iteminfo.gun.yawRange", "Yaw Range: ");
     public static final LanguageEntry ITEMINFO_GUN_PITCHRANGE = new LanguageEntry("iteminfo.gun.pitchRange", "Pitch Range: ");
 
-    public static final LanguageEntry ITEMINFO_BULLET_TYPE_EXPLOSIVE = new LanguageEntry("iteminfo.bullet.type.explosive", "Explosive Bullet");
-    public static final LanguageEntry ITEMINFO_BULLET_TYPE_INCENDIARY = new LanguageEntry("iteminfo.bullet.type.incendiary", "Incendiary Bullet");
-    public static final LanguageEntry ITEMINFO_BULLET_TYPE_ARMOR_PIERCING = new LanguageEntry("iteminfo.bullet.type.armor_piercing", "Armor Piercing Bullet");
-    public static final LanguageEntry ITEMINFO_BULLET_TYPE_WATER = new LanguageEntry("iteminfo.bullet.type.water", "Water Bullet");
+    public static final LanguageEntry ITEMINFO_BULLET_TYPE_EXPLOSIVE = new LanguageEntry("iteminfo.bullet.trackingType.explosive", "Explosive Bullet");
+    public static final LanguageEntry ITEMINFO_BULLET_TYPE_INCENDIARY = new LanguageEntry("iteminfo.bullet.trackingType.incendiary", "Incendiary Bullet");
+    public static final LanguageEntry ITEMINFO_BULLET_TYPE_ARMOR_PIERCING = new LanguageEntry("iteminfo.bullet.trackingType.armor_piercing", "Armor Piercing Bullet");
+    public static final LanguageEntry ITEMINFO_BULLET_TYPE_WATER = new LanguageEntry("iteminfo.bullet.trackingType.water", "Water Bullet");
     public static final LanguageEntry ITEMINFO_BULLET_PELLETS = new LanguageEntry("iteminfo.bullet.pellets", "Pellets: ");
     public static final LanguageEntry ITEMINFO_BULLET_DIAMETER = new LanguageEntry("iteminfo.bullet.diameter", "Diameter (mm): ");
     public static final LanguageEntry ITEMINFO_BULLET_CASELENGTH = new LanguageEntry("iteminfo.bullet.caseLength", "Case Length (mm): ");

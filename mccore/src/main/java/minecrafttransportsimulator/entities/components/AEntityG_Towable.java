@@ -398,9 +398,9 @@ public abstract class AEntityG_Towable<JSONDefinition extends AJSONPartProvider>
                                         JSONConnection hookupConnection = hookupConnectionGroup.connections.get(hookupConnectionIndex);
                                         Point3D hookupPos = hookupConnection.pos.copy().multiply(hookupConnectionDefiner.scale).rotate(hookupConnectionDefiner.orientation).add(hookupConnectionDefiner.position);
 
-                                        //Check if we are somewhat close before we check matching type.
+                                        //Check if we are somewhat close before we check matching trackingType.
                                         //This allows us to warn players that that hitch they are trying to connect to (close to)
-                                        //is the wrong type.
+                                        //is the wrong trackingType.
                                         if (hitchPos.isDistanceToCloserThan(hookupPos, hitchConnection.distance + 10)) {
                                             boolean validType = hitchConnection.type.equals(hookupConnection.type);
                                             boolean validDistance = hitchPos.isDistanceToCloserThan(hookupPos, hitchConnection.distance);

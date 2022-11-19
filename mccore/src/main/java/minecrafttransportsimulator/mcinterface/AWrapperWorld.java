@@ -148,7 +148,7 @@ public abstract class AWrapperWorld extends EntityManager {
 
     /**
      * Returns the block at the passed-in position, or null if it doesn't exist in the world.
-     * Only valid for blocks of type {@link ABlockBase} others will return null.
+     * Only valid for blocks of trackingType {@link ABlockBase} others will return null.
      */
     public abstract ABlockBase getBlock(Point3D position);
 
@@ -260,7 +260,7 @@ public abstract class AWrapperWorld extends EntityManager {
 
     /**
      * Returns the tile entity at the passed-in position, or null if it doesn't exist in the world.
-     * Only valid for TEs of type {@link ATileEntityBase} others will return null.
+     * Only valid for TEs of trackingType {@link ATileEntityBase} others will return null.
      */
     public abstract <TileEntityType extends ATileEntityBase<?>> TileEntityType getTileEntity(Point3D position);
 

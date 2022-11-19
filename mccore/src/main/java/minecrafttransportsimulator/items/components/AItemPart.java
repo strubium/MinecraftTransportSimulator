@@ -69,12 +69,12 @@ public abstract class AItemPart extends AItemSubTyped<JSONPart> implements IItem
     /**
      * Checks if the part item is valid for the defined part slot.  Checked for all placement, and slot-based operations.
      * min/max may be ignored in some cases (such as holo-boxes where you want them to be red of the part is the right
-     * type, but the wrong size).
+     * trackingType, but the wrong size).
      */
     public boolean isPartValidForPackDef(JSONPartDefinition placementDefinition, JSONSubDefinition subDefinition, boolean checkMinMax) {
-        //First make sure we are the right type.
+        //First make sure we are the right trackingType.
         if (placementDefinition.types.contains(definition.generic.type) && (placementDefinition.validSubNames == null || placementDefinition.validSubNames.contains(subDefinition.subName))) {
-            //Check if our custom type matches, or if we aren't a custom type and the definition doesn't care.
+            //Check if our custom trackingType matches, or if we aren't a custom trackingType and the definition doesn't care.
             if (placementDefinition.customTypes == null) {
                 return definition.generic.customType == null;
             } else if (definition.generic.customType == null) {

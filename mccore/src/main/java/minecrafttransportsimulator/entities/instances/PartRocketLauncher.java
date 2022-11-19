@@ -1,94 +1,57 @@
 package minecrafttransportsimulator.entities.instances;
 
-import minecrafttransportsimulator.baseclasses.*;
+import minecrafttransportsimulator.baseclasses.Point3D;
+import minecrafttransportsimulator.baseclasses.RotationMatrix;
 import minecrafttransportsimulator.entities.components.AEntityF_Multipart;
 import minecrafttransportsimulator.items.components.AItemBase;
-import minecrafttransportsimulator.items.instances.ItemBullet;
-import minecrafttransportsimulator.items.instances.ItemPartGun;
 import minecrafttransportsimulator.items.instances.ItemPartProjectileLauncher;
-import minecrafttransportsimulator.jsondefs.JSONAnimationDefinition;
-import minecrafttransportsimulator.jsondefs.JSONMuzzle;
-import minecrafttransportsimulator.jsondefs.JSONPart.InteractableComponentType;
-import minecrafttransportsimulator.jsondefs.JSONPart.JSONPartGun;
-import minecrafttransportsimulator.jsondefs.JSONPartDefinition;
-import minecrafttransportsimulator.jsondefs.JSONText;
+import minecrafttransportsimulator.items.instances.ItemRocket;
+import minecrafttransportsimulator.jsondefs.*;
+import minecrafttransportsimulator.jsondefs.JSONPart.JSONPartRocketLauncher;
 import minecrafttransportsimulator.mcinterface.*;
-import minecrafttransportsimulator.packets.instances.PacketPartGun;
 import minecrafttransportsimulator.packloading.PackParser;
 import minecrafttransportsimulator.systems.ConfigSystem;
 
-import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Basic gun class.  This class is responsible for representing a gun in the world.  This gun
- * can be placed on anything and modeled by anything as the code is only for controlling the firing
- * of the gun.  This means this class only stores the internal state of the gun, such as the number
- * of bullets, cooldown time remaining, who is controlling it, etc.  It does NOT set these states, as
- * these are done externally.
- * <br><br>
- * However, since this gun object is responsible for firing bullets, it does need to have spatial awareness.
- * Because of this, the gun contains a position and orientation offset that may be set to "move" the gun in
- * the world.  This should not be confused with the gun's internal orientation, which is set based on commands
- * given to the gun and may change.
- *
- * @author don_bruce
- */
-public class PartGun extends PartProjectileLauncher {
-    //Stored variables used to determine bullet firing behavior.
-    private int bulletsLeft;
-    protected ItemBullet loadedBullet;
-    private ItemBullet reloadingBullet;
-    public ItemBullet clientNextBullet;
-
-    //These variables are used during firing and will be reset on loading.
-    private int camOffset;
-    private int cooldownTimeRemaining;
-    private int reloadTimeRemaining;
-    private int windupTimeCurrent;
-    private int windupRotation;
-    private long lastMillisecondFired;
+public class PartRocketLauncher extends PartProjectileLauncher {
+    private int rocketsLeft;
+    protected ItemRocket loadedRocket;
+    private ItemRocket reloadingRocket;
+    public ItemRocket clientNextRocket;
     public IWrapperEntity lastController;
-    private PartSeat lastControllerSeat;
-    private final Point3D controllerRelativeLookVector = new Point3D();
-    private IWrapperEntity entityTarget;
-    private PartEngine engineTarget;
-    private final List<PartSeat> seatsControllingGun = new ArrayList<>();
 
-    //Temp helper variables for calculations
-    private final Point3D targetVector = new Point3D();
-    private final Point3D targetAngles = new Point3D();
 
-    public PartGun(AEntityF_Multipart<?> entityOn, IWrapperPlayer placingPlayer, JSONPartDefinition placementDefinition, IWrapperNBT data, JSONPartGun partGun) {
-        super(entityOn, placingPlayer, placementDefinition, data, partGun);
+    public PartRocketLauncher(AEntityF_Multipart<?> entityOn, IWrapperPlayer placingPlayer, JSONPartDefinition placementDefinition, IWrapperNBT data, JSONPartRocketLauncher rocketLauncher) {
+        super(entityOn, placingPlayer, placementDefinition, data, rocketLauncher);
 
         //Load saved data.
-        this.bulletsLeft = data.getInteger("bulletsLeft");
+        this.rocketsLeft = data.getInteger("rocketsLeft");
         this.currentMuzzleGroupIndex = data.getInteger("currentMuzzleGroupIndex");
-        String loadedBulletPack = data.getString("loadedBulletPack");
-        if (!loadedBulletPack.isEmpty()) {
-            String loadedBulletName = data.getString("loadedBulletName");
-            this.loadedBullet = PackParser.getItem(loadedBulletPack, loadedBulletName);
+        String loadedRocketPack = data.getString("loadedRocket");
+        if (!loadedRocketPack.isEmpty()) {
+            String loadedRocketName = data.getString("loadedRocketName");
+            this.loadedRocket = PackParser.getItem(loadedRocketPack, loadedRocketName);
         }
-        String reloadingBulletPack = data.getString("reloadingBulletPack");
-        if (!reloadingBulletPack.isEmpty()) {
-            String reloadingBulletName = data.getString("reloadingBulletName");
-            this.reloadingBullet = PackParser.getItem(reloadingBulletPack, reloadingBulletName);
+        String reloadingRocket = data.getString("reloadingRocket");
+        if (!reloadingRocket.isEmpty()) {
+            String reloadingRocketName = data.getString("reloadingRocketName");
+            this.reloadingRocket = PackParser.getItem(reloadingRocket, reloadingRocketName);
         }
-        //If we didn't load the bullet due to pack changes, set the current bullet count to 0.
-        //This prevents pack changes from locking guns.
-        if (loadedBullet == null) {
-            bulletsLeft = 0;
+        //If we didn't load the rocket due to pack changes, set the current rocket count to 0.
+        //This prevents pack changes from locking launchers.
+        if (loadedRocket == null) {
+            rocketsLeft = 0;
         }
     }
 
     @Override
     public boolean interact(IWrapperPlayer player) {
-        //Check to see if we have any bullets in our hands.
-        //If so, try to re-load this gun with them.
+        //Check to see if we have any rockets in our hands.
+        //If so, try to re-load this launcher with them.
         AItemBase heldItem = player.getHeldItem();
-        if (heldItem instanceof ItemBullet) {
-            if (tryToReload((ItemBullet) heldItem) && !player.isCreative()) {
+        if (heldItem instanceof ItemRocket) {
+            if (tryToReload((ItemRocket) heldItem) && !player.isCreative()) {
                 player.getInventory().removeFromSlot(player.getHotbarIndex(), 1);
             }
         }
@@ -97,6 +60,10 @@ public class PartGun extends PartProjectileLauncher {
 
     @Override
     public void update() {
+        //Set launcher state and do updates.
+        firedThisCheck = false;
+        isRunningInCoaxialMode = false;
+        prevInternalOrientation.set(internalOrientation);
         if (isActive && !isSpare) {
             //Check if we have a controller.
             //We aren't making sentry turrets here.... yet.
@@ -106,9 +73,9 @@ public class PartGun extends PartProjectileLauncher {
                 if (entityOn instanceof EntityPlayerGun) {
                     state = state.promote(LauncherState.CONTROLLED);
                 } else {
-                    //If this gun trackingType can only have one selected at a time, check that this has the selected index.
+                    //If this launcher trackingType can only have one selected at a time, check that this has the selected index.
                     lastControllerSeat = (PartSeat) lastController.getEntityRiding();
-                    if (getItem() == lastControllerSeat.activeLauncherItem && (!definition.gun.fireSolo || lastControllerSeat.gunGroups.get((ItemPartGun) getItem()).get(lastControllerSeat.launcherIndex) == this)) {
+                    if (getItem() == lastControllerSeat.activeLauncherItem && (!definition.launcher.fireSolo || lastControllerSeat.launcherGroups.get(getItem()).get(lastControllerSeat.launcherIndex) == this)) {
                         state = state.promote(LauncherState.CONTROLLED);
                     } else {
                         state = state.demote(LauncherState.ACTIVE);
@@ -119,9 +86,9 @@ public class PartGun extends PartProjectileLauncher {
                 }
             }
             if (controller == null) {
-                //If we aren't being controlled, check if we have any coaxial guns.
+                //If we aren't being controlled, check if we have any coaxial launchers.
                 //If we do, and they have a controller, then we use that as our controller.
-                //This allows them to control this gun without being the actual controller for firing.
+                //This allows them to control this launcher without being the actual controller for firing.
                 if (!parts.isEmpty()) {
                     for (APart part : parts) {
                         if (part instanceof PartGun && part.placementDefinition.isCoAxial) {
@@ -130,7 +97,7 @@ public class PartGun extends PartProjectileLauncher {
                                 //Check if the coaxial is controlled or not.
                                 lastController = controller;
                                 lastControllerSeat = (PartSeat) lastController.getEntityRiding();
-                                if (part.getItem() == lastControllerSeat.activeLauncherItem && (!definition.gun.fireSolo || lastControllerSeat.gunGroups.get((ItemPartGun) part.getItem()).get(lastControllerSeat.launcherIndex) == part)) {
+                                if (part.getItem() == lastControllerSeat.activeLauncherItem && (!definition.launcher.fireSolo || lastControllerSeat.launcherGroups.get(part.getItem()).get(lastControllerSeat.launcherIndex) == part)) {
                                     state = state.promote(LauncherState.CONTROLLED);
                                     isRunningInCoaxialMode = true;
                                 }
@@ -141,7 +108,7 @@ public class PartGun extends PartProjectileLauncher {
                 }
                 if (controller == null) {
                     state = state.demote(LauncherState.ACTIVE);
-                    //If we are hand-held, we need to die since we aren't a valid gun.
+                    //If we are hand-held, we need to die since we aren't a valid launcher.
                     if (entityOn instanceof EntityPlayerGun) {
                         isValid = false;
                         return;
@@ -165,12 +132,12 @@ public class PartGun extends PartProjectileLauncher {
                 --cooldownTimeRemaining;
             }
 
-            //Set final gun active state and variables, and fire if those line up with conditions.
-            //Note that this code runs concurrently on the client and server.  This prevents the need for packets for bullet
-            //spawning and ensures that they spawn every tick on quick-firing guns.  Hits are registered on both sides, but
-            //hit processing is only done on the server; clients just de-spawn the bullet and wait for packets.
-            //Because of this, there is no linking between client and server bullets, and therefore they do not handle NBT or UUIDs.
-            boolean ableToFire = windupTimeCurrent == definition.gun.windupTime && (!definition.gun.isSemiAuto || !firedThisRequest);
+            //Set final launcher active state and variables, and fire if those line up with conditions.
+            //Note that this code runs concurrently on the client and server.  This prevents the need for packets for rocket
+            //spawning and ensures that they spawn every tick on quick-firing launchers.  Hits are registered on both sides, but
+            //hit processing is only done on the server; clients just de-spawn the rocket and wait for packets.
+            //Because of this, there is no linking between client and server rockets, and therefore they do not handle NBT or UUIDs.
+            boolean ableToFire = windupTimeCurrent == definition.launcher.windupTime && (!definition.launcher.isSemiAuto || !firedThisRequest);
             if (ableToFire && state.isAtLeast(LauncherState.FIRING_REQUESTED)) {
                 //Set firing to true if we aren't firing, and we've waited long enough since the last firing command.
                 //If we don't wait, we can bypass the cooldown by toggling the trigger.
@@ -178,11 +145,11 @@ public class PartGun extends PartProjectileLauncher {
                     //Get current group and use it to determine firing offset.
                     //Don't calculate this if we already did on a prior firing command.
                     if (camOffset <= 0) {
-                        if (!definition.gun.fireSolo && lastControllerSeat != null) {
-                            List<PartGun> gunGroup = lastControllerSeat.gunGroups.get((ItemPartGun) getItem());
-                            int thisGunIndex = gunGroup.indexOf(this);
+                        if (!definition.launcher.fireSolo && lastControllerSeat != null) {
+                            List<PartProjectileLauncher> launcherGroup = lastControllerSeat.launcherGroups.get((ItemPartProjectileLauncher) getItem());
+                            int thisGunIndex = launcherGroup.indexOf(this);
                             if (lastControllerSeat.launcherGroupIndex == thisGunIndex) {
-                                camOffset = ((int) definition.gun.fireDelay) / gunGroup.size();
+                                camOffset = ((int) definition.launcher.fireDelay) / launcherGroup.size();
                             } else {
                                 //Wait for our turn.
                                 camOffset = -1;
@@ -192,69 +159,67 @@ public class PartGun extends PartProjectileLauncher {
                         --camOffset;
                     }
 
-                    //If we have bullets, try and fire them.
+                    //If we have rockets, try and fire them.
                     boolean cycledGun = false;
-                    if (bulletsLeft > 0) {
+                    if (rocketsLeft > 0) {
                         state = state.promote(LauncherState.FIRING_CURRENTLY);
 
-                        //If we are in our cam, fire the bullets.
+                        //If we are in our cam, fire the rockets.
                         if (camOffset == 0) {
-                            for (JSONMuzzle muzzle : definition.gun.muzzleGroups.get(currentMuzzleGroupIndex).muzzles) {
-                                for (int i = 0; i < (loadedBullet.definition.bullet.pellets > 0 ? loadedBullet.definition.bullet.pellets : 1); i++) {
-                                    //Get the bullet's state.
-                                    setProjectileSpawn(projectilePosition, projectileVelocity, projectileOrientation, muzzle);
+                            for (JSONMuzzle muzzle : definition.launcher.muzzleGroups.get(currentMuzzleGroupIndex).muzzles) {
+                                //Get the rocket's state.
+                                setProjectileSpawn(projectilePosition, projectileVelocity, projectileOrientation, muzzle);
 
-                                    //Add the bullet to the world.
-                                    //If the bullet is a missile, give it a entityTarget.
-                                    EntityBullet newBullet;
-                                    if (loadedBullet.definition.bullet.turnRate > 0) {
-                                        if (entityTarget != null) {
-                                            newBullet = new EntityBullet(projectilePosition, projectileVelocity, projectileOrientation, this, entityTarget);
-                                        } else if (engineTarget != null) {
-                                            newBullet = new EntityBullet(projectilePosition, projectileVelocity, projectileOrientation, this, engineTarget);
-                                        } else {
-                                            //No entity found, just fire missile off in direction facing.
-                                            newBullet = new EntityBullet(projectilePosition, projectileVelocity, projectileOrientation, this);
-                                        }
+                                //Add the rocket to the world.
+                                //If the rocket is a missile, give it a target.
+                                EntityRocket newRocket;
+                                if (loadedRocket.definition.rocket.turnRate > 0) {
+                                    if (entityTarget != null) {
+                                        newRocket = new EntityRocket(this, projectilePosition, projectileVelocity, projectileOrientation, entityTarget);
+                                        //} else if (engineTarget != null) {
+                                        //    newRocket = new EntityRocket(projectilePosition, projectileVelocity, projectileOrientation, this, engineTarget);
                                     } else {
-                                        newBullet = new EntityBullet(projectilePosition, projectileVelocity, projectileOrientation, this);
+                                        //No entity found, just fire missile off in direction facing.
+                                        newRocket = new EntityRocket(this, projectilePosition, projectileVelocity, projectileOrientation, false);
                                     }
-
-                                    world.addEntity(newBullet);
+                                } else {
+                                    newRocket = new EntityRocket(this, projectilePosition, projectileVelocity, projectileOrientation, false);
                                 }
 
-                                //Decrement bullets, but check to make sure we still have some.
+                                world.addEntity(newRocket);
+
+                                //Decrement rockets, but check to make sure we still have some.
                                 //We might have a partial volley with only some muzzles firing in this group.
-                                if (--bulletsLeft == 0) {
-                                    //Only set the bullet to null on the server. This lets the server choose a different bullet to load.
-                                    //If we did this on the client, we might set the bullet to null after we got a packet for a reload.
-                                    //That would cause us to finish the reload with a null bullet, and crash later.
+                                if (--rocketsLeft == 0) {
+                                    //Only set the rocket to null on the server. This lets the server choose a different rocket to load.
+                                    //If we did this on the client, we might set the rocket to null after we got a packet for a reload.
+                                    //That would cause us to finish the reload with a null rocket, and crash later.
                                     if (!world.isClient()) {
-                                        loadedBullet = null;
+                                        loadedRocket = null;
                                     }
                                     break;
                                 }
                             }
 
                             //Update states.
-                            cooldownTimeRemaining = (int) definition.gun.fireDelay;
+                            cooldownTimeRemaining = (int) definition.launcher.fireDelay;
                             firedThisRequest = true;
                             firedThisCheck = true;
                             cycledGun = true;
                             lastMillisecondFired = System.currentTimeMillis();
-                            if (definition.gun.muzzleGroups.size() == ++currentMuzzleGroupIndex) {
+                            if (definition.launcher.muzzleGroups.size() == ++currentMuzzleGroupIndex) {
                                 currentMuzzleGroupIndex = 0;
                             }
                         }
                     } else if (camOffset == 0) {
-                        //Got to end of cam with no bullets, cycle gun.
+                        //Got to end of cam with no rockets, cycle launcher.
                         cycledGun = true;
                     }
                     if (cycledGun) {
                         if (lastControllerSeat != null) {
-                            List<PartProjectileLauncher> gunGroup = lastControllerSeat.launcherGroups.get((ItemPartProjectileLauncher) getItem());
-                            int currentIndex = gunGroup.indexOf(this);
-                            if (currentIndex + 1 < gunGroup.size()) {
+                            List<PartProjectileLauncher> launcherGroup = lastControllerSeat.launcherGroups.get((ItemPartProjectileLauncher) getItem());
+                            int currentIndex = launcherGroup.indexOf(this);
+                            if (currentIndex + 1 < launcherGroup.size()) {
                                 lastControllerSeat.launcherGroupIndex = currentIndex + 1;
                             } else {
                                 lastControllerSeat.launcherGroupIndex = 0;
@@ -269,20 +234,20 @@ public class PartGun extends PartProjectileLauncher {
                 }
             }
 
-            //If we can accept bullets, and aren't currently loading any, re-load ourselves from any inventories.
+            //If we can accept rockets, and aren't currently loading any, re-load ourselves from any inventories.
             //While the reload method checks for reload time, we check here to save on code processing.
-            //No sense in looking for bullets if we can't load them anyways.
-            if (!world.isClient() && bulletsLeft < definition.gun.capacity && reloadingBullet == null) {
+            //No sense in looking for rockets if we can't load them anyways.
+            if (!world.isClient() && rocketsLeft < definition.launcher.capacity && reloadingRocket == null) {
                 if (entityOn instanceof EntityPlayerGun) {
-                    if (definition.gun.autoReload || bulletsLeft == 0) {
-                        //Check the player's inventory for bullets.
+                    if (definition.launcher.autoReload || rocketsLeft == 0) {
+                        //Check the player's inventory for rockets.
                         IWrapperInventory inventory = ((IWrapperPlayer) lastController).getInventory();
                         for (int i = 0; i < inventory.getSize(); ++i) {
                             IWrapperItemStack stack = inventory.getStack(i);
                             AItemBase item = stack.getItem();
-                            if (item instanceof ItemBullet) {
-                                if (tryToReload((ItemBullet) item)) {
-                                    //Bullet is right trackingType, and we can fit it.  Remove from player's inventory and add to the gun.
+                            if (item instanceof ItemRocket) {
+                                if (tryToReload((ItemRocket) item)) {
+                                    //Rocket is right trackingType, and we can fit it.  Remove from player's inventory and add to the launcher.
                                     if (!ConfigSystem.settings.general.devMode.value)
                                         inventory.removeFromSlot(i, 1);
                                     break;
@@ -291,7 +256,7 @@ public class PartGun extends PartProjectileLauncher {
                         }
                     }
                 } else {
-                    if (definition.gun.autoReload) {
+                    if (definition.launcher.autoReload) {
                         //Iterate through all the inventory slots in crates to try to find matching ammo.
                         for (PartInteractable crate : connectedCrates) {
                             if (crate.isActive) {
@@ -299,10 +264,10 @@ public class PartGun extends PartProjectileLauncher {
                                 for (int i = 0; i < inventory.getSize(); ++i) {
                                     IWrapperItemStack stack = inventory.getStack(i);
                                     AItemBase item = stack.getItem();
-                                    if (item instanceof ItemBullet) {
-                                        if (tryToReload((ItemBullet) item)) {
-                                            //Bullet is right trackingType, and we can fit it.  Remove from crate and add to the gun.
-                                            //Return here to ensure we don't set the loadedBullet to blank since we found bullets.
+                                    if (item instanceof ItemRocket) {
+                                        if (tryToReload((ItemRocket) item)) {
+                                            //Rocket is right trackingType, and we can fit it.  Remove from crate and add to the launcher.
+                                            //Return here to ensure we don't set the loadedRocket to blank since we found rockets.
                                             if (!ConfigSystem.settings.general.devMode.value)
                                                 inventory.removeFromSlot(i, 1);
                                             break;
@@ -315,38 +280,38 @@ public class PartGun extends PartProjectileLauncher {
                 }
             }
 
-            //If we are a client, this is where we get our bullets.
-            if (clientNextBullet != null) {
-                reloadingBullet = clientNextBullet;
-                reloadTimeRemaining = definition.gun.reloadTime;
-                clientNextBullet = null;
+            //If we are a client, this is where we get our rockets.
+            if (clientNextRocket != null) {
+                reloadingRocket = clientNextRocket;
+                reloadTimeRemaining = definition.launcher.reloadTime;
+                clientNextRocket = null;
             }
 
             //If we are reloading, decrement the reloading timer.
-            //If we are done reloading, add the new bullets.
+            //If we are done reloading, add the new rockets.
             //This comes after the reloading block as we need a 0/1 state-change for the various animations,
             //so at some point the reload time needs to hit 0.
             if (reloadTimeRemaining > 0) {
                 --reloadTimeRemaining;
-            } else if (reloadingBullet != null) {
-                loadedBullet = reloadingBullet;
-                bulletsLeft += reloadingBullet.definition.bullet.quantity;
-                reloadingBullet = null;
+            } else if (reloadingRocket != null) {
+                loadedRocket = reloadingRocket;
+                rocketsLeft += reloadingRocket.definition.rocket.quantity;
+                reloadingRocket = null;
             }
         } else {
-            //Inactive gun, set as such and set to default position if we have one.
+            //Inactive launcher, set as such and set to default position if we have one.
             state = LauncherState.INACTIVE;
             entityTarget = null;
             engineTarget = null;
-            if (definition.gun.resetPosition) {
+            if (definition.launcher.resetPosition) {
                 handleMovement(defaultYaw - internalOrientation.angles.y, defaultPitch - internalOrientation.angles.x);
             }
         }
 
         //Increment or decrement windup.
-        //This is done outside the main active area as windup can wind-down on deactivated guns.
+        //This is done outside the main active area as windup can wind-down on deactivated launchers.
         if (state.isAtLeast(LauncherState.FIRING_REQUESTED)) {
-            if (windupTimeCurrent < definition.gun.windupTime) {
+            if (windupTimeCurrent < definition.launcher.windupTime) {
                 ++windupTimeCurrent;
             }
         } else if (windupTimeCurrent > 0) {
@@ -359,7 +324,7 @@ public class PartGun extends PartProjectileLauncher {
             firedThisRequest = false;
         }
 
-        //Now run super.  This needed to wait for the gun states to ensure proper states.
+        //Now run super.  This needed to wait for the launcher states to ensure proper states.
         super.update();
 
         //If we have a controller seat on us, adjust the player's facing to account for our movement.
@@ -390,25 +355,24 @@ public class PartGun extends PartProjectileLauncher {
             }
         }
         addLinkedPartsToList(connectedCrates, PartInteractable.class);
-        connectedCrates.removeIf(crate -> crate.definition.interactable.interactionType != InteractableComponentType.CRATE || !crate.definition.interactable.feedsVehicles);
+        connectedCrates.removeIf(crate -> crate.definition.interactable.interactionType != JSONPart.InteractableComponentType.CRATE || !crate.definition.interactable.feedsVehicles);
     }
 
     /**
      * Helper method to calculate yaw/pitch movement.  Takes controller
-     * look vector into account, as well as gun position.  Does not take
-     * gun clamping into account as that's done in {@link #handleMovement(double, double)}
+     * look vector into account, as well as launcher position.  Does not take
+     * launcher clamping into account as that's done in {@link #handleMovement(double, double)}
      */
-    @Override
     protected void handleControl(IWrapperEntity controller) {
         //If the controller isn't a player, but is a NPC, make them look at the nearest hostile mob.
-        //We also get a flag to see if the gun is currently pointed to the hostile mob.
-        //If not, then we don't fire the gun, as that'd waste ammo.
+        //We also get a flag to see if the launcher is currently pointed to the hostile mob.
+        //If not, then we don't fire the launcher, as that'd waste ammo.
         //Need to aim for the middle of the mob, not their base (feet).
-        //Also make the gunner account for bullet delay and movement of the hostile.
-        //This makes them track better when the entityTarget is moving.
+        //Also make the launcherner account for rocket delay and movement of the hostile.
+        //This makes them track better when the target is moving.
         //We only do this
         if (!(controller instanceof IWrapperPlayer)) {
-            //Get new entityTarget if we don't have one, or if we've gone 1 second and we have a closer entityTarget by 5 blocks.
+            //Get new target if we don't have one, or if we've gone 1 second and we have a closer target by 5 blocks.
             boolean checkForCloser = entityTarget != null && ticksExisted % 20 == 0;
             if (entityTarget == null || checkForCloser) {
                 for (IWrapperEntity entity : world.getEntitiesHostile(controller, 48)) {
@@ -427,12 +391,12 @@ public class PartGun extends PartProjectileLauncher {
                 }
             }
 
-            //If we have a entityTarget, validate it and try to hit it.
+            //If we have a target, validate it and try to hit it.
             if (entityTarget != null) {
                 if (validateTarget(entityTarget)) {
                     controller.setYaw(targetAngles.y);
                     controller.setPitch(targetAngles.x);
-                    //Only fire if we're within 1 movement increment of the entityTarget.
+                    //Only fire if we're within 1 movement increment of the target.
                     if (Math.abs(targetAngles.y - internalOrientation.angles.y) < yawSpeed && Math.abs(targetAngles.x - internalOrientation.angles.x) < pitchSpeed) {
                         state = state.promote(LauncherState.FIRING_REQUESTED);
                     } else {
@@ -446,10 +410,10 @@ public class PartGun extends PartProjectileLauncher {
                 state = state.demote(LauncherState.CONTROLLED);
             }
         } else {
-            //Player-controlled gun.
-            //Check for a entityTarget for this gun if we have a lock-on missile.
+            //Player-controlled launcher.
+            //Check for a target for this launcher if we have a lock-on missile.
             //Only do this once every 1/2 second.
-            if (loadedBullet != null && loadedBullet.definition.bullet.turnRate > 0) {
+            if (loadedRocket != null && loadedRocket.definition.rocket.turnRate > 0) {
                 //Try to find the entity the controller is looking at.
                 entityTarget = world.getEntityLookingAt(controller, RAYTRACE_DISTANCE, true);
                 if (entityTarget == null) {
@@ -479,14 +443,14 @@ public class PartGun extends PartProjectileLauncher {
             controllerRelativeLookVector.computeVectorAngles(controller.getOrientation(), zeroReferenceOrientation);
             handleMovement(controllerRelativeLookVector.y - internalOrientation.angles.y, controllerRelativeLookVector.x - internalOrientation.angles.x);
             //If the seat is a part on us, or the seat has animations linked to us, adjust player rotations.
-            //This is required to ensure this gun doesn't rotate forever.
+            //This is required to ensure this launcher doesn't rotate forever.
             if (!lastControllerSeat.externalAnglesRotated.isZero() && lastControllerSeat.placementDefinition.animations != null) {
                 boolean updateYaw = false;
                 boolean updatePitch = false;
                 for (JSONAnimationDefinition def : lastControllerSeat.placementDefinition.animations) {
-                    if (def.variable.contains("gun_yaw")) {
+                    if (def.variable.contains("launcher_yaw")) {
                         updateYaw = true;
-                    } else if (def.variable.contains("gun_pitch")) {
+                    } else if (def.variable.contains("launcher_pitch")) {
                         updatePitch = true;
                     }
                 }
@@ -502,8 +466,8 @@ public class PartGun extends PartProjectileLauncher {
     }
 
     /**
-     * Helper method to validate a target as possible for this gun.
-     * Checks entity position relative to the gun, and if the entity
+     * Helper method to validate a target as possible for this launcher.
+     * Checks entity position relative to the launcher, and if the entity
      * is behind any blocks.  Returns true if the target is valid.
      * Also sets {@link #targetVector} and {@link #targetAngles}
      */
@@ -511,15 +475,15 @@ public class PartGun extends PartProjectileLauncher {
         if (target.isValid()) {
             //Get vector from eyes of controller to target.
             //Target we aim for the middle, as it's more accurate.
-            //We also take into account tracking for bullet speed.
+            //We also take into account tracking for rocket speed.
             targetVector.set(target.getPosition());
             targetVector.y += target.getEyeHeight() / 2D;
-            double ticksToTarget = target.getPosition().distanceTo(position) / definition.gun.exitVelocity / 20D / 10D;
+            double ticksToTarget = target.getPosition().distanceTo(position) / definition.launcher.exitVelocity / 20D / 10D;
             targetVector.add(target.getVelocity().scale(ticksToTarget)).subtract(position);
 
-            //Transform vector to gun's coordinate system.
-            //Get the angles the gun has to rotate to match the target.
-            //If the are outside the gun's clamps, this isn't a valid target.
+            //Transform vector to launcher's coordinate system.
+            //Get the angles the launcher has to rotate to match the target.
+            //If the are outside the launcher's clamps, this isn't a valid target.
             targetAngles.set(targetVector).reOrigin(zeroReferenceOrientation).getAngles(true);
 
             //Check yaw, if we need to.
@@ -541,19 +505,19 @@ public class PartGun extends PartProjectileLauncher {
     }
 
     /**
-     * Attempts to reload the gun with the passed-in item.  Returns true if the item is a bullet
+     * Attempts to reload the launcher with the passed-in item.  Returns true if the item is a rocket
      * and was loaded, false if not.  Provider methods are then called for packet callbacks.
      */
-    public boolean tryToReload(ItemBullet item) {
-        //Only fill bullets if we match the bullet already in the gun, or if our diameter matches, or if we got a signal on the client.
-        //Also don't fill bullets if we are currently reloading bullets.
-        if (item.definition.bullet != null) {
-            boolean isNewBulletValid = item.definition.bullet.diameter == definition.gun.diameter && item.definition.bullet.caseLength >= definition.gun.minLength && item.definition.bullet.caseLength <= definition.gun.maxLength;
-            if ((reloadingBullet == null && (loadedBullet == null ? isNewBulletValid : loadedBullet.equals(item)))
-                    && item.definition.bullet.quantity + bulletsLeft <= definition.gun.capacity) {
-                reloadingBullet = item;
-                reloadTimeRemaining = definition.gun.reloadTime;
-                InterfaceManager.packetInterface.sendToAllClients(new PacketPartGun(this, reloadingBullet));
+    public boolean tryToReload(ItemRocket item) {
+        //Only fill rockets if we match the rocket already in the launcher, or if our diameter matches, or if we got a signal on the client.
+        //Also don't fill rockets if we are currently reloading rockets.
+        if (item.definition.rocket != null) {
+            boolean isNewRocketValid = item.definition.rocket.diameter == definition.launcher.diameter && item.definition.rocket.length >= definition.launcher.minLength && item.definition.rocket.length <= definition.launcher.maxLength;
+            if ((reloadingRocket == null && (loadedRocket == null ? isNewRocketValid : loadedRocket.equals(item)))
+                    && item.definition.rocket.quantity + rocketsLeft <= definition.launcher.capacity) {
+                reloadingRocket = item;
+                reloadTimeRemaining = definition.launcher.reloadTime;
+                InterfaceManager.packetInterface.sendToAllClients(new PacketPartLauncher(this, reloadingRocket));
                 return true;
             }
         }
@@ -561,10 +525,10 @@ public class PartGun extends PartProjectileLauncher {
     }
 
     /**
-     * Returns the controller for the gun.
-     * The returned value may be a player riding the entity that this gun is on,
-     * or perhaps a player in a seat that's on this gun.  May also be the player
-     * hodling this gun if the gun is hand-held.
+     * Returns the controller for the launcher.
+     * The returned value may be a player riding the entity that this launcher is on,
+     * or perhaps a player in a seat that's on this launcher.  May also be the player
+     * hodling this launcher if the launcher is hand-held.
      */
     public IWrapperEntity getGunController() {
         //If the master entity we are on is destroyed, don't allow anything to control us.
@@ -600,27 +564,15 @@ public class PartGun extends PartProjectileLauncher {
     }
 
     /**
-     * Helper method to set the position and velocity of a bullet's spawn.
+     * Helper method to set the position and velocity of a rocket's spawn.
      * This is based on the passed-in muzzle, and the parameters of that muzzle.
-     * Used in both spawning the bullet, and in rendering where the muzzle position is.
+     * Used in both spawning the rocket, and in rendering where the muzzle position is.
      */
     @Override
     public void setProjectileSpawn(Point3D projectilePosition, Point3D projectileVelocity, RotationMatrix projectileOrientation, JSONMuzzle muzzle) {
         //Set velocity.
-        if (definition.gun.exitVelocity != 0) {
-            projectileVelocity.set(0, 0, definition.gun.exitVelocity / 20D / 10D);
-            //Randomize the spread for normal bullet and pellets
-            if (loadedBullet == null) {
-                if (definition.gun.bulletSpreadFactor > 0) {
-                    firingSpreadRotation.angles.set((Math.random() - 0.5F) * definition.gun.bulletSpreadFactor, (Math.random() - 0.5F) * definition.gun.bulletSpreadFactor, 0D);
-                    projectileVelocity.rotate(firingSpreadRotation);
-                }
-            } else {
-                if (definition.gun.bulletSpreadFactor > 0 || loadedBullet.definition.bullet.pelletSpreadFactor > 0) {
-                    firingSpreadRotation.angles.set((Math.random() - 0.5F) * (definition.gun.bulletSpreadFactor + loadedBullet.definition.bullet.pelletSpreadFactor), (Math.random() - 0.5F) * (definition.gun.bulletSpreadFactor + loadedBullet.definition.bullet.pelletSpreadFactor), 0D);
-                    projectileVelocity.rotate(firingSpreadRotation);
-                }
-            }
+        if (definition.launcher.exitVelocity != 0) {
+            projectileVelocity.set(0, 0, definition.launcher.exitVelocity / 20D / 10D);
 
             //Now that velocity is set, rotate it to match the gun's orientation.
             //For this, we get the reference orientation, and our internal orientation.
@@ -639,51 +591,51 @@ public class PartGun extends PartProjectileLauncher {
     @Override
     public double getRawVariableValue(String variable, float partialTicks) {
         switch (variable) {
-            case ("gun_inhand"):
+            case ("launcher_inhand"):
                 return entityOn instanceof EntityPlayerGun ? 1 : 0;
-            case ("gun_controller_firstperson"):
+            case ("launcher_controller_firstperson"):
                 return InterfaceManager.clientInterface.getClientPlayer().equals(lastController) && InterfaceManager.clientInterface.inFirstPerson() ? 1 : 0;
-            case ("gun_inhand_sneaking"):
+            case ("launcher_inhand_sneaking"):
                 return entityOn instanceof EntityPlayerGun && ((EntityPlayerGun) entityOn).player != null && ((EntityPlayerGun) entityOn).player.isSneaking() ? 1 : 0;
-            case ("gun_active"):
+            case ("launcher_active"):
                 return state.isAtLeast(LauncherState.CONTROLLED) ? 1 : 0;
-            case ("gun_firing"):
+            case ("launcher_firing"):
                 return state.isAtLeast(LauncherState.FIRING_REQUESTED) ? 1 : 0;
-            case ("gun_fired"):
+            case ("launcher_fired"):
                 return firedThisCheck ? 1 : 0;
-            case ("gun_muzzleflash"):
+            case ("launcher_muzzleflash"):
                 return firedThisCheck && lastMillisecondFired + 25 < System.currentTimeMillis() ? 1 : 0;
-            case ("gun_lockedon"):
+            case ("launcher_lockedon"):
                 return entityTarget != null || engineTarget != null ? 1 : 0;
-            case ("gun_lockedon_x"):
+            case ("launcher_lockedon_x"):
                 return entityTarget != null ? entityTarget.getPosition().x : (engineTarget != null ? engineTarget.position.x : 0);
-            case ("gun_lockedon_y"):
+            case ("launcher_lockedon_y"):
                 return entityTarget != null ? entityTarget.getPosition().y : (engineTarget != null ? engineTarget.position.y : 0);
-            case ("gun_lockedon_z"):
+            case ("launcher_lockedon_z"):
                 return entityTarget != null ? entityTarget.getPosition().z : (engineTarget != null ? engineTarget.position.z : 0);
-            case ("gun_pitch"):
+            case ("launcher_pitch"):
                 return partialTicks != 0 ? prevInternalOrientation.angles.x + (internalOrientation.angles.x - prevInternalOrientation.angles.x) * partialTicks : internalOrientation.angles.x;
-            case ("gun_yaw"):
+            case ("launcher_yaw"):
                 return partialTicks != 0 ? prevInternalOrientation.angles.y + (internalOrientation.angles.y - prevInternalOrientation.angles.y) * partialTicks : internalOrientation.angles.y;
-            case ("gun_pitching"):
+            case ("launcher_pitching"):
                 return prevInternalOrientation.angles.x != internalOrientation.angles.x ? 1 : 0;
-            case ("gun_yawing"):
+            case ("launcher_yawing"):
                 return prevInternalOrientation.angles.y != internalOrientation.angles.y ? 1 : 0;
-            case ("gun_cooldown"):
+            case ("launcher_cooldown"):
                 return cooldownTimeRemaining > 0 ? 1 : 0;
-            case ("gun_windup_time"):
+            case ("launcher_windup_time"):
                 return windupTimeCurrent;
-            case ("gun_windup_rotation"):
+            case ("launcher_windup_rotation"):
                 return windupRotation;
-            case ("gun_windup_complete"):
-                return windupTimeCurrent == definition.gun.windupTime ? 1 : 0;
-            case ("gun_reload"):
+            case ("launcher_windup_complete"):
+                return windupTimeCurrent == definition.launcher.windupTime ? 1 : 0;
+            case ("launcher_reload"):
                 return reloadTimeRemaining > 0 ? 1 : 0;
-            case ("gun_ammo_count"):
-                return bulletsLeft;
-            case ("gun_ammo_percent"):
-                return (float) (bulletsLeft / definition.gun.capacity);
-            case ("gun_active_muzzlegroup"):
+            case ("launcher_ammo_count"):
+                return rocketsLeft;
+            case ("launcher_ammo_percent"):
+                return (float) (rocketsLeft / definition.launcher.capacity);
+            case ("launcher_active_muzzlegroup"):
                 return currentMuzzleGroupIndex + 1;
         }
         return super.getRawVariableValue(variable, partialTicks);
@@ -691,9 +643,9 @@ public class PartGun extends PartProjectileLauncher {
 
     @Override
     public String getRawTextVariableValue(JSONText textDef, float partialTicks) {
-        //if (textDef.variableName.equals("gun_lockedon_name")) {
-        //    return entityTarget != null ? entityTarget.getName() : (engineTarget != null ? engineTarget.masterEntity.getItem().getItemName() : "");
-        //}
+        if (textDef.variableName.equals("launcher_lockedon_name")) {
+            return entityTarget != null ? entityTarget.getName() : (engineTarget != null ? engineTarget.masterEntity.getItem().getItemName() : "");
+        }
 
         return super.getRawTextVariableValue(textDef, partialTicks);
     }
@@ -701,16 +653,16 @@ public class PartGun extends PartProjectileLauncher {
     @Override
     public IWrapperNBT save(IWrapperNBT data) {
         super.save(data);
-        data.setInteger("bulletsLeft", bulletsLeft);
+        data.setInteger("rocketsLeft", rocketsLeft);
         data.setInteger("currentMuzzleGroupIndex", currentMuzzleGroupIndex);
         data.setPoint3d("internalAngles", internalOrientation.angles);
-        if (loadedBullet != null) {
-            data.setString("loadedBulletPack", loadedBullet.definition.packID);
-            data.setString("loadedBulletName", loadedBullet.definition.systemName);
+        if (loadedRocket != null) {
+            data.setString("loadedRocketPack", loadedRocket.definition.packID);
+            data.setString("loadedRocketName", loadedRocket.definition.systemName);
         }
-        if (reloadingBullet != null) {
-            data.setString("reloadingBulletPack", reloadingBullet.definition.packID);
-            data.setString("reloadingBulletName", reloadingBullet.definition.systemName);
+        if (reloadingRocket != null) {
+            data.setString("reloadingRocketPack", reloadingRocket.definition.packID);
+            data.setString("reloadingRocketName", reloadingRocket.definition.systemName);
         }
         return data;
     }

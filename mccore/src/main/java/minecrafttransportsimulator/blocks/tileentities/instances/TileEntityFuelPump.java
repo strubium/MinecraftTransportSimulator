@@ -108,14 +108,14 @@ public class TileEntityFuelPump extends ATileEntityFuelPump implements ITileEnti
 
     @Override
     protected PumpResult checkPump(EntityVehicleF_Physics vehicle) {
-        //Check to make sure this vehicle can take this fuel pump's fuel type.
+        //Check to make sure this vehicle can take this fuel pump's fuel trackingType.
         if (!vehicle.fuelTank.getFluid().isEmpty()) {
             if (!tank.getFluid().equals(vehicle.fuelTank.getFluid())) {
                 return PumpResult.MISMATCH;
             }
         }
 
-        //Fuel type can be taken by vehicle, check to make sure engines can take it.
+        //Fuel trackingType can be taken by vehicle, check to make sure engines can take it.
         for (APart part : vehicle.parts) {
             if (part instanceof PartEngine) {
                 if (ConfigSystem.settings.fuel.fuels.get(part.definition.engine.fuelType).containsKey(tank.getFluid())) {

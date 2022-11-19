@@ -47,7 +47,7 @@ public interface IWrapperPlayer extends IWrapperEntity {
     IWrapperEntity getLeashedEntity();
 
     /**
-     * Returns true if the player is holding the pack-item type passed-in.
+     * Returns true if the player is holding the pack-item trackingType passed-in.
      */
     boolean isHoldingItemType(ItemComponentType type);
 

@@ -33,7 +33,7 @@ public class JSONPartDefinition {
     @JSONDescription("This parameter is optional.  If included and set to true, any part in this position will not be able to be removed.  Useful in conjunction with a defaultPart.")
     public boolean isPermanent;
 
-    @JSONDescription("This parameter is optional.  If included and set to true, then this part will be marked as a spare.  If the part is a ground type, then it will not be used for ground device operations, and if it is a gun it will not be fire-able or select-able.  Useful for decorations like spare tires and gun racks.")
+    @JSONDescription("This parameter is optional.  If included and set to true, then this part will be marked as a spare.  If the part is a ground trackingType, then it will not be used for ground device operations, and if it is a gun it will not be fire-able or select-able.  Useful for decorations like spare tires and gun racks.")
     public boolean isSpare;
 
     @JSONDescription("This parameter is optional.  If included and set to true, this part will be flagged as mirroed.  This has no effect except for setting this property on the part, which can then be queried by the part's animations, and making ground devices return a negative rotation for any rotation variables.  Mainly used for rotating wheels around on the other side of vehicles, or swapping out seat/door models.")
@@ -106,7 +106,7 @@ public class JSONPartDefinition {
     @JSONDescription("A list of part types that can go in this position.  Normally you'll only have one entry in this list, as there's really no reason to have a ground_device at the same location as an engine.  There are some exceptions to this, however.  One is for interior equipment, like seats and chests, where you want players to be able to choose what they put in that position. ")
     public List<String> types;
 
-    @JSONDescription("This parameter is optional.  If included, this slot will ONLY accept parts whose customType parameter matches one of the items in this list.  If the part's customType is not defined, and a blank entry of �� is not present in the list, it will be invalid and cannot be added.  Useful for pack creators who don't want their vehicles to play nice with other content packs, or slots that should only accept sub-sets of a type of part (such as specific styles of seats).")
+    @JSONDescription("This parameter is optional.  If included, this slot will ONLY accept parts whose customType parameter matches one of the items in this list.  If the part's customType is not defined, and a blank entry of �� is not present in the list, it will be invalid and cannot be added.  Useful for pack creators who don't want their vehicles to play nice with other content packs, or slots that should only accept sub-sets of a trackingType of part (such as specific styles of seats).")
     public List<String> customTypes;
 
     @JSONDescription("A list of subNames this part can go on.  If included, this part will only be allowed to go on the specified definition sub-name variants.  Used to allow for variant-specific configurations, such as police variants of cars.")

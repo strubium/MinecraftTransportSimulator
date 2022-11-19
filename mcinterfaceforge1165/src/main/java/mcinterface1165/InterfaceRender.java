@@ -331,7 +331,7 @@ public class InterfaceRender implements IInterfaceRender {
                             onlineTextures.put(textureURL, glTexturePointer);
                         }
                     } else {
-                        StringBuilder errorString = new StringBuilder("Invalid content type found.  Found:" + contentType + ", but the only valid types are: ");
+                        StringBuilder errorString = new StringBuilder("Invalid content trackingType found.  Found:" + contentType + ", but the only valid types are: ");
                         for (String validType : validContentTypes) {
                             errorString.append(validType).append(", ");
                         }

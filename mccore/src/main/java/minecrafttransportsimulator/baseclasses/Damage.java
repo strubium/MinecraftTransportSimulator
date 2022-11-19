@@ -1,9 +1,11 @@
 package minecrafttransportsimulator.baseclasses;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import minecrafttransportsimulator.entities.components.AEntityB_Existing;
 import minecrafttransportsimulator.items.instances.ItemBullet;
+import minecrafttransportsimulator.items.instances.ItemRocket;
 import minecrafttransportsimulator.jsondefs.JSONBullet.BulletType;
 import minecrafttransportsimulator.jsondefs.JSONConfigLanguage.LanguageEntry;
 import minecrafttransportsimulator.jsondefs.JSONPotionEffect;
@@ -63,6 +65,18 @@ public class Damage {
             ignoreArmor = true;
         }
         effects = bulletItem.definition.bullet.effects;
+    }
+
+    /**
+     * Set this damage to the properties for rockets
+     */
+    public void setRocket(ItemRocket rocketItem) {
+        // Might be changed one day, but these properties are un-needed for now.
+        ignoreCooldown = true;
+        isWater = false;
+        isFire = false;
+        ignoreArmor = false;
+        effects = null;
     }
 
     /**

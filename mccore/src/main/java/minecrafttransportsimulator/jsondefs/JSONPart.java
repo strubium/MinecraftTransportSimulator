@@ -11,38 +11,42 @@ import minecrafttransportsimulator.packloading.JSONParser.JSONDefaults;
 import minecrafttransportsimulator.packloading.JSONParser.JSONDescription;
 import minecrafttransportsimulator.packloading.JSONParser.JSONRequired;
 
-@JSONDescription("Parts go on vehicles.  Simple, no?  There's not much to most part JSONs, and some parts, like seats, will have less than 10 lines to mess with.\nNote: while every part type has its own section, there is one cross-over: the generic section.  Being generic, it can be used on all parts to define their generic properties.  This may not apply on some parts, such as wheels, which define properties like height based on other parameters, but it will work on the majority of parts for more fine-tuning of things like interaction box size.")
+@JSONDescription("Parts go on vehicles.  Simple, no?  There's not much to most part JSONs, and some parts, like seats, will have less than 10 lines to mess with.\nNote: while every part trackingType has its own section, there is one cross-over: the generic section.  Being generic, it can be used on all parts to define their generic properties.  This may not apply on some parts, such as wheels, which define properties like height based on other parameters, but it will work on the majority of parts for more fine-tuning of things like interaction box size.")
 public class JSONPart extends AJSONPartProvider {
 
     @JSONRequired
     @JSONDescription("Properties for all parts.")
     public JSONPartGeneric generic;
 
-    @JSONRequired(dependentField = "type", dependentValues = {"engine"}, subField = "generic")
+    @JSONRequired(dependentField = "trackingType", dependentValues = {"engine"}, subField = "generic")
     @JSONDescription("Properties for engines.")
     public JSONPartEngine engine;
 
-    @JSONRequired(dependentField = "type", dependentValues = {"ground"}, subField = "generic")
+    @JSONRequired(dependentField = "trackingType", dependentValues = {"ground"}, subField = "generic")
     @JSONDescription("Properties for ground devices.")
     public JSONPartGroundDevice ground;
 
-    @JSONRequired(dependentField = "type", dependentValues = {"propeller"}, subField = "generic")
+    @JSONRequired(dependentField = "trackingType", dependentValues = {"propeller"}, subField = "generic")
     @JSONDescription("Properties for propellers.")
     public JSONPartPropeller propeller;
 
-    @JSONRequired(dependentField = "type", dependentValues = {"seat"}, subField = "generic")
+    @JSONRequired(dependentField = "trackingType", dependentValues = {"seat"}, subField = "generic")
     @JSONDescription("Properties for seats.")
     public JSONPartSeat seat;
 
-    @JSONRequired(dependentField = "type", dependentValues = {"gun"}, subField = "generic")
+    @JSONRequired(dependentField = "trackingType", dependentValues = {"gun"}, subField = "generic")
     @JSONDescription("Properties for guns.")
     public JSONPartGun gun;
 
-    @JSONRequired(dependentField = "type", dependentValues = {"interactable"}, subField = "generic")
+    @JSONRequired(dependentField = "trackingType", dependentValues = {"launcher"}, subField = "generic")
+    @JSONDescription("Properties for rocket/missile launchers.")
+    public JSONPartRocketLauncher launcher;
+
+    @JSONRequired(dependentField = "trackingType", dependentValues = {"interactable"}, subField = "generic")
     @JSONDescription("Properties for interactables.")
     public JSONPartInteractable interactable;
 
-    @JSONRequired(dependentField = "type", dependentValues = {"effector"}, subField = "generic")
+    @JSONRequired(dependentField = "trackingType", dependentValues = {"effector"}, subField = "generic")
     @JSONDescription("Properties for effectors.")
     public JSONPartEffector effector;
 
@@ -60,7 +64,7 @@ public class JSONPart extends AJSONPartProvider {
     public PartTread tread;
 
     public enum PartType {
-        @JSONDescription("This isn't so much a part as it is an add-on component to your main vehicle.  Generic parts don't do anything and can't be interacted with, but that's actually a GOOD thing as they won't try to move your vehicle or let players sit in random locations.\nWant a set of spoilers to add to your sports cars without making new models?  Generic parts.\nWant to make a freight vehicle like the GMC with different rear-ends?  Generic parts.\nWant to make different tops for your Jeep?  Generic parts.\nGeneric parts are particularly versatile when combined with sub-parts.  In this capacity they can be used to add truck beds with places to put crates for cargo slots, axles to allow for more wheels and mounts for guns that wouldn't normally be on the vehicle.\nIf you do plan on using the generic type, it is highly suggested that you give them a unique, yet common, type name.  For example, generic_bumpersticker, or generic_pickupbed.  This will not only ensure that other generic parts will go on your vehicle, but also lets other packs have the same generic parts for cross-pack compatibility.")
+        @JSONDescription("This isn't so much a part as it is an add-on component to your main vehicle.  Generic parts don't do anything and can't be interacted with, but that's actually a GOOD thing as they won't try to move your vehicle or let players sit in random locations.\nWant a set of spoilers to add to your sports cars without making new models?  Generic parts.\nWant to make a freight vehicle like the GMC with different rear-ends?  Generic parts.\nWant to make different tops for your Jeep?  Generic parts.\nGeneric parts are particularly versatile when combined with sub-parts.  In this capacity they can be used to add truck beds with places to put crates for cargo slots, axles to allow for more wheels and mounts for guns that wouldn't normally be on the vehicle.\nIf you do plan on using the generic trackingType, it is highly suggested that you give them a unique, yet common, trackingType name.  For example, generic_bumpersticker, or generic_pickupbed.  This will not only ensure that other generic parts will go on your vehicle, but also lets other packs have the same generic parts for cross-pack compatibility.")
         GENERIC,
         @JSONDescription("Engines are the most complex JSON in MTS.  While all engines use the same generic code under the hood, each application has specific tweaks that will need to be made.  For example, an aircraft engine that has propellers on it will need to have a propeller subPart to allow for a propeller to be placed on it, or an additionalPart on the vehicle, should the propeller be a vehicle option rather than an engine option (such as a car that has a boat propeller for water travel).  Because of this, the forces that come out of your engine depend on what it's put in and what's attached to it more than anything else.\nWhile engines have a type parameter, this is only used for classifying engines into distinct categories to prevent users from putting jet engines on semi trucks.")
         ENGINE,
@@ -81,10 +85,10 @@ public class JSONPart extends AJSONPartProvider {
     public static class JSONPartGeneric {
         @JSONRequired
         @JSONDefaults(PartType.class)
-        @JSONDescription("The type-name for this part.  This MUST start with the name of the part section you are wanting to make.  For example engine_somename, gun_othername.  Other than that, there are no restrictions.  There is, however, a generally-agreed on naming format for most parts made in community packs, so check with the community if you want inter-pack compatibility.  All possible prefixes are in the default list, so while you may use any type you want, it should start with one of these.")
+        @JSONDescription("The trackingType-name for this part.  This MUST start with the name of the part section you are wanting to make.  For example engine_somename, gun_othername.  Other than that, there are no restrictions.  There is, however, a generally-agreed on naming format for most parts made in community packs, so check with the community if you want inter-pack compatibility.  All possible prefixes are in the default list, so while you may use any trackingType you want, it should start with one of these.")
         public String type;
 
-        @JSONDescription("NOTE: Using a unique 'type' name is preferred over customType parameters.  See the various part conventions ebfore using this!\n\nThis parameter is optional and should only be used for parts that you need in specific places.  This will restrict this part to only work in part definitions with customTypes defined, and only if they contain this customType.")
+        @JSONDescription("NOTE: Using a unique 'trackingType' name is preferred over customType parameters.  See the various part conventions ebfore using this!\n\nThis parameter is optional and should only be used for parts that you need in specific places.  This will restrict this part to only work in part definitions with customTypes defined, and only if they contain this customType.")
         public String customType;
 
         @JSONDescription("This parameter is optional.  If included and set to true, this part will use the texture of the vehicle rather than the texture that corresponds to the part.  Useful for parts that need to pull vehicle textures for their rendering, such as tank turrets and vehicle bolt-on components.")
@@ -126,7 +130,7 @@ public class JSONPart extends AJSONPartProvider {
 
     public static class JSONPartEngine {
         @JSONRequired
-        @JSONDescription("The type of engine.  Different engines use different paramters.  But at least one type must be specified.")
+        @JSONDescription("The trackingType of engine.  Different engines use different paramters.  But at least one trackingType must be specified.")
         public EngineType type;
 
         @JSONDescription("Should the engine change gears on its own.  This only affects cars and will prevent users from shifting into higher or lower gears using shiftUp and shiftDown. Instead, the engine will attempt to choose the best gear for the situation.  Note that MTS's automatic transmission system isn't the best and may get confused when gear ratios are close together.  For this reason, it is recommended to either use manual transmissions on vehicles with more than 5-6 gears, or to define the RPM at which a gear is shifted up or down via upShiftRPM and downShiftRPM.")
@@ -217,7 +221,7 @@ public class JSONPart extends AJSONPartProvider {
 
         @JSONRequired
         @JSONDefaults(FuelDefaults.class)
-        @JSONDescription("What type of fuel this engine uses.  This is NOT the name of the fluid this engine uses, rather it's a generic type that basically lumps it in with other engines. Gasoline and diesel are two of the most common.  This type system allows for packs to group their engines by what fuels they take to make them more uniform, and allows server owners to configure their fluids to work with specific types of engines.")
+        @JSONDescription("What trackingType of fuel this engine uses.  This is NOT the name of the fluid this engine uses, rather it's a generic trackingType that basically lumps it in with other engines. Gasoline and diesel are two of the most common.  This trackingType system allows for packs to group their engines by what fuels they take to make them more uniform, and allows server owners to configure their fluids to work with specific types of engines.")
         public String fuelType;
 
         @ModifiableValue
@@ -352,93 +356,186 @@ public class JSONPart extends AJSONPartProvider {
         public float heightScale;
     }
 
-    public static class JSONPartGun {
-        @JSONDescription("If set, this causes the gun to automatically reload from the vehicle's inventory when its ammo count hits 0.  Guns will prefer to reload the same ammo that was previously in the gun, and will only reload different (yet compatible) ammo if the old ammo is not found.")
-        public boolean autoReload;
-
-        @JSONDescription("If set and true, then this gun part will be able to be held and fired from the player's hand.  All animations, and lighting applies here, so keep this in mind. If this is set, then handHeldNormalOffset and handHeldAimingOffset MUST be included!  Note that custom cameras will work when hand-held, but they will not be activated via the standard F5 cycling.  Instead, they will be activated when the player sneaks.  This is intended to allow for scopes and the like.")
-        public boolean handHeld;
-
-        @JSONDescription("If set, the gun will only be able to be fired once per button press.")
-        public boolean isSemiAuto;
-
-        @JSONDescription("If true, this makes it so that only one of this type of gun can be selected and fired at a time. This is useful for missiles and bombs that have different types of ammunition, as you can load different guns with different types of ammunition, and switch between the individual guns. If not used or set to false, cycling through weapons will select all weapons of the same type.")
-        public boolean fireSolo;
-
-        @JSONDescription("If true, this gun will return to its default yaw and pitch if it is not active. This is useful for anyone who likes to keep their large assortment of weapons nice and tidy.")
-        public boolean resetPosition;
-
-        @JSONDescription("If true, then this gun will fire bullets to align with itself only, and not with the muzzle rot paramter.  However, the initial velocity will still align with the rot parameter.  This allows the muzzle to be rotated to adjust the firing direction without modifying the orientation of the spawned bullet.  Think bomb bays and rocket launchers with a jettison before burn.")
-        public boolean disableMuzzleOrientation;
-
-        @JSONDescription("The capacity of the gun, in number of bullets.")
+    public static class JSONPartProjectileLauncher {
         public int capacity;
-
-        @JSONDescription("How long, in ticks, this gun takes to reload.  This is applied for hand-held reloading as well as automatic reloading.  This value should be similar to the duration of your gun _reloading sound to ensure players don't get confused about why they can't fire their guns.")
         public int reloadTime;
-
-        @JSONDescription("How long, in ticks, this gun takes to start firing after pulling the trigger.  This is designed for chain-gun type guns that need a short period of wind-up before they can start firing.  When the trigger is released, the gun will wind-down for the same amount of time it took to wind up.  If the gun doesn't wind all the way down before pulling the trigger again, it will start to wind back up from that point rather than 0.")
+        public boolean isSemiAuto;
         public int windupTime;
-
-        @JSONDescription("How fast, in m/s, the bullet will exit the barrel of this gun.  May be 0 in cases where bombers are concerned, as the exit velocity of the barrel is this value PLUS the velocity of the vehicle that's firing the bullet.")
-        public int muzzleVelocity;
-
-        @JSONDescription("The delay, in ticks, between the firing of bullets.")
+        public int exitVelocity;
         public float fireDelay;
-
-        @JSONDescription("How much velocity, each tick, should be added in the -Y direction.  Used to make bullets travel in arcs.")
         public float gravitationalVelocity;
-
-        @JSONDescription("How much spread the bullet will have when fired.  0 is no spread, higher values have higher spread.")
-        public float bulletSpreadFactor;
-
-        @JSONDescription("The minimum yaw this gun can turn counter-clockwise when controlled.  Note that if this is 0, and it is specified in the part JSON section on the vehicle, the vehicle's parameter will override this parameter.")
-        public float minYaw;
-
-        @JSONDescription("The maximum yaw this gun can turn clockwise when controlled.  Note that if this is 0, and it is specified in the part JSON section on the vehicle, the vehicle's parameter will override this parameter.")
-        public float maxYaw;
-
-        @JSONDescription("The minimum pitch this gun can angle downwards when controlled.  Note that if this is 0, and it is specified in the part JSON section on the vehicle, the vehicle's parameter will override this parameter.")
-        public float minPitch;
-
-        @JSONDescription("The maximum pitch this gun can angle upwards when controlled.  Note that if this is 0, and it is specified in the part JSON section on the vehicle, the vehicle's parameter will override this parameter.")
-        public float maxPitch;
-
-        @JSONDescription("The diameter of this gun.  This defines what ammo diameter may be used with it, and is what corresponds to the min-max parameters in the vehicle JSON.  It is also used to calculate rotation speed.  Units are in mm.")
         public float diameter;
-
-        @JSONDescription("The minimum case length of bullets that can go into this gun.  Useful for preventing extra-long bullets from going into a gun that normally fires short ones.  Units are in mm.")
-        public float minCaseLength;
-
-        @JSONDescription("Like minCaseLength, but the maximum.")
-        public float maxCaseLength;
-
-        @JSONDescription("How fast, in degrees/tick, the gun can rotate in the yaw direction.  Note that if this value, and the value on the part slot are both specified, the lower of the two values will be used.")
-        public float yawSpeed;
-
-        @JSONDescription("Like yawSpeed, but for pitch.")
-        public float pitchSpeed;
-
-        @JSONDescription("Used when resetPosition is true. Defaults to 0 if not set.")
-        public float defaultYaw;
-
-        @JSONDescription("Used when resetPosition is true. Defaults to 0 if not set.")
+        public boolean autoReload;
+        public boolean handHeld;
+        public boolean fireSolo;
+        public boolean resetPosition;
+        public boolean disableMuzzleOrientation;
+        public float minPitch;
+        public float maxPitch;
         public float defaultPitch;
-
+        public float pitchSpeed;
+        public float minYaw;
+        public float maxYaw;
+        public float defaultYaw;
+        public float yawSpeed;
+        public float minLength;
+        public float maxLength;
         @JSONRequired(dependentField = "handHeld", dependentValues = {"true"})
-        @JSONDescription("The offset where this gun will be when held normally by the player.  An offset of 0,0,0 will render the gun in the center of the player's right shoulder rotation point.  For reference, this is 0.3125 blocks to the right, and 1.375 blocks from the bottom-center of the player's feet.")
         public Point3D handHeldNormalOffset;
-
         @JSONRequired(dependentField = "handHeld", dependentValues = {"true"})
-        @JSONDescription("Like the normal offset, but this applies when the player starts sneaking/aiming.")
         public Point3D handHeldAimedOffset;
-
         @JSONRequired
-        @JSONDescription("A list of muzzle groups.  When firing this gun, the list is cycled though, and each group of muzzles takes turns firing.  If there are multiple muzzles in the group, they are all fired.  This allows for guns with muzzles that fire in sequence, or all at once.")
         public List<JSONMuzzleGroup> muzzleGroups;
 
         @Deprecated
         public float length;
+    }
+
+    public static class JSONPartGun extends JSONPartProjectileLauncher {
+        //@JSONDescription("If set, this causes the gun to automatically reload from the vehicle's inventory when its ammo count hits 0.  Guns will prefer to reload the same ammo that was previously in the gun, and will only reload different (yet compatible) ammo if the old ammo is not found.")
+        //public boolean autoReload;
+
+        //@JSONDescription("If true, this gun part will be able to be held and fired from the player's hand.  All animations, and lighting applies here, so keep this in mind. If this is set, then handHeldNormalOffset and handHeldAimingOffset MUST be included!  Note that custom cameras will work when hand-held, but they will not be activated via the standard F5 cycling.  Instead, they will be activated when the player sneaks.  This is intended to allow for scopes and the like.")
+        //public boolean handHeld;
+
+        //@JSONDescription("If set, the gun will only be able to be fired once per button press.")
+        //public boolean isSemiAuto;
+
+        //@JSONDescription("If true, this makes it so that only one of this trackingType of gun can be selected and fired at a time. This is useful for missiles and bombs that have different types of ammunition, as you can load different guns with different types of ammunition, and switch between the individual guns. If not used or set to false, cycling through weapons will select all weapons of the same trackingType.")
+        //public boolean fireSolo;
+
+        //@JSONDescription("If true, this gun will return to its default yaw and pitch if it is not active. This is useful for anyone who likes to keep their large assortment of weapons nice and tidy.")
+        //public boolean resetPosition;
+
+        //@JSONDescription("If true, then this gun will fire bullets to align with itself only, and not with the muzzle rot parameter.  However, the initial velocity will still align with the rot parameter.  This allows the muzzle to be rotated to adjust the firing direction without modifying the orientation of the spawned bullet.  Think bomb bays and rocket launchers with a jettison before burn.")
+        //public boolean disableMuzzleOrientation;
+
+        //@JSONDescription("The capacity of the gun, in number of bullets.")
+        //public int capacity;
+
+        //@JSONDescription("How long, in ticks, this gun takes to reload.  This is applied for hand-held reloading as well as automatic reloading.  This value should be similar to the duration of your gun _reloading sound to ensure players don't get confused about why they can't fire their guns.")
+        //public int reloadTime;
+
+        //@JSONDescription("How long, in ticks, this gun takes to start firing after pulling the trigger.  This is designed for chain-gun trackingType guns that need a short period of wind-up before they can start firing.  When the trigger is released, the gun will wind-down for the same amount of time it took to wind up.  If the gun doesn't wind all the way down before pulling the trigger again, it will start to wind back up from that point rather than 0.")
+        //public int windupTime;
+
+        //@JSONDescription("How fast, in m/s, the bullet will exit the barrel of this gun.  May be 0 in cases where bombers are concerned, as the exit velocity of the barrel is this value PLUS the velocity of the vehicle that's firing the bullet.")
+        //public int exitVelocity;
+
+        //@JSONDescription("The delay, in ticks, between the firing of bullets.")
+        //public float fireDelay;
+
+        //@JSONDescription("How much velocity, each tick, should be added in the -Y direction.  Used to make bullets travel in arcs.")
+        //public float gravitationalVelocity;
+
+        @JSONDescription("How much spread the bullet will have when fired.  0 is no spread, higher values have higher spread.")
+        public float bulletSpreadFactor;
+
+        //@JSONDescription("The minimum yaw this gun can turn counter-clockwise when controlled.  If this is zero and specified in the part JSON section of the vehicle, the vehicle's parameter will override this parameter.")
+        //public float minYaw;
+
+        //@JSONDescription("The maximum yaw this gun can turn clockwise when controlled.  If this is zero and specified in the part JSON section of the vehicle, the vehicle's parameter will override this parameter.")
+        //public float maxYaw;
+
+        //@JSONDescription("The minimum pitch this gun can angle downwards when controlled.  If this is zero and specified in the part JSON section of the vehicle, the vehicle's parameter will override this parameter.")
+        //public float minPitch;
+
+        //@JSONDescription("The maximum pitch this gun can angle upwards when controlled.  If this is zero and specified in the part JSON section of the vehicle, the vehicle's parameter will override this parameter.")
+        //public float maxPitch;
+
+        //@JSONDescription("The diameter of this gun.  This defines what ammo diameter may be used with it, and is what corresponds to the min-max parameters in the vehicle JSON.  It is also used to calculate rotation speed.  Units are in mm.")
+        //public float diameter;
+
+        //@JSONDescription("The minimum case length of bullets that can go into this gun.  Useful for preventing extra-long bullets from going into a gun that normally fires short ones.  Units are in mm.")
+        //public float minCaseLength;
+
+        //@JSONDescription("Like minLength, but the maximum.")
+        //public float maxCaseLength;
+
+        //@JSONDescription("How fast, in degrees/tick, the gun can rotate in the yaw direction.  Note that if this value, and the value on the part slot are both specified, the lower of the two values will be used.")
+        //public float yawSpeed;
+
+        //@JSONDescription("Like yawSpeed, but for pitch.")
+        //public float pitchSpeed;
+
+        //@JSONDescription("Used when resetPosition is true. Defaults to 0 if not set.")
+        //public float defaultYaw;
+
+        //@JSONDescription("Used when resetPosition is true. Defaults to 0 if not set.")
+        //public float defaultPitch;
+
+        //@JSONRequired(dependentField = "handHeld", dependentValues = {"true"})
+        //@JSONDescription("The offset where this gun will be when held normally by the player.  An offset of 0,0,0 will render the gun in the center of the player's right shoulder rotation point.  For reference, this is 0.3125 blocks to the right, and 1.375 blocks from the bottom-center of the player's feet.")
+        //public Point3D handHeldNormalOffset;
+
+        //@JSONRequired(dependentField = "handHeld", dependentValues = {"true"})
+        //@JSONDescription("Like the normal offset, but this applies when the player starts sneaking/aiming.")
+        //public Point3D handHeldAimedOffset;
+
+        //@JSONRequired
+        //@JSONDescription("A list of muzzle groups.  When firing this gun, the list is cycled though, and each group of muzzles takes turns firing.  If there are multiple muzzles in the group, they are all fired.  This allows for guns with muzzles that fire in sequence, or all at once.")
+        //public List<JSONMuzzleGroup> muzzleGroups;
+    }
+
+    public static class JSONPartRocketLauncher extends JSONPartProjectileLauncher {
+        //TODO: Add the ability to use a launcher as a hand-held
+        //@JSONDescription("Whether or not the launcher should automatically reload from the vehicle's inventory when its ammo count hits zero.")
+        //public boolean autoReload;
+
+        //@JSONDescription("Whether only one of the launcher should be able to be fired at once.")
+        //public boolean launchSolo;
+
+        //@JSONDescription("Whether the pitch and yaw of the launcher should be disabled.   It will only be able to fire rockets/missiles in the direction it was placed in.")
+        //public boolean disableOrientation;
+
+        //@JSONDescription("Whether the launcher's pitch and yaw should be reset when it is not being controlled.   This value is ignored if disableOrientation if set to true.")
+        //public boolean resetOrientation;
+
+        //@JSONDescription("The amount of rockets or missiles which the launcher can hold.")
+        //public int capacity;
+
+        //@JSONDescription("How long in ticks (there are 20 ticks in a second) it should take for the launcher to reload.")
+        //public int reloadTime;
+
+        //@JSONDescription("The velocity in meters/second at which a rocket or missile should exit the launcher at.")
+        //public int exitVelocity;
+
+        //@JSONDescription("How long it should take for the launcher to actually launch a rocket/missile after it has been activated.")
+        //public float launchDelay;
+
+        //@JSONDescription("How much velocity should be added in the -Y direction each tick after a rocket/missile burns out.")
+        //public float gravitationalVelocity;
+
+        //@JSONDescription("The minimum yaw the launcher can turn counter-clockwise when controlled.  If this is zero and specified in the part JSON section of the vehicle, the vehicle's parameter will override this parameter.")
+        //public float minYaw;
+
+        //@JSONDescription("The maximum yaw the launcher can turn clockwise when controlled.  If this is zero and specified in the part JSON section of the vehicle, the vehicle's parameter will override this parameter.")
+        //public float maxYaw;
+
+        //@JSONDescription("The minimum pitch the launcher can angle downwards when controlled.  If this is zero and specified in the part JSON section of the vehicle, the vehicle's parameter will override this parameter.")
+        //public float minPitch;
+
+        //@JSONDescription("The maximum pitch the launcher can angle upwards when controlled.  If this is zero and specified in the part JSON section of the vehicle, the vehicle's parameter will override this parameter.")
+        //public float maxPitch;
+
+        //@JSONDescription("The diameter of this launcher in millimeters.  This defines what sizes of rockets/missiles can be used with it and is what corresponds to the min-max parameters in the vehicle JSON.  It is also used to calculate rotation speed.")
+        //public float diameter;
+
+        //@JSONDescription("The minimum length of rockets/missiles that can be loaded into this launcher.")
+        //public float minLength;
+
+        //@JSONDescription("The maximum length of rockets/missiles that can be loaded into this launcher.")
+        //public float maxCaseLength;
+
+        //@JSONDescription("Used when resetPosition is set to true. Defaults to zero if not set.")
+        //public float defaultYaw;
+
+        //@JSONDescription("Used when resetPosition is set to true. Defaults to zero if not set.")
+        //public float defaultPitch;
+
+        //@JSONRequired
+        //@JSONDescription("A list of muzzle groups.   When the launcher is fired, the list is cycled and the next muzzle group is used.")
+        //public List<JSONMuzzleGroup> muzzleGroups;
     }
 
     public static class JSONPartInteractable {
@@ -447,7 +544,7 @@ public class JSONPart extends AJSONPartProvider {
         public InteractableComponentType interactionType;
 
         @JSONRequired(dependentField = "interactionType", dependentValues = {"FURNACE"})
-        @JSONDescription("What type of furnace this is.  Only required if this is a furnace component.")
+        @JSONDescription("What trackingType of furnace this is.  Only required if this is a furnace component.")
         public FurnaceComponentType furnaceType;
 
         @JSONDescription("The processing rate of this furnace.  This will make the furnace process items faster.  This does NOT affect the fuel used, so a 2x multiplier here will make the furnace process and use fuel twice as fast.")
@@ -471,7 +568,7 @@ public class JSONPart extends AJSONPartProvider {
         @JSONDescription("The texture for the GUI for this interactable part.  Only used if this part has a GUI.  If not set, the default is used.")
         public String inventoryTexture;
 
-        @JSONDescription("A optional crafting definition for this interactable.  Requires an interactable type of crafting_bench to do anything.")
+        @JSONDescription("A optional crafting definition for this interactable.  Requires an interactable trackingType of crafting_bench to do anything.")
         public JSONCraftingBench crafting;
     }
 
@@ -482,7 +579,7 @@ public class JSONPart extends AJSONPartProvider {
         BARREL,
         @JSONDescription("Works as a standard crafting table when clicked.")
         CRAFTING_TABLE,
-        @JSONDescription("Works as a furnace when clicked.  Will take fuel internally, or externally depending on the furnace type.")
+        @JSONDescription("Works as a furnace when clicked.  Will take fuel internally, or externally depending on the furnace trackingType.")
         FURNACE,
         @JSONDescription("Works as a jerrycan, allowing for fuel to be stored inside and then used to fuel vehicles without a fuel pump.")
         JERRYCAN,
@@ -501,7 +598,7 @@ public class JSONPart extends AJSONPartProvider {
 
     public static class JSONPartEffector {
         @JSONRequired
-        @JSONDescription("The type of the effector.  This defines what this effector does.")
+        @JSONDescription("The trackingType of the effector.  This defines what this effector does.")
         public EffectorComponentType type;
 
         @JSONDescription("How hard a block the effector can break.  Only valid for drills.")

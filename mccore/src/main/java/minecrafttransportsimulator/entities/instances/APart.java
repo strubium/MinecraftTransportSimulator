@@ -144,7 +144,7 @@ public abstract class APart extends AEntityF_Multipart<JSONPart> {
         isInvisible = false;
 
         //Update active state.
-        isActive = partOn != null ? partOn.isActive : true;
+        isActive = partOn == null || partOn.isActive;
         if (isActive && placementActiveSwitchbox != null) {
             isActive = placementActiveSwitchbox.runSwitchbox(0, false);
         }
@@ -311,7 +311,7 @@ public abstract class APart extends AEntityF_Multipart<JSONPart> {
     }
 
     /**
-     * Updates the tone of the part to its appropriate type.
+     * Updates the tone of the part to its appropriate trackingType.
      * If the part can't match the tone of this vehicle, then it is not modified.
      */
     public void updateTone(boolean recursive) {

@@ -57,7 +57,7 @@ public class EntityBullet extends AEntityD_Definable<JSONBullet> {
     public EntityBullet(Point3D position, Point3D motion, RotationMatrix orientation, PartGun gun) {
         super(gun.world, position, motion, ZERO_FOR_CONSTRUCTOR, gun.loadedBullet);
         this.gun = gun;
-        this.isBomb = gun.definition.gun.muzzleVelocity == 0;
+        this.isBomb = gun.definition.gun.exitVelocity == 0;
         this.boundingBox.widthRadius = definition.bullet.diameter / 1000D / 2D;
         this.boundingBox.heightRadius = definition.bullet.diameter / 1000D / 2D;
         this.boundingBox.depthRadius = definition.bullet.diameter / 1000D / 2D;
@@ -438,7 +438,7 @@ public class EntityBullet extends AEntityD_Definable<JSONBullet> {
         return false;
     }
 
-    private enum HitType {
+    enum HitType {
         BLOCK,
         ENTITY,
         PART,

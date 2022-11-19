@@ -41,7 +41,7 @@ public class ItemVehicle extends AItemSubTyped<JSONVehicle> implements IItemEnti
             vehicle.addPartsPostAddition(player, data);
 
             //If we have a default fuel, add it now as we SHOULD have an engine to tell
-            //us what fuel type we will need to add.
+            //us what fuel trackingType we will need to add.
             if (!wasSaved && vehicle.definition.motorized.defaultFuelQty > 0) {
                 for (APart part : vehicle.parts) {
                     if (part instanceof PartEngine) {

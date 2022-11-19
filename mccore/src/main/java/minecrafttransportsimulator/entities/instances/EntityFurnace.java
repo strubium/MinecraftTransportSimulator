@@ -42,7 +42,7 @@ public class EntityFurnace extends EntityInventoryContainer {
     public void update() {
         super.update();
         if (ticksLeftToSmelt > 0) {
-            //If we have no fuel, and are a standard type, get fuel from the stack in us.
+            //If we have no fuel, and are a standard trackingType, get fuel from the stack in us.
             if (!world.isClient() && ticksLeftOfFuel == 0 && definition.furnaceType.equals(FurnaceComponentType.STANDARD)) {
                 IWrapperItemStack fuelStack = getStack(FUEL_ITEM_SLOT);
                 if (!fuelStack.isEmpty()) {

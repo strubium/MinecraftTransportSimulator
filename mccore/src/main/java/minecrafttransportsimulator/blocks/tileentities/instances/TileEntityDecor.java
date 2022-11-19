@@ -17,7 +17,7 @@ import minecrafttransportsimulator.packets.instances.PacketEntityVariableToggle;
 /**
  * Decor tile entity.  Contains the definition so we know how
  * to render this in the TESR call, as well as if we need to do
- * crafting operations if we are a crafting decor type.
+ * crafting operations if we are a crafting decor trackingType.
  *
  * @author don_bruce
  */

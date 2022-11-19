@@ -13,7 +13,7 @@ import minecrafttransportsimulator.guis.instances.GUIHUD;
 import minecrafttransportsimulator.guis.instances.GUIPanelAircraft;
 import minecrafttransportsimulator.guis.instances.GUIPanelGround;
 import minecrafttransportsimulator.guis.instances.GUIRadio;
-import minecrafttransportsimulator.items.instances.ItemPartGun;
+import minecrafttransportsimulator.items.instances.ItemPartProjectileLauncher;
 import minecrafttransportsimulator.jsondefs.JSONConfigLanguage;
 import minecrafttransportsimulator.jsondefs.JSONConfigLanguage.LanguageEntry;
 import minecrafttransportsimulator.jsondefs.JSONPartDefinition;
@@ -35,15 +35,15 @@ import minecrafttransportsimulator.systems.ControlSystem;
 public final class PartSeat extends APart {
     public boolean canControlGuns;
     private boolean riderChangingSeats;
-    public ItemPartGun activeGunItem;
+    public ItemPartProjectileLauncher activeLauncherItem;
     public int gunSequenceCooldown;
-    public int gunGroupIndex;
-    public int gunIndex;
-    public final HashMap<ItemPartGun, List<PartGun>> gunGroups = new LinkedHashMap<>();
+    public int launcherGroupIndex;
+    public int launcherIndex;
+    public final HashMap<ItemPartProjectileLauncher, List<PartProjectileLauncher>> launcherGroups = new LinkedHashMap<>();
 
     public PartSeat(AEntityF_Multipart<?> entityOn, IWrapperPlayer placingPlayer, JSONPartDefinition placementDefinition, IWrapperNBT data) {
         super(entityOn, placingPlayer, placementDefinition, data);
-        this.activeGunItem = PackParser.getItem(data.getString("activeGunPackID"), data.getString("activeGunSystemName"), data.getString("activeGunSubName"));
+        this.activeLauncherItem = PackParser.getItem(data.getString("activeLauncherPackID"), data.getString("activeLauncherSystemName"), data.getString("activeLauncherSubName"));
     }
 
     @Override
@@ -88,7 +88,7 @@ public final class PartSeat extends APart {
                             //This prevents the need to select a gun when initially mounting.
                             //Only do this if we don't allow for no gun selection.
                             //If we do have an active gun, validate that it's still correct.
-                            if (activeGunItem == null) {
+                            if (activeLauncherItem == null) {
                                 if (!placementDefinition.canDisableGun) {
                                     setNextActiveGun();
                                     InterfaceManager.packetInterface.sendToAllClients(new PacketPartSeat(this));
@@ -107,7 +107,7 @@ public final class PartSeat extends APart {
     @Override
     public void update() {
         super.update();
-        if (!canControlGuns && (activeGunItem != null || placementDefinition.canDisableGun)) {
+        if (!canControlGuns && (activeLauncherItem != null || placementDefinition.canDisableGun)) {
             canControlGuns = true;
         }
     }
@@ -139,23 +139,23 @@ public final class PartSeat extends APart {
             gunList.add((PartGun) entityOn);
         }
 
-        gunGroups.clear();
+        launcherGroups.clear();
         for (PartGun gun : gunList) {
-            ItemPartGun gunItem = gun.getItem();
-            if (!gunGroups.containsKey(gunItem)) {
-                gunGroups.put(gunItem, new ArrayList<>());
+            ItemPartProjectileLauncher gunItem = gun.getItem();
+            if (!launcherGroups.containsKey(gunItem)) {
+                launcherGroups.put(gunItem, new ArrayList<>());
             }
-            gunGroups.get(gunItem).add(gun);
+            launcherGroups.get(gunItem).add(gun);
         }
 
         //Check if gun controlled is still valid.
-        if (!gunGroups.containsKey(activeGunItem)) {
-            activeGunItem = null;
-            gunIndex = 0;
+        if (!launcherGroups.containsKey(activeLauncherItem)) {
+            activeLauncherItem = null;
+            launcherIndex = 0;
         }
 
         //Reset active index so that we don't risk going out of range.
-        gunGroupIndex = 0;
+        launcherGroupIndex = 0;
     }
 
     @Override
@@ -256,7 +256,7 @@ public final class PartSeat extends APart {
 
         //De-select active gun if required.
         if (placementDefinition.canDisableGun) {
-            activeGunItem = null;
+            activeLauncherItem = null;
         }
 
         //Get rid of any potion effects that were caused by the seat
@@ -348,52 +348,52 @@ public final class PartSeat extends APart {
 
     /**
      * Sets the next active gun for this seat.  Active guns are queried by checking guns to
-     * see if this rider can control them.  If so, then the active gun is set to that gun type.
+     * see if this rider can control them.  If so, then the active gun is set to that gun trackingType.
      */
     public void setNextActiveGun() {
         //If we don't have an active gun, just get the next possible unit.
-        if (activeGunItem == null) {
-            for (ItemPartGun gunItem : gunGroups.keySet()) {
-                activeGunItem = gunItem;
-                gunIndex = 0;
+        if (activeLauncherItem == null) {
+            for (ItemPartProjectileLauncher gunItem : launcherGroups.keySet()) {
+                activeLauncherItem = gunItem;
+                launcherIndex = 0;
                 return;
             }
         } else {
             //If we didn't find an active gun, try to get another one.
             //This will be our first gun, unless we had an active gun and we can disable our gun.
             //In this case, we will just set our active gun to null.
-            activeGunItem = getNextActiveGun();
-            gunGroupIndex = 0;
+            activeLauncherItem = getNextActiveGun();
+            launcherGroupIndex = 0;
         }
     }
 
     /**
      * Helper method to get the next active gun in the gun listings.
      */
-    private ItemPartGun getNextActiveGun() {
-        boolean pastActiveGun = false;
-        ItemPartGun firstPossibleGun = null;
+    private ItemPartProjectileLauncher getNextActiveGun() {
+        boolean pastActiveLauncher = false;
+        ItemPartProjectileLauncher firstPossibleLauncher = null;
 
-        //Iterate over all the gun types, attempting to get the type after our selected type.
-        for (ItemPartGun gunItem : gunGroups.keySet()) {
+        //Iterate over all the gun types, attempting to get the trackingType after our selected trackingType.
+        for (ItemPartProjectileLauncher launcherItem : launcherGroups.keySet()) {
             //If we already found our active gun in our gun list, we use the next entry as our next gun.
-            if (pastActiveGun) {
-                return gunItem;
+            if (pastActiveLauncher) {
+                return launcherItem;
             } else {
                 //Add the first possible gun in case we go all the way around.
-                if (firstPossibleGun == null) {
-                    firstPossibleGun = gunItem;
+                if (firstPossibleLauncher == null) {
+                    firstPossibleLauncher = launcherItem;
                 }
-                //If the gun type is the same as the active gun, check if it's set to fireSolo.
-                //If we didn't group it and need to go to the next active gun with that type.
-                if (gunItem == activeGunItem) {
-                    pastActiveGun = true;
-                    if (gunItem.definition.gun.fireSolo) {
-                        if (gunGroups.get(gunItem).size() <= ++gunIndex) {
-                            gunIndex = 0;
-                            pastActiveGun = true;
+                //If the gun trackingType is the same as the active gun, check if it's set to launchSolo.
+                //If we didn't group it and need to go to the next active gun with that trackingType.
+                if (launcherItem == activeLauncherItem) {
+                    pastActiveLauncher = true;
+                    if (launcherItem.definition.gun.fireSolo) {
+                        if (launcherGroups.get(launcherItem).size() <= ++launcherIndex) {
+                            launcherIndex = 0;
+                            pastActiveLauncher = true;
                         } else {
-                            return gunItem;
+                            return launcherItem;
                         }
                     }
                 }
@@ -403,7 +403,7 @@ public final class PartSeat extends APart {
         //Got down here.  Either we don't have a gun, or we need the first.
         //If our current gun is active, and we have the first, and we can disable guns,
         //return null.  This will make the guns inactive this cycle.
-        return placementDefinition.canDisableGun && activeGunItem != null ? null : firstPossibleGun;
+        return placementDefinition.canDisableGun && activeLauncherItem != null ? null : firstPossibleLauncher;
     }
 
     @Override
@@ -430,10 +430,10 @@ public final class PartSeat extends APart {
     @Override
     public IWrapperNBT save(IWrapperNBT data) {
         super.save(data);
-        if (activeGunItem != null) {
-            data.setString("activeGunPackID", activeGunItem.definition.packID);
-            data.setString("activeGunSystemName", activeGunItem.definition.systemName);
-            data.setString("activeGunSubName", activeGunItem.subDefinition.subName);
+        if (activeLauncherItem != null) {
+            data.setString("activeGunPackID", activeLauncherItem.definition.packID);
+            data.setString("activeGunSystemName", activeLauncherItem.definition.systemName);
+            data.setString("activeGunSubName", activeLauncherItem.subDefinition.subName);
         }
         return data;
     }

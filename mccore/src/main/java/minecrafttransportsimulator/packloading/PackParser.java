@@ -151,7 +151,7 @@ public final class PackParser {
         //Check for custom skins.
         parseAllSkins();
 
-        //Check to make sure we have all our fuels.  We may have loaded a new engine type this launch.
+        //Check to make sure we have all our fuels.  We may have loaded a new engine trackingType this launch.
         if (ConfigSystem.settings.fuel.fuels == null) {
             ConfigSystem.settings.fuel.fuels = new HashMap<>();
         }
@@ -397,7 +397,7 @@ public final class PackParser {
 
                             //Check to make sure json isn't an item JSON or our pack definition.
                             if (!fileName.equals("packdefinition.json") && (structure.equals(PackStructure.MODULAR) ? !fileName.endsWith("_item.json") : entryFullPath.contains("jsondefs"))) {
-                                //Get classification and JSON class type to use with GSON system.
+                                //Get classification and JSON class trackingType to use with GSON system.
                                 ItemClassification classification;
                                 try {
                                     classification = ItemClassification.fromDirectory(assetPath.substring(0, assetPath.indexOf("/") + 1));
@@ -557,7 +557,7 @@ public final class PackParser {
                         }
                     }
                     if (item == null) {
-                        InterfaceManager.coreInterface.logError("Was told to parse part " + partDef.packID + ":" + partDef.systemName + " with part type " + partDef.generic.type + ", but that's not a valid type for creating a part.");
+                        InterfaceManager.coreInterface.logError("Was told to parse part " + partDef.packID + ":" + partDef.systemName + " with part trackingType " + partDef.generic.type + ", but that's not a valid trackingType for creating a part.");
                         return;
                     }
                     break;

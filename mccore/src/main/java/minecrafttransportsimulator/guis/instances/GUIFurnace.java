@@ -11,7 +11,7 @@ import minecrafttransportsimulator.packets.instances.PacketPlayerItemTransfer;
 
 /**
  * A GUI that is used to interface with furnaces.   Displays the player's items on the bottom,
- * and the furnace type/status in the top.  Works a bit differently than the MC GUIs, as it
+ * and the furnace trackingType/status in the top.  Works a bit differently than the MC GUIs, as it
  * doesn't support item dragging or movement.  Rather, furnace fuel is clicked to put it into
  * the furnace, and items are clicked to add them to the furnace and remove them when smelted.
  *
@@ -33,7 +33,7 @@ public class GUIFurnace extends AGUIInventory {
     public void setupComponents() {
         super.setupComponents();
         //Create the two or three inventory slots.
-        //The third is for fuel, which isn't present if we don't have that type of furnace.
+        //The third is for fuel, which isn't present if we don't have that trackingType of furnace.
         interactableSlotButtons.clear();
         interactableSlotIcons.clear();
 
@@ -78,7 +78,7 @@ public class GUIFurnace extends AGUIInventory {
             interactableSlotIcons.add(fuelItemIcon);
         }
 
-        //Add the section for the backplate that displays the current furnace type.
+        //Add the section for the backplate that displays the current furnace trackingType.
         int backplaneOffset = 0;
         switch (furnace.definition.furnaceType) {
             case STANDARD:

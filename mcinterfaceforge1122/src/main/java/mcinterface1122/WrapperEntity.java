@@ -1,9 +1,5 @@
 package mcinterface1122;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-
 import minecrafttransportsimulator.baseclasses.BoundingBox;
 import minecrafttransportsimulator.baseclasses.Damage;
 import minecrafttransportsimulator.baseclasses.Point3D;
@@ -31,6 +27,10 @@ import net.minecraft.util.text.TextComponentString;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 @EventBusSubscriber
 public class WrapperEntity implements IWrapperEntity {
@@ -323,7 +323,7 @@ public class WrapperEntity implements IWrapperEntity {
     @Override
     public void attack(Damage damage) {
         if (damage.language == null) {
-            throw new IllegalArgumentException("ERROR: Cannot attack an entity with a damage of no type and language component!");
+            throw new IllegalArgumentException("ERROR: Cannot attack an entity with a damage of no trackingType and language component!");
         }
         DamageSource newSource = new DamageSource(damage.language.value) {
             @Override

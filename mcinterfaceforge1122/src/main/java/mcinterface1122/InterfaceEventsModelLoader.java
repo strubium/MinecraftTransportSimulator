@@ -1,21 +1,5 @@
 package mcinterface1122;
 
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.lang.reflect.Field;
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentLinkedQueue;
-
-import org.lwjgl.opengl.GL11;
-
 import minecrafttransportsimulator.entities.components.AEntityC_Renderable;
 import minecrafttransportsimulator.items.components.AItemBase;
 import minecrafttransportsimulator.items.components.AItemPack;
@@ -42,6 +26,18 @@ import net.minecraftforge.fml.client.registry.RenderingRegistry;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.relauncher.Side;
+import org.lwjgl.opengl.GL11;
+
+import javax.annotation.Nonnull;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.reflect.Field;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * Interface for handling events pertaining to loading models into MC.  These events are mainly for item models,
@@ -63,50 +59,48 @@ public class InterfaceEventsModelLoader {
         //Register the global entity rendering class.
         RenderingRegistry.registerEntityRenderingHandler(BuilderEntityRenderForwarder.class, manager -> new Render<BuilderEntityRenderForwarder>(manager) {
             @Override
-            protected ResourceLocation getEntityTexture(BuilderEntityRenderForwarder builder) {
+            protected ResourceLocation getEntityTexture(@Nonnull BuilderEntityRenderForwarder builder) {
                 return null;
             }
 
             @Override
-            public boolean shouldRender(BuilderEntityRenderForwarder builder, ICamera camera, double camX, double camY, double camZ) {
+            public boolean shouldRender(@Nonnull BuilderEntityRenderForwarder builder, @Nonnull ICamera camera, double camX, double camY, double camZ) {
                 //Always render the forwarder, no matter where the camera is.
                 return true;
             }
 
             @Override
-            public void doRender(BuilderEntityRenderForwarder builder, double x, double y, double z, float entityYaw, float partialTicks) {
+            public void doRender(@Nonnull BuilderEntityRenderForwarder builder, double x, double y, double z, float entityYaw, float partialTicks) {
                 //Get all entities in the world, and render them manually for this one builder.
                 //Only do this if the player the builder is following is the client player.
                 WrapperWorld world = WrapperWorld.getWrapperFor(builder.world);
                 if (Minecraft.getMinecraft().player.equals(builder.playerFollowing) && builder.shouldRenderEntity(partialTicks)) {
                     ConcurrentLinkedQueue<AEntityC_Renderable> allEntities = world.renderableEntities;
-                    if (allEntities != null) {
-                        boolean blendingEnabled = MinecraftForgeClient.getRenderPass() == 1;
+                    boolean blendingEnabled = MinecraftForgeClient.getRenderPass() == 1;
 
-                        //Use smooth shading for model rendering.
-                        GL11.glShadeModel(GL11.GL_SMOOTH);
-                        //Disable alpha testing on blended pass as it discards transparent fragments.
-                        if (blendingEnabled) {
-                            GlStateManager.disableAlpha();
-                        }
-                        //Enable normal re-scaling for model rendering.
-                        //This prevents bad lighting.
-                        GlStateManager.enableRescaleNormal();
-
-                        //Start master profiling section.
-                        for (AEntityC_Renderable entity : allEntities) {
-                            world.beginProfiling("MTSRendering", true);
-                            entity.render(blendingEnabled, partialTicks);
-                            world.endProfiling();
-                        }
-
-                        //Reset states.
-                        GL11.glShadeModel(GL11.GL_FLAT);
-                        if (blendingEnabled) {
-                            GlStateManager.enableAlpha();
-                        }
-                        GlStateManager.disableRescaleNormal();
+                    //Use smooth shading for model rendering.
+                    GL11.glShadeModel(GL11.GL_SMOOTH);
+                    //Disable alpha testing on blended pass as it discards transparent fragments.
+                    if (blendingEnabled) {
+                        GlStateManager.disableAlpha();
                     }
+                    //Enable normal re-scaling for model rendering.
+                    //This prevents bad lighting.
+                    GlStateManager.enableRescaleNormal();
+
+                    //Start master profiling section.
+                    for (AEntityC_Renderable entity : allEntities) {
+                        world.beginProfiling("MTSRendering", true);
+                        entity.render(blendingEnabled, partialTicks);
+                        world.endProfiling();
+                    }
+
+                    //Reset states.
+                    GL11.glShadeModel(GL11.GL_FLAT);
+                    if (blendingEnabled) {
+                        GlStateManager.enableAlpha();
+                    }
+                    GlStateManager.disableRescaleNormal();
                 }
             }
         });
@@ -173,6 +167,7 @@ public class InterfaceEventsModelLoader {
             createdLoaders.put(domain, this);
         }
 
+        @Nonnull
         @Override
         public InputStream getInputStream(ResourceLocation location) throws IOException {
             //Create stream return variable and get raw data.
@@ -269,11 +264,7 @@ public class InterfaceEventsModelLoader {
                                 stream = getClass().getResourceAsStream(streamJSONLocation);
                                 if (stream == null) {
                                     if (ConfigSystem.settings.general.devMode.value) {
-                                        if (streamLocation != null) {
-                                            InterfaceManager.coreInterface.logError("Could not find item PNG at specified location: " + streamLocation + "  Or potential JSON location: " + streamJSONLocation);
-                                        } else {
-                                            InterfaceManager.coreInterface.logError("Could not find JSON PNG: " + streamJSONLocation);
-                                        }
+                                        InterfaceManager.coreInterface.logError("Could not find item PNG at specified location: " + streamLocation + "  Or potential JSON location: " + streamJSONLocation);
                                     }
                                     throw new FileNotFoundException(rawPackInfo);
                                 }
@@ -318,21 +309,24 @@ public class InterfaceEventsModelLoader {
             return domains.contains(location.getNamespace()) && !location.getPath().contains("blockstates") && !location.getPath().contains("armatures") && !location.getPath().contains("mcmeta") && ((location.getPath().endsWith(".json") && !location.getPath().equals("sounds.json")) || location.getPath().endsWith(".png"));
         }
 
+        @Nonnull
         @Override
         public Set<String> getResourceDomains() {
             return domains;
         }
 
         @Override
-        public <T extends IMetadataSection> T getPackMetadata(MetadataSerializer metadataSerializer, String metadataSectionName) {
+        public <T extends IMetadataSection> T getPackMetadata(@Nonnull MetadataSerializer metadataSerializer, @Nonnull String metadataSectionName) {
             return null;
         }
 
+        @Nonnull
         @Override
         public BufferedImage getPackImage() {
             return null;
         }
 
+        @Nonnull
         @Override
         public String getPackName() {
             return "Internal:" + domain;
