@@ -120,12 +120,9 @@ public class JSONParticle {
     @JSONDescription("The max velocity this particle can have in any axis.  Used to prevent particles from going to fast if they move a long way.")
     public Point3D terminalVelocity;
 
-    @JSONDescription("This is a list of animatedObjects that can be used to move the spawn position of this particle.")
-    public List<JSONAnimationDefinition> spawningAnimations;
-
     @JSONRequired
-    @JSONDescription("A listing of animation objects for determining if this particle should spawn.  Particles will only spawn when they first become active, unless spawnEveryTick is set.")
-    public List<JSONAnimationDefinition> activeAnimations;
+    @JSONDescription("A condition group that determines if this particle should spawn.  Particles will only spawn when they first become active, unless spawnEveryTick is set.")
+    public JSONConditionGroup activeConditions;
 
     @JSONDescription("A list of sub-particles this particle can spawn.  They will be spawned when their conditions are met.  Note that sub-particles do not reference spawningAnimations or activeAnimations.")
     public List<JSONSubParticle> subParticles;
@@ -141,6 +138,9 @@ public class JSONParticle {
 
     @Deprecated
     public boolean axisAligned;
+
+    @Deprecated
+    public List<JSONAnimationDefinition> activeAnimations;
 
     public static class JSONSubParticle {
 
