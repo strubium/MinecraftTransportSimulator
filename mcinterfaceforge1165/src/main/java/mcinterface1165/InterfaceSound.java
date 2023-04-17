@@ -41,10 +41,6 @@ import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
  */
 @EventBusSubscriber(Dist.CLIENT)
 public class InterfaceSound implements IInterfaceSound {
-    /**
-     * Flag for game paused state.  Gets set when the game is paused.
-     **/
-    private static boolean isSystemPaused;
 
     /**
      * Map of String-based file-names to Integer pointers to buffer locations.  Used for loading sounds into
@@ -85,27 +81,14 @@ public class InterfaceSound implements IInterfaceSound {
 
         //Handle pause state logic.
         if (InterfaceManager.clientInterface.isGamePaused()) {
-            if (!isSystemPaused) {
-                for (SoundInstance sound : playingSounds) {
-                    AL10.alSourcePause(sound.sourceIndex);
-                }
-                isSystemPaused = true;
-            } else {
-                for (SoundInstance sound : playingSounds) {
-                    //Stop playing sounds when paused as they can get corrupted.
-                    if (sound.radio != null) {
-                        sound.radio.stop();
-                    } else {
-                        sound.stopSound = true;
-                    }
-                }
-            }
-            return;
-        } else if (isSystemPaused) {
             for (SoundInstance sound : playingSounds) {
-                AL10.alSourcePlay(sound.sourceIndex);
+                //Stop playing sounds when paused as they can get corrupted.
+                if (sound.radio != null) {
+                    sound.radio.stop();
+                } else {
+                    sound.stopSound = true;
+                }
             }
-            isSystemPaused = false;
         }
 
         //Get the player for further calculations.
@@ -426,9 +409,6 @@ public class InterfaceSound implements IInterfaceSound {
                     }
                 }
             }
-
-            //Mark world as un-paused and update sounds to stop the ones that were just removed.
-            isSystemPaused = false;
             update();
         }
     }
