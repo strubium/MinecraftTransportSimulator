@@ -251,8 +251,7 @@ public class InterfaceClient implements IInterfaceClient {
                 } else {
                     world.runTick(world, false);
 
-                    //Update camera state and requests.
-                    //Needs to happen at the end of the tick to ensure all other change events are processed.
+                    //Update camera events.
                     changedCameraState = false;
                     if (actuallyFirstPerson ^ Minecraft.getInstance().options.getCameraType() == PointOfView.FIRST_PERSON) {
                         changedCameraState = true;

@@ -59,6 +59,13 @@ public abstract class EntityManager {
      */
     public void runTick(AWrapperWorld world, boolean mainUpdate) {
         world.beginProfiling("MTS_EntityUpdates", true);
+
+        //Clear rider list on start of update cycles.
+        if (mainUpdate) {
+            entitiesWithRiders.clear();
+        }
+
+        //Update entities for either first or last cycle.
         for (AEntityA_Base entity : mainUpdate ? allMainTickableEntities : allLastTickableEntities) {
             if (entity.canUpdate()) {
                 world.beginProfiling("MTSEntity_" + entity.uniqueUUID, true);
@@ -69,6 +76,20 @@ public abstract class EntityManager {
                 world.endProfiling();
             }
         }
+
+        //Update riders on last update cycle.
+        if (!mainUpdate) {
+            for (AEntityD_Definable<?> entity : entitiesWithRiders) {
+                if (entity.updateRider()) {
+                    //Call getters so it resets to current value.
+                    //This allows the calling of the method in other areas to see MC deltas.
+                    entity.rider.getYawDelta();
+                    entity.rider.getPitchDelta();
+                }
+            }
+        }
+
+        //Add entities to rendering list as applicable.
         if (!mainUpdate && world.isClient()) {
             Point3D playerPosition = InterfaceManager.clientInterface.getClientPlayer().getPosition();
             int renderDistance = InterfaceManager.clientInterface.getRenderDistance() * 16;
@@ -113,6 +134,7 @@ public abstract class EntityManager {
         }
         world.endProfiling();
     }
+    public final List<AEntityD_Definable<?>> entitiesWithRiders = new ArrayList<>();
 
     /**
      * Adds the entity to the world.  This will make it get update ticks and be rendered

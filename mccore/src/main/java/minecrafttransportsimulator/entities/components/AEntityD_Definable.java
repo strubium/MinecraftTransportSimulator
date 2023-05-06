@@ -12,10 +12,12 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.UUID;
 
 import minecrafttransportsimulator.baseclasses.AnimationSwitchbox;
 import minecrafttransportsimulator.baseclasses.ColorRGB;
 import minecrafttransportsimulator.baseclasses.Point3D;
+import minecrafttransportsimulator.baseclasses.RotationMatrix;
 import minecrafttransportsimulator.baseclasses.TransformationMatrix;
 import minecrafttransportsimulator.entities.instances.APart;
 import minecrafttransportsimulator.entities.instances.EntityParticle;
@@ -34,10 +36,12 @@ import minecrafttransportsimulator.jsondefs.JSONSubDefinition;
 import minecrafttransportsimulator.jsondefs.JSONText;
 import minecrafttransportsimulator.jsondefs.JSONVariableModifier;
 import minecrafttransportsimulator.mcinterface.AWrapperWorld;
+import minecrafttransportsimulator.mcinterface.IWrapperEntity;
 import minecrafttransportsimulator.mcinterface.IWrapperItemStack;
 import minecrafttransportsimulator.mcinterface.IWrapperNBT;
 import minecrafttransportsimulator.mcinterface.IWrapperPlayer;
 import minecrafttransportsimulator.mcinterface.InterfaceManager;
+import minecrafttransportsimulator.packets.instances.PacketEntityRiderChange;
 import minecrafttransportsimulator.packets.instances.PacketEntityVariableIncrement;
 import minecrafttransportsimulator.packets.instances.PacketEntityVariableSet;
 import minecrafttransportsimulator.packets.instances.PacketEntityVariableToggle;
@@ -137,6 +141,57 @@ public abstract class AEntityD_Definable<JSONDefinition extends AJSONMultiModelP
      **/
     public AItemPack<JSONDefinition> cachedItem;
 
+    /**
+     * The entity that is currently riding this entity.  There is only one rider per entity, though one can
+     * make a multipart entity where each part has a rider to allow for effectively multiple riders per entity.
+     **/
+    public IWrapperEntity rider;
+    private UUID savedRiderUUID;
+
+    /**
+     * True if the running instance is the client, and the rider on this entity is the client player.
+     **/
+    public boolean riderIsClient;
+
+    /**
+     * List of all cameras available on this entity for the rider.  These get populated by other systems as applicable.
+     **/
+    public final List<JSONCameraObject> cameras = new ArrayList<>();
+    public final Map<JSONCameraObject, AEntityD_Definable<?>> cameraEntities = new LinkedHashMap<>();
+    public JSONCameraObject activeCamera;
+    public AEntityD_Definable<?> activeCameraEntity;
+    public AnimationSwitchbox activeCameraSwitchbox;
+
+    /**
+     * The position of the eyes of the rider.  This is slightly different than the return for 
+     * {@link IWrapperEntity#getPosition()}, as the former is usually where the rider is sitting, 
+     * whereas this is usually that value offset by {@link IWrapperEntity#getEyeHeight()} and
+     * {@link IWrapperEntity#getSeatOffset()}, multiplied by {@link IWrapperEntity#getVerticalScale()}.
+     * Though this may differ if the default logic is overridden.
+     **/
+    public final Point3D riderEyePosition = new Point3D();
+    public final Point3D prevRiderEyePosition = new Point3D();
+    /**Like {@link #riderEyePosition}, but for the head.  This won't move even if viewpoints change.**/
+    public final Point3D riderHeadPosition = new Point3D();
+    public final Point3D prevRiderHeadPosition = new Point3D();
+    /**Like {@link #riderEyePosition}, but for the camera.  This may or may not match the eye position depending on
+     * the game implementation and settings, since some settings add a default camera offset we need to account for here.**/
+    public final Point3D riderCameraPosition = new Point3D();
+    public final Point3D prevRiderCameraPosition = new Point3D();
+
+    /**
+     * The orientation of the {@link #rider}.  This will be relative to this entity, and not global to the world.
+     * If you desire the world-global orientation, call {@link IWrapperEntity#getOrientation()}.
+     **/
+    public RotationMatrix riderRelativeOrientation;
+    public RotationMatrix prevRiderRelativeOrientation;
+    private static final Point3D riderTempPoint = new Point3D();
+    private static final RotationMatrix riderTempMatrix = new RotationMatrix();
+
+    //Camera variables.
+    public int zoomLevel;
+    public int cameraIndex;
+
     //Radar lists.  Only updated once a tick.  Created when first requested via animations.
     public final List<EntityVehicleF_Physics> aircraftOnRadar = new ArrayList<>();
     public final List<EntityVehicleF_Physics> groundersOnRadar = new ArrayList<>();
@@ -175,6 +230,11 @@ public abstract class AEntityD_Definable<JSONDefinition extends AJSONMultiModelP
                 variables.put(variable, 1D);
             }
         }
+
+        //Load rider UUID, if we had one before.
+        this.savedRiderUUID = data.getUUID("riderUUID");
+        this.zoomLevel = data.getInteger("zoomLevel");
+        this.cameraIndex = data.getInteger("cameraIndex");
     }
 
     /**
@@ -199,6 +259,52 @@ public abstract class AEntityD_Definable<JSONDefinition extends AJSONMultiModelP
             initializeAnimations();
             animationsInitialized = true;
         }
+
+        //Check for saved rider, if we need to get one.
+        if (savedRiderUUID != null) {
+            if (ticksExisted % 20 == 0) {
+                if (ticksExisted <= 100) {
+                    IWrapperEntity newRider = world.getExternalEntity(savedRiderUUID);
+                    if (newRider != null) {
+                        setRider(newRider, false, true);
+                        savedRiderUUID = null;
+                    }
+                } else {
+                    savedRiderUUID = null;
+                    InterfaceManager.coreInterface.logError("Could not load a saved rider on an entity.  Something might be going wrong here?");
+                }
+            }
+        }
+
+        if (rider != null) {
+            //Add ourselves to the entity manager as having a rider to queue up an update later.
+            world.entitiesWithRiders.add(this);
+        }
+
+        //Only do camera checks if we have an active camera.
+        //Checking at other times wastes CPU cycles.
+        //We also wait 5 ticks after spawn before checking, since it might take time to init the cameras.
+        if (cameraIndex != 0 && ticksExisted >= 5) {
+            //Check for valid camera, and perform operations if so.
+            activeCamera = null;
+            while (cameraIndex != 0 && activeCamera == null) {
+                if ((cameraIndex - 1) < cameras.size()) {
+                    activeCamera = cameras.get(cameraIndex - 1);
+                    activeCameraEntity = cameraEntities.get(activeCamera);
+                    activeCameraSwitchbox = activeCameraEntity.cameraSwitchboxes.get(activeCamera);
+                    if (activeCameraSwitchbox != null && !activeCameraSwitchbox.runSwitchbox(0, false)) {
+                        //Camera is inactive, go to next.
+                        ++cameraIndex;
+                        activeCamera = null;
+                    }
+                } else {
+                    //No active cameras found, set index to 0 to disable and go back to normal rendering.
+                    cameraIndex = 0;
+                    activeCamera = null;
+                }
+            }
+        }
+
         //Only update radar once a second, and only if we requested it via variables.
         if (definition.general.radarRange > 0 && ticksExisted % 20 == 0) {
             Collection<EntityVehicleF_Physics> allVehicles = world.getEntitiesOfType(EntityVehicleF_Physics.class);
@@ -388,7 +494,157 @@ public abstract class AEntityD_Definable<JSONDefinition extends AJSONMultiModelP
             //Clear radars.
             aircraftOnRadar.clear();
             groundersOnRadar.clear();
+
+            //Remove rider to allow post-removal logic.
+            if (rider != null) {
+                removeRider();
+            }
         }
+    }
+
+    @Override
+    public double getMass() {
+        return super.getMass() + (rider != null ? 100 : 0);
+    }
+
+    /**
+     * Called to update the rider on this entity.  This gets called after the update loop,
+     * as the entity needs to move to its new position before we can know where the
+     * riders of said entity will be.  The calling function will assure that the rider
+     * is non-null at this point, so null checks are not required in this function.
+     * However, if the rider is removed, false is returned, and further processing should halt.
+     */
+    public boolean updateRider() {
+        //Update entity position, motion, and orientation.
+        if (rider.isValid()) {
+            //Remove sneaking rider on servers; clients get packets.
+            if (!world.isClient() && rider instanceof IWrapperPlayer && ((IWrapperPlayer) rider).isSneaking()) {
+                removeRider();
+                return false;
+            }
+
+            rider.setPosition(position, false);
+            rider.setVelocity(motion);
+            prevRiderRelativeOrientation.set(riderRelativeOrientation);
+            riderRelativeOrientation.angles.y += rider.getYawDelta();
+            //Need to clamp between +/- 180 to ensure that we don't confuse things and other variables and animations.
+            if (riderRelativeOrientation.angles.y > 180) {
+                riderRelativeOrientation.angles.y -= 360;
+                prevRiderRelativeOrientation.angles.y -= 360;
+            } else if (riderRelativeOrientation.angles.y < -180) {
+                riderRelativeOrientation.angles.y += 360;
+                prevRiderRelativeOrientation.angles.y += 360;
+            }
+
+            //Rider yaw can go full 360, but clamp pitch to +/- 85 so the player's head can't go upside-down.
+            float pitchDelta = rider.getPitchDelta();
+            if (Math.abs(riderRelativeOrientation.angles.x + pitchDelta) < 85) {
+                riderRelativeOrientation.angles.x += pitchDelta;
+            }
+            riderRelativeOrientation.updateToAngles();
+            riderTempMatrix.set(orientation).multiply(riderRelativeOrientation).convertToAngles();
+            rider.setOrientation(riderTempMatrix);
+            prevRiderEyePosition.set(riderEyePosition);
+            prevRiderHeadPosition.set(riderHeadPosition);
+            riderEyePosition.set(0, (rider.getEyeHeight() + rider.getSeatOffset()) * rider.getVerticalScale(), 0).rotate(orientation).add(position);
+            riderHeadPosition.set(riderEyePosition);
+
+            //If we are a client, and aren't running a custom camera, and are in third-person, adjust zoom.
+            if (world.isClient()) {
+                prevRiderCameraPosition.set(riderCameraPosition);
+                if (!CameraSystem.runningCustomCameras && !InterfaceManager.clientInterface.inFirstPerson()) {
+                    riderCameraPosition.set(riderEyePosition);
+
+                    //Adjust eye position to account for zoom settings.
+                    int zoomRequired = 4 + zoomLevel;
+                    riderTempPoint.set(0, 0, InterfaceManager.clientInterface.inThirdPerson() ? -zoomRequired : zoomRequired).rotate(rider.getOrientation());
+                    riderEyePosition.add(riderTempPoint);
+
+                    //Check if camera should be where eyes are, or somewhere different.
+                    int cameraZoomRequired = 4 - InterfaceManager.clientInterface.getCameraDefaultZoom() + zoomLevel;
+                    if (zoomRequired != cameraZoomRequired) {
+                        riderTempPoint.set(0, 0, InterfaceManager.clientInterface.inThirdPerson() ? -cameraZoomRequired : cameraZoomRequired).rotate(rider.getOrientation());
+                        riderCameraPosition.add(riderTempPoint);
+                    } else {
+                        riderCameraPosition.add(riderTempPoint);
+                    }
+                } else {
+                    riderCameraPosition.set(riderEyePosition);
+                }
+            }
+            return true;
+        } else {
+            //Remove invalid rider.
+            //Don't call this on the client; they will get a removal packet from this method.
+            if (!world.isClient()) {
+                removeRider();
+            }
+            return false;
+        }
+    }
+
+    /**
+     * Called to set the rider for this entity.  If this isn't possible because
+     * there is already a rider, or we shouldn't accept riders, return false.
+     * Otherwise, return true.  Call this ONLY on the server!  Packets are sent to clients
+     * for syncing so calling this on clients will result in Bad Stuff.
+     * If the rider needs to face forward when they are added, set the boolean to true.
+     * Note: this will only set them to face forwards on the tick they mount.
+     * It won't block them from turning to a different orientation later.
+     */
+    public boolean setRider(IWrapperEntity newRider, boolean facesForwards, boolean loadedFromData) {
+        if (rider != null) {
+            return false;
+        } else {
+            rider = newRider;
+            riderIsClient = world.isClient() && rider.equals(InterfaceManager.clientInterface.getClientPlayer());
+
+            //Create variables for use in other code areas.
+            if (riderRelativeOrientation == null) {
+                riderRelativeOrientation = new RotationMatrix();
+                prevRiderRelativeOrientation = new RotationMatrix();
+            }
+
+            if (facesForwards) {
+                riderRelativeOrientation.setToZero();
+            } else {
+                riderTempPoint.set(0, 0, 1).rotate(rider.getOrientation()).reOrigin(orientation);
+                riderRelativeOrientation.setToVector(riderTempPoint, false);
+            }
+            prevRiderRelativeOrientation.set(riderRelativeOrientation);
+            riderTempMatrix.set(orientation).multiply(riderRelativeOrientation).convertToAngles();
+            rider.setOrientation(riderTempMatrix);
+            rider.setPosition(position, false);
+            //Call getters so it resets to current value, if we don't do this, they'll get flagged for a change in the update call.
+            rider.getYawDelta();
+            rider.getPitchDelta();
+            rider.setRiding(this);
+            if (!loadedFromData && !world.isClient()) {
+                InterfaceManager.packetInterface.sendToAllClients(new PacketEntityRiderChange(this, rider, facesForwards));
+            }
+            return true;
+        }
+    }
+
+    /**
+     * Called to remove the rider that is currently riding this entity.
+     * Call this from code only on the server; clients will get packets to call this method.
+     */
+    public void removeRider() {
+        rider.setRiding(null);
+        if (!world.isClient()) {
+            InterfaceManager.packetInterface.sendToAllClients(new PacketEntityRiderChange(this, rider));
+        }
+        rider = null;
+        riderIsClient = false;
+    }
+
+    /**
+     * Like {@link #getInterpolatedOrientation(RotationMatrix, double)}, just for
+     * the rider's {@link #riderRelativeOrientation}.
+     */
+    public void getRiderInterpolatedOrientation(RotationMatrix store, double partialTicks) {
+        store.interploate(prevRiderRelativeOrientation, riderRelativeOrientation, partialTicks);
     }
 
     /**
@@ -1256,6 +1512,13 @@ public abstract class AEntityD_Definable<JSONDefinition extends AJSONMultiModelP
         for (String variableName : variables.keySet()) {
             data.setDouble(variableName, variables.get(variableName));
         }
+        if (rider != null) {
+            data.setUUID("riderUUID", rider.getID());
+        } else if (savedRiderUUID != null) {
+            data.setUUID("riderUUID", savedRiderUUID);
+        }
+        data.setInteger("zoomLevel", zoomLevel);
+        data.setInteger("cameraIndex", cameraIndex);
         return data;
     }
 

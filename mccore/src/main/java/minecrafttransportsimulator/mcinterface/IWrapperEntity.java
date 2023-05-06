@@ -52,8 +52,8 @@ public interface IWrapperEntity {
 
     /**
      * Returns the entity this entity is riding, or null if
-     * the entity is not riding any MTS entity (rider may will be riding
-     * a vanilla entity).
+     * the entity is not riding any MTS entity (Note: rider could 
+     * be riding a vanilla entity and this would still return null).
      */
     AEntityE_Interactable<?> getEntityRiding();
 

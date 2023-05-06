@@ -87,8 +87,7 @@ public class TileEntityDecor extends ATileEntityBase<JSONDecor> {
             		InterfaceManager.packetInterface.sendToAllClients(new PacketEntityVariableToggle(this, ACTIVATED_VARIABLE));
             	 }
         } else if (definition.decor.type == DecorComponentType.SEAT) {
-            //FIXME spawn entity and set rider.
-            //setRider(player, true);
+            setRider(player, true, false);
         } else {
             setVariable(CLICKED_VARIABLE, 1);
             toggleVariable(ACTIVATED_VARIABLE);

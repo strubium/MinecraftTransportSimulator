@@ -35,7 +35,7 @@ import minecrafttransportsimulator.systems.ControlSystem;
 
 public final class PartSeat extends APart {
     public boolean canControlGuns;
-    private boolean riderChangingSeats;
+    public boolean riderChangingSeats;
     public final Point3D riderScale = new Point3D();
     public ItemPartGun activeGunItem;
     public int gunSequenceCooldown;
@@ -77,7 +77,7 @@ public final class PartSeat extends APart {
                     //Seat is free.  Either mount this seat, or if we have a leashed animal, set it in that seat.
                     IWrapperEntity leashedEntity = player.getLeashedEntity();
                     if (leashedEntity != null) {
-                        setRider(leashedEntity, true);
+                        setRider(leashedEntity, true, false);
                     } else {
                         //Didn't find an animal.  Just mount the player.
                         //Don't mount them if they are sneaking, however.  This will confuse MC.
@@ -89,10 +89,11 @@ public final class PartSeat extends APart {
                             if (entityPlayerRiding != null) {
                                 if(entityPlayerRiding instanceof PartSeat) {
                                    ((PartSeat) entityPlayerRiding).riderChangingSeats = true;
+                                   InterfaceManager.packetInterface.sendToAllClients(new PacketPartSeat(((PartSeat) entityPlayerRiding), SeatAction.RIDER_CHANGE));
                                 }
                                 entityPlayerRiding.removeRider();
                             }
-                            setRider(player, !(entityPlayerRiding instanceof PartSeat) || ((PartSeat) entityPlayerRiding).vehicleOn != vehicleOn);
+                            setRider(player, !(entityPlayerRiding instanceof PartSeat) || ((PartSeat) entityPlayerRiding).vehicleOn != vehicleOn, false);
 
                             //If this seat can control a gun, and isn't controlling one, set it now.
                             //This prevents the need to select a gun when initially mounting.
@@ -186,8 +187,8 @@ public final class PartSeat extends APart {
     }
 
     @Override
-    public boolean setRider(IWrapperEntity rider, boolean facesForwards) {
-        if (super.setRider(rider, facesForwards)) {
+    public boolean setRider(IWrapperEntity rider, boolean facesForwards, boolean loadedFromData) {
+        if (super.setRider(rider, facesForwards, loadedFromData)) {
             //Set if vehicle has a controller or not.
             if (vehicleOn != null && placementDefinition.isController) {
                 ++vehicleOn.controllerCount;
@@ -197,27 +198,29 @@ public final class PartSeat extends APart {
                 }
             }
 
-            if (riderIsClient && vehicleOn != null) {
-                //Open the HUD.  This will have been closed in the remove call.
-                new GUIHUD(vehicleOn, this);
+            if (!loadedFromData) {
+                if (riderIsClient && vehicleOn != null) {
+                    //Open the HUD.  This will have been closed in the remove call.
+                    new GUIHUD(vehicleOn, this);
 
-                //Auto-start the engines, if we have that config enabled and we can start them.
-                if (placementDefinition.isController && ConfigSystem.client.controlSettings.autostartEng.value && vehicleOn.canPlayerStartEngines((IWrapperPlayer) rider) && !vehicleOn.definition.motorized.overrideAutoStart) {
-                    vehicleOn.engines.forEach(engine -> {
-                        if (!vehicleOn.definition.motorized.isAircraft) {
-                            InterfaceManager.packetInterface.sendToServer(new PacketEntityVariableToggle(engine, PartEngine.NEUTRAL_SHIFT_VARIABLE));
+                    //Auto-start the engines, if we have that config enabled and we can start them.
+                    if (placementDefinition.isController && ConfigSystem.client.controlSettings.autostartEng.value && vehicleOn.canPlayerStartEngines((IWrapperPlayer) rider) && !vehicleOn.definition.motorized.overrideAutoStart) {
+                        vehicleOn.engines.forEach(engine -> {
+                            if (!vehicleOn.definition.motorized.isAircraft) {
+                                InterfaceManager.packetInterface.sendToServer(new PacketEntityVariableToggle(engine, PartEngine.NEUTRAL_SHIFT_VARIABLE));
+                            }
+                            InterfaceManager.packetInterface.sendToServer(new PacketPartEngine(engine, Signal.AS_ON));
+                        });
+                        if (vehicleOn.parkingBrakeOn) {
+                            InterfaceManager.packetInterface.sendToServer(new PacketEntityVariableToggle(vehicleOn, AEntityVehicleD_Moving.PARKINGBRAKE_VARIABLE));
                         }
-                        InterfaceManager.packetInterface.sendToServer(new PacketPartEngine(engine, Signal.AS_ON));
-                    });
-                    if (vehicleOn.parkingBrakeOn) {
-                        InterfaceManager.packetInterface.sendToServer(new PacketEntityVariableToggle(vehicleOn, AEntityVehicleD_Moving.PARKINGBRAKE_VARIABLE));
                     }
                 }
-            }
 
-            //Auto-close doors for the rider in this seat, if such doors exist.
-            if (placementDefinition.interactableVariables != null) {
-                placementDefinition.interactableVariables.forEach(variableList -> variableList.forEach(variable -> entityOn.setVariable(variable, 0)));
+                //Auto-close doors for the rider in this seat, if such doors exist.
+                if (placementDefinition.interactableVariables != null) {
+                    placementDefinition.interactableVariables.forEach(variableList -> variableList.forEach(variable -> entityOn.setVariable(variable, 0)));
+                }
             }
             return true;
         } else {

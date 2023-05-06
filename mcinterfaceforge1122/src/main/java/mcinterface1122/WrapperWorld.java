@@ -18,7 +18,7 @@ import minecrafttransportsimulator.blocks.components.ABlockBase.Axis;
 import minecrafttransportsimulator.blocks.components.ABlockBase.BlockMaterial;
 import minecrafttransportsimulator.blocks.components.ABlockBaseTileEntity;
 import minecrafttransportsimulator.blocks.tileentities.components.ATileEntityBase;
-import minecrafttransportsimulator.entities.components.AEntityB_Existing;
+import minecrafttransportsimulator.entities.components.AEntityD_Definable;
 import minecrafttransportsimulator.entities.components.AEntityE_Interactable;
 import minecrafttransportsimulator.entities.instances.APart;
 import minecrafttransportsimulator.entities.instances.EntityVehicleF_Physics;
@@ -289,20 +289,15 @@ public class WrapperWorld extends AWrapperWorld {
             if (!(mcEntityCollided instanceof ABuilderEntityBase)) {
                 //If the damage came from a source, verify that source can hurt the entity.
                 if (damage.damgeSource != null) {
-                    Entity mcRidingEntity = mcEntityCollided.getRidingEntity();
-                    if (mcRidingEntity instanceof BuilderEntityLinkedSeat) {
-                        //Entity hit is riding something of ours.
-                        //Verify that it's not the entity that is doing the attacking.
-                        AEntityB_Existing internalRidingEntity = ((BuilderEntityLinkedSeat) mcRidingEntity).entity;
-                        if (damage.damgeSource == internalRidingEntity) {
-                            //Entity can't attack entities riding itself.
+                    AEntityD_Definable<?> internalRidingEntity = WrapperEntity.getWrapperFor(mcEntityCollided).getEntityRiding();
+                    if (damage.damgeSource == internalRidingEntity) {
+                        //Entity can't attack entities riding itself.
+                        continue;
+                    } else if (internalRidingEntity instanceof APart) {
+                        //Attacked entity is riding a part, don't attack if a part on that multipart is the attacker,
+                        APart ridingPart = (APart) internalRidingEntity;
+                        if (ridingPart.masterEntity.allParts.contains(damage.damgeSource)) {
                             continue;
-                        } else if (internalRidingEntity instanceof APart) {
-                            //Attacked entity is riding a part, don't attack if a part on that multipart is the attacker,
-                            APart ridingPart = (APart) internalRidingEntity;
-                            if (ridingPart.masterEntity.allParts.contains(damage.damgeSource)) {
-                                continue;
-                            }
                         }
                     }
                 }
@@ -331,13 +326,13 @@ public class WrapperWorld extends AWrapperWorld {
                 if (entityToLoad instanceof EntityVehicleF_Physics) {
                     for (APart part : ((EntityVehicleF_Physics) entityToLoad).allParts) {
                         if (part instanceof PartSeat && part.rider == null && !part.placementDefinition.isController) {
-                            part.setRider(new WrapperEntity(entity), true);
+                            part.setRider(new WrapperEntity(entity), true, false);
                             break;
                         }
                     }
                 } else {
                     if (entityToLoad.rider == null) {
-                        entityToLoad.setRider(new WrapperEntity(entity), true);
+                        entityToLoad.setRider(new WrapperEntity(entity), true, false);
                         break;
                     }
                 }

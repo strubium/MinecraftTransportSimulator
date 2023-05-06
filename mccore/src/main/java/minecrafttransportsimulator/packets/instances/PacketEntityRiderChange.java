@@ -51,7 +51,7 @@ public class PacketEntityRiderChange extends APacketEntityInteract<AEntityE_Inte
     @Override
     protected boolean handle(AWrapperWorld world, AEntityE_Interactable<?> entity, IWrapperEntity rider) {
         if (mount) {
-            entity.setRider(rider, facesForwards);
+            entity.setRider(rider, facesForwards, false);
         } else {
             entity.removeRider();
         }

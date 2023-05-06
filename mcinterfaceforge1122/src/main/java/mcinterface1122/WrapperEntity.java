@@ -40,7 +40,7 @@ public class WrapperEntity implements IWrapperEntity {
     private static final Map<Entity, WrapperEntity> entityServerWrappers = new HashMap<>();
 
     protected final Entity entity;
-    private AEntityE_Interactable<?> cachedEntityRiding;
+    private AEntityE_Interactable<?> entityRiding;
 
     /**
      * Returns a wrapper instance for the passed-in entity instance.
@@ -100,46 +100,12 @@ public class WrapperEntity implements IWrapperEntity {
 
     @Override
     public AEntityE_Interactable<?> getEntityRiding() {
-        if (cachedEntityRiding != null) {
-            return cachedEntityRiding;
-        } else {
-            Entity mcEntityRiding = entity.getRidingEntity();
-            if (mcEntityRiding instanceof BuilderEntityLinkedSeat) {
-                AEntityE_Interactable<?> entityRiding = ((BuilderEntityLinkedSeat) mcEntityRiding).entity;
-                //Need to check this as MC might have us as a rider on the builer, but we might not be a rider on the entity.
-                if (entityRiding != null && this.equals(entityRiding.rider)) {
-                    return entityRiding;
-                }
-            }
-            return null;
-        }
+        return entityRiding;
     }
 
     @Override
     public void setRiding(AEntityE_Interactable<?> entityToRide) {
-        if (entityToRide != null) {
-            //Don't re-add a seat entity if we are just changing seats.
-            //This just causes extra execution logic.
-            AEntityB_Existing entityRiding = getEntityRiding();
-            if (entityRiding == null) {
-                //Only spawn and start riding on the server, clients will get packets.
-                if (!entity.world.isRemote) {
-                    BuilderEntityLinkedSeat seat = new BuilderEntityLinkedSeat(((WrapperWorld) entityToRide.world).world);
-                    seat.loadedFromSavedNBT = true;
-                    seat.setPositionAndRotation(entityToRide.position.x, entityToRide.position.y, entityToRide.position.z, 0, 0);
-                    seat.entity = entityToRide;
-                    entity.world.spawnEntity(seat);
-                    entity.startRiding(seat, true);
-                }
-            } else {
-                //Just change entity reference, we will already be a rider on the entity at this point.
-                ((BuilderEntityLinkedSeat) entity.getRidingEntity()).entity = entityToRide;
-            }
-            cachedEntityRiding = entityToRide;
-        } else {
-            entity.dismountRidingEntity();
-            cachedEntityRiding = null;
-        }
+        entityRiding = entityToRide;
     }
 
     @Override
@@ -184,19 +150,17 @@ public class WrapperEntity implements IWrapperEntity {
 
     @Override
     public Point3D getEyePosition() {
-        AEntityE_Interactable<?> riding = getEntityRiding();
-        return riding != null ? riding.riderEyePosition : getPosition().add(0, getEyeHeight() + getSeatOffset(), 0);
+        return entityRiding != null ? entityRiding.riderEyePosition : getPosition().add(0, getEyeHeight() + getSeatOffset(), 0);
     }
 
     @Override
     public Point3D getHeadPosition() {
-        AEntityE_Interactable<?> riding = getEntityRiding();
-        return riding != null ? riding.riderHeadPosition : getPosition().add(0, getEyeHeight() + getSeatOffset(), 0);
+        return entityRiding != null ? entityRiding.riderHeadPosition : getPosition().add(0, getEyeHeight() + getSeatOffset(), 0);
     }
 
     @Override
     public void setPosition(Point3D position, boolean onGround) {
-        if (cachedEntityRiding != null) {
+        if (entityRiding != null) {
             //Need to offset down to make bounding hitbox go down like normal. 
             entity.setPosition(position.x, position.y + getSeatOffset(), position.z);
         } else {

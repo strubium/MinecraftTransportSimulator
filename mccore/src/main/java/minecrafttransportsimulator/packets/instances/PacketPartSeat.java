@@ -50,6 +50,10 @@ public class PacketPartSeat extends APacketEntity<PartSeat> {
                 ++seat.zoomLevel;
                 return true;
             }
+            case RIDER_CHANGE: {
+                seat.riderChangingSeats = true;
+                return true;
+            }
         }
         return false;
     }
@@ -57,6 +61,7 @@ public class PacketPartSeat extends APacketEntity<PartSeat> {
     public enum SeatAction {
         CHANGE_GUN,
         ZOOM_IN,
-        ZOOM_OUT;
+        ZOOM_OUT,
+        RIDER_CHANGE;
     }
 }

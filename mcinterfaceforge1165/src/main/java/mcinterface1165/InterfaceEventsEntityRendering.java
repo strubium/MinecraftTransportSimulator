@@ -20,7 +20,6 @@ import net.minecraft.client.renderer.ActiveRenderInfo;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.math.vector.Vector3d;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.EntityViewRenderEvent.CameraSetup;
 import net.minecraftforge.client.event.RenderArmEvent;
@@ -186,11 +185,6 @@ public class InterfaceEventsEntityRendering {
             //Translate the rider to the camera so it rotates on the proper coordinate system.
             PlayerEntity cameraEntity = Minecraft.getInstance().player;
             if (cameraEntity != null) {
-                //Get delta between camera and rendered entity.
-                Vector3d cameraEntityPos = cameraEntity.position();
-                Vector3d entityPos = entity.position();
-                new Point3D(entity.xo - cameraEntity.xo + (entityPos.x - entity.xo - (cameraEntityPos.x - cameraEntity.xo)) * event.getPartialRenderTick(), entity.yo - cameraEntity.yo + (entityPos.y - entity.yo - (cameraEntityPos.y - cameraEntity.yo)) * event.getPartialRenderTick(), entity.zo - cameraEntity.zo + (entityPos.z - entity.zo - (cameraEntityPos.z - cameraEntity.zo)) * event.getPartialRenderTick());
-
                 //Apply translations and rotations to move entity to correct position relative to the camera entity.
                 riderTotalTransformation.resetTransforms();
                 riderTotalTransformation.applyTranslation(0, -entityWrapper.getSeatOffset(), 0);

@@ -514,7 +514,6 @@ public class InterfaceRender implements IInterfaceRender {
         //Register blank classes for the builders.
         //If we don't, the game crashes when trying to render them.
         RenderingRegistry.registerEntityRenderingHandler(BuilderEntityExisting.E_TYPE2.get(), manager -> new BlankRender<BuilderEntityExisting>(manager));
-        RenderingRegistry.registerEntityRenderingHandler(BuilderEntityLinkedSeat.E_TYPE3.get(), manager -> new BlankRender<BuilderEntityLinkedSeat>(manager));
     }
 
     public static void doRenderCall(MatrixStack stack, IRenderTypeBuffer buffer, boolean blendingEnabled, float partialTicks) {
