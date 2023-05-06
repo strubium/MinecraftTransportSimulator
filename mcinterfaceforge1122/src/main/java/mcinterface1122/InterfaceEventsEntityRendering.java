@@ -229,8 +229,7 @@ public class InterfaceEventsEntityRendering {
             Entity cameraEntity = Minecraft.getMinecraft().getRenderViewEntity();
             if (cameraEntity != null) {
                 //Get delta between camera and rendered entity.
-                Point3D interpolatedPosition = new Point3D(cameraEntity.lastTickPosX + (cameraEntity.posX - cameraEntity.lastTickPosX) * event.getPartialRenderTick(), cameraEntity.lastTickPosY + (cameraEntity.posY - cameraEntity.lastTickPosY) * event.getPartialRenderTick(), cameraEntity.lastTickPosZ + (cameraEntity.posZ - cameraEntity.lastTickPosZ) * event.getPartialRenderTick());
-                interpolatedPosition = ridingEntity.prevRiderHeadPosition.copy().interpolate(ridingEntity.riderHeadPosition, event.getPartialRenderTick()).subtract(interpolatedPosition);
+                Point3D interpolatedPosition = new Point3D(entity.lastTickPosX - cameraEntity.lastTickPosX + ((entity.posX - entity.lastTickPosX) - (cameraEntity.posX - cameraEntity.lastTickPosX)) * event.getPartialRenderTick(), entity.lastTickPosY - cameraEntity.lastTickPosY + ((entity.posY - entity.lastTickPosY) - (cameraEntity.posY - cameraEntity.lastTickPosY)) * event.getPartialRenderTick(), entity.lastTickPosZ - cameraEntity.lastTickPosZ + ((entity.posZ - entity.lastTickPosZ) - (cameraEntity.posZ - cameraEntity.lastTickPosZ)) * event.getPartialRenderTick());
 
                 //Apply translations and rotations to move entity to correct position relative to the camera entity.
                 riderTotalTransformation.resetTransforms();

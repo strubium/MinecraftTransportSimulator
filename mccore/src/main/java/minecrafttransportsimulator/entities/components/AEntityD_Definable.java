@@ -524,7 +524,8 @@ public abstract class AEntityD_Definable<JSONDefinition extends AJSONMultiModelP
             }
 
             rider.setPosition(position, false);
-            rider.setVelocity(motion);
+            //Set to zero since entity isn't moving themselves.
+            rider.setVelocity(ZERO_FOR_CONSTRUCTOR);
             prevRiderRelativeOrientation.set(riderRelativeOrientation);
             riderRelativeOrientation.angles.y += rider.getYawDelta();
             //Need to clamp between +/- 180 to ensure that we don't confuse things and other variables and animations.
