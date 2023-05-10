@@ -107,7 +107,7 @@ public class WrapperEntity implements IWrapperEntity {
     @Override
     public void setRiding(AEntityE_Interactable<?> entityToRide) {
         entityRiding = entityToRide;
-        if (entityToRide != null) {
+        if (entityToRide != null && !entityToRide.world.isClient()) {
             World world = ((WrapperWorld) entityToRide.world).world;
             BuilderEntityLinkedSeat riding = new BuilderEntityLinkedSeat(this);
             riding.setPosition(entityToRide.position.x, entityToRide.position.y, entityToRide.position.z);
