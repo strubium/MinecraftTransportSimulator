@@ -209,7 +209,7 @@ public final class LegacyCompatSystem {
             //Check particles.
             if (provider.rendering.particles != null) {
                 for (JSONParticle particleDef : provider.rendering.particles) {
-                    performParticleLegacyCompats(particleDef);
+                    performParticleLegacyCompats(particleDef, provider);
                 }
             }
 
@@ -1815,7 +1815,7 @@ public final class LegacyCompatSystem {
         }
     }
 
-    private static void performParticleLegacyCompats(JSONParticle particleDef) {
+    private static void performParticleLegacyCompats(JSONParticle particleDef, AJSONMultiModelProvider provider) {
         if (particleDef.activeAnimations != null) {
             particleDef.activeConditions = convertConditionAnimations(particleDef.activeAnimations);
             particleDef.activeAnimations = null;
@@ -1833,13 +1833,56 @@ public final class LegacyCompatSystem {
         }
         if (particleDef.subParticles != null) {
             for (JSONSubParticle subParticleDef : particleDef.subParticles) {
-                performParticleLegacyCompats(subParticleDef.particle);
+                performParticleLegacyCompats(subParticleDef.particle, provider);
             }
         }
         if (particleDef.hitboxSize == 0) {
             particleDef.hitboxSize = particleDef.type == ParticleType.BREAK ? 0.1F : 0.2F;
             particleDef.scale *= particleDef.hitboxSize;
             particleDef.toScale *= particleDef.hitboxSize;
+        }
+        //Try to find something to applyAfter here instead.
+        //Check animation in reverse for matching paramters.  If we find one that matches all or the end
+        //of ours, we use it.
+        if (particleDef.spawningAnimations != null) {
+            if (provider.rendering.animatedObjects != null) {
+                for (JSONAnimatedObject animated : provider.rendering.animatedObjects) {
+                    if (animated.animations != null) {
+                        int particleAnimationIndex = particleDef.spawningAnimations.size() - 1;
+                        for (int i = animated.animations.size() - 1; i >= 0; --i) {
+                            JSONAnimationDefinition defAnimation = animated.animations.get(i);
+                            JSONAnimationDefinition particleAnimation = particleDef.spawningAnimations.get(particleAnimationIndex);
+                            if (defAnimation.animationType != particleAnimation.animationType) {
+                                break;
+                            }
+                            if (defAnimation.animationType == AnimationComponentType.ROTATION || defAnimation.animationType == AnimationComponentType.SCALING) {
+                                if (!defAnimation.centerPoint.equals(particleAnimation.centerPoint) || !defAnimation.axis.equals(particleAnimation.axis)) {
+                                    break;
+                                }
+                            }
+                            if (defAnimation.animationType == AnimationComponentType.TRANSLATION || defAnimation.animationType == AnimationComponentType.ROTATION || defAnimation.animationType == AnimationComponentType.SCALING) {
+                                if (!defAnimation.axis.equals(particleAnimation.axis)) {
+                                    break;
+                                }
+                            }
+                            if (defAnimation.animationType == AnimationComponentType.VISIBILITY || defAnimation.animationType == AnimationComponentType.ACTIVATOR || defAnimation.animationType == AnimationComponentType.INHIBITOR) {
+                                if (defAnimation.clampMin != particleAnimation.clampMin || defAnimation.clampMax != particleAnimation.clampMax) {
+                                    break;
+                                }
+                            }
+                            if (--particleAnimationIndex < 0) {
+                                //All defs match.
+                                particleDef.applyAfter = animated.objectName;
+                                break;
+                            }
+                        }
+                    }
+                    if (particleDef.applyAfter != null) {
+                        break;
+                    }
+                }
+            }
+            particleDef.spawningAnimations = null;
         }
     }
 

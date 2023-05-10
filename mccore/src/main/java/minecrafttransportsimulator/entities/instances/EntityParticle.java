@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+import minecrafttransportsimulator.baseclasses.AnimationSwitchbox;
 import minecrafttransportsimulator.baseclasses.ColorRGB;
 import minecrafttransportsimulator.baseclasses.Point3D;
 import minecrafttransportsimulator.baseclasses.RotationMatrix;
@@ -41,6 +42,7 @@ public class EntityParticle extends AEntityC_Renderable {
     private final AEntityC_Renderable entitySpawning;
     private final JSONParticle definition;
     private final boolean textureIsTranslucent;
+    private final AnimationSwitchbox switchbox;
     private final int maxAge;
     private final Point3D initialVelocity;
     private final IWrapperPlayer clientPlayer = InterfaceManager.clientInterface.getClientPlayer();
@@ -62,7 +64,7 @@ public class EntityParticle extends AEntityC_Renderable {
     private int colorIndex;
     private int colorDelayIndex;
 
-    public EntityParticle(AEntityC_Renderable entitySpawning, Point3D spawningPosition, JSONParticle definition) {
+    public EntityParticle(AEntityC_Renderable entitySpawning, Point3D spawningPosition, JSONParticle definition, AnimationSwitchbox switchbox) {
         super(entitySpawning.world, spawningPosition, ZERO_FOR_CONSTRUCTOR, ZERO_FOR_CONSTRUCTOR);
 
         helperTransform.resetTransforms();
@@ -71,6 +73,7 @@ public class EntityParticle extends AEntityC_Renderable {
             helperTransform.set(entitySpawning.orientation);
         }
 
+        this.switchbox = switchbox;
         if (switchbox != null) {
             helperTransform.multiply(switchbox.netMatrix);
         }
@@ -370,7 +373,7 @@ public class EntityParticle extends AEntityC_Renderable {
         if (definition.subParticles != null) {
             for (JSONSubParticle subDef : definition.subParticles) {
                 if (subDef.particle.spawnEveryTick ? subDef.time >= ticksExisted : subDef.time == ticksExisted) {
-                    world.addEntity(new EntityParticle(this, subDef.particle));
+                    world.addEntity(new EntityParticle(this, position, subDef.particle, switchbox));
                 }
             }
         }

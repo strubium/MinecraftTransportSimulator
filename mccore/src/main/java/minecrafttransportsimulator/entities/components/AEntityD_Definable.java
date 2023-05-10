@@ -90,9 +90,8 @@ public abstract class AEntityD_Definable<JSONDefinition extends AJSONMultiModelP
 
     private final Set<JSONSound> activeSounds = new HashSet<>();
     private final Set<JSONParticle> activeParticles = new HashSet<>();
-    private final Map<JSONParticle, Long> lastTickParticleSpawned = new HashMap<>();
     private final Map<JSONParticle, Point3D> lastPositionParticleSpawned = new HashMap<>();
-
+    private final Map<JSONParticle, AnimationSwitchbox> particleSwitchboxes = new HashMap<>();
     private final Map<JSONVariableModifier, VariableModifierSwitchbox> variableModiferSwitchboxes = new LinkedHashMap<>();
     private long lastTickParticlesSpawned;
     private float lastPartialTickParticlesSpawned;
@@ -304,7 +303,15 @@ public abstract class AEntityD_Definable<JSONDefinition extends AJSONMultiModelP
             }
         }
 
-        activeParticles.clear();
+        if (definition.rendering.particles != null) {
+            activeParticles.clear();
+            particleSwitchboxes.clear();
+            for (JSONParticle particleDef : definition.rendering.particles) {
+                if (particleDef.applyAfter != null) {
+                    particleSwitchboxes.put(particleDef, new AnimationSwitchbox(this, new ArrayList<>(), particleDef.applyAfter));
+                }
+            }
+        }
 
         if (definition.rendering.animatedObjects != null) {
             animatedObjectDefinitions.clear();
@@ -470,18 +477,22 @@ public abstract class AEntityD_Definable<JSONDefinition extends AJSONMultiModelP
                             while (!lastParticlePosition.isDistanceToCloserThan(position, particleDef.distance)) {
                                 double distanceFactor = particleDef.distance / position.distanceTo(lastParticlePosition);
                                 Point3D spawningPosition = lastParticlePosition.copy().interpolate(position, distanceFactor);
+                                AnimationSwitchbox switchbox = particleSwitchboxes.get(particleDef);
+                                if (switchbox != null) {
+                                    switchbox.runSwitchbox(partialTicks, false);
+                                }
                                 for (int i = 0; i < particleDef.quantity; ++i) {
-                                    /*AnimationSwitchbox spawningSwitchbox = particleSpawningSwitchboxes.get(particleDef);
-                                    if (spawningSwitchbox != null) {
-                                        spawningSwitchbox.runSwitchbox(partialTicks, false);
-                                    }*/
-                                    world.addEntity(new EntityParticle(this, spawningPosition, particleDef));
+                                    world.addEntity(new EntityParticle(this, spawningPosition, particleDef, switchbox));
                                 }
                                 lastParticlePosition.set(spawningPosition);
                             }
                         } else {
+                            AnimationSwitchbox switchbox = particleSwitchboxes.get(particleDef);
+                            if (switchbox != null) {
+                                switchbox.runSwitchbox(partialTicks, false);
+                            }
                             for (int i = 0; i < particleDef.quantity; ++i) {
-                                world.addEntity(new EntityParticle(this, particleDef));
+                                world.addEntity(new EntityParticle(this, position, particleDef, switchbox));
                             }
                         }
                     } else if (particleDef.distance != 0) {
