@@ -34,6 +34,7 @@ abstract class AEntityVehicleC_Colliding extends AEntityG_Towable<JSONVehicle> {
     public double currentMass;
     public double axialVelocity;
     public final Point3D headingVector = new Point3D();
+    public final Point3D tempPos = new Point3D();
 
     /**
      * Cached value for speedFactor.  Saves us from having to use the long form all over.
@@ -88,6 +89,32 @@ abstract class AEntityVehicleC_Colliding extends AEntityG_Towable<JSONVehicle> {
     @Override
     public boolean canCollide() {
         return true;
+    }
+
+    @Override
+    public boolean canUpdate() {
+        if (!super.canUpdate()) {
+            return false;
+        } else {
+            tempPos.set(position).add(-encompassingBox.widthRadius, 0, -encompassingBox.depthRadius);
+            if (!world.isChunkLoaded(tempPos)) {
+                return false;
+            } else {
+                tempPos.x += encompassingBox.widthRadius + encompassingBox.widthRadius;
+                if (!world.isChunkLoaded(tempPos)) {
+                    return false;
+                } else {
+                    tempPos.x -= encompassingBox.widthRadius + encompassingBox.widthRadius;
+                    tempPos.z += encompassingBox.depthRadius + encompassingBox.depthRadius;
+                    if (!world.isChunkLoaded(tempPos)) {
+                        return false;
+                    } else {
+                        tempPos.x += encompassingBox.widthRadius + encompassingBox.widthRadius;
+                        return world.isChunkLoaded(tempPos);
+                    }
+                }
+            }
+        }
     }
 
     @Override
