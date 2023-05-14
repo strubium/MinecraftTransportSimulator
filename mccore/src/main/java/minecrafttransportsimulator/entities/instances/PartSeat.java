@@ -91,7 +91,7 @@ public final class PartSeat extends APart {
                                    ((PartSeat) entityPlayerRiding).riderChangingSeats = true;
                                    InterfaceManager.packetInterface.sendToAllClients(new PacketPartSeat(((PartSeat) entityPlayerRiding), SeatAction.RIDER_CHANGE));
                                 }
-                                entityPlayerRiding.removeRider();
+                                entityPlayerRiding.removeRider(false);
                             }
                             setRider(player, !(entityPlayerRiding instanceof PartSeat) || ((PartSeat) entityPlayerRiding).vehicleOn != vehicleOn, false);
 
@@ -229,7 +229,7 @@ public final class PartSeat extends APart {
     }
 
     @Override
-    public void removeRider() {
+    public void removeRider(boolean unloaded) {
         if (vehicleOn != null) {
             removeRiderFromVehicle();
         }
@@ -280,7 +280,7 @@ public final class PartSeat extends APart {
             }
         }
         riderChangingSeats = false;
-        super.removeRider();
+        super.removeRider(unloaded);
     }
 
     private void removeRiderFromVehicle() {

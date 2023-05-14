@@ -114,6 +114,23 @@ public class BuilderEntityExisting extends ABuilderEntityBase {
     }
 
     @Override
+    public void setDead() {
+        super.setDead();
+        //Notify internal entity of it being invalid.
+        if (entity != null) {
+            //Need to remove all riders first and flag them as saved, otherwise they won't re-seat.
+            if (entity instanceof AEntityF_Multipart) {
+                for (APart part : ((AEntityF_Multipart<?>) entity).allParts) {
+                    if (part.rider != null) {
+                        part.removeRider(true);
+                    }
+                }
+            }
+            entity.remove();
+        }
+    }
+
+    @Override
     public boolean attackEntityFrom(DamageSource source, float amount) {
         if (ConfigSystem.settings.damage.allowExternalDamage.value && !world.isRemote && entity instanceof AEntityF_Multipart) {
             AEntityF_Multipart<?> multipart = ((AEntityF_Multipart<?>) entity);

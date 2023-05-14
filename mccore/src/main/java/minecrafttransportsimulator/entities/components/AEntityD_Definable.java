@@ -498,7 +498,7 @@ public abstract class AEntityD_Definable<JSONDefinition extends AJSONMultiModelP
 
             //Remove rider to allow post-removal logic.
             if (rider != null) {
-                removeRider();
+                removeRider(false);
             }
         }
     }
@@ -520,7 +520,7 @@ public abstract class AEntityD_Definable<JSONDefinition extends AJSONMultiModelP
         if (rider.isValid()) {
             //Remove sneaking rider on servers; clients get packets.
             if (!world.isClient() && rider instanceof IWrapperPlayer && ((IWrapperPlayer) rider).isSneaking()) {
-                removeRider();
+                removeRider(false);
                 return false;
             }
 
@@ -580,7 +580,7 @@ public abstract class AEntityD_Definable<JSONDefinition extends AJSONMultiModelP
             //Remove invalid rider.
             //Don't call this on the client; they will get a removal packet from this method.
             if (!world.isClient()) {
-                removeRider();
+                removeRider(false);
             }
             return false;
         }
@@ -632,12 +632,16 @@ public abstract class AEntityD_Definable<JSONDefinition extends AJSONMultiModelP
     /**
      * Called to remove the rider that is currently riding this entity.
      * Call this from code only on the server; clients will get packets to call this method.
+     * If this remove is from general entity loading, set unloaded to true.  This will have
+     * the rider be removed, but will keep their data saved for when this entity is re-loaded
+     * into the world to make the rider re-ride it. 
      */
-    public void removeRider() {
+    public void removeRider(boolean unloaded) {
         rider.setRiding(null);
         if (!world.isClient()) {
             InterfaceManager.packetInterface.sendToAllClients(new PacketEntityRiderChange(this, rider));
         }
+        savedRiderUUID = rider.getID();
         rider = null;
         riderIsClient = false;
     }
