@@ -178,6 +178,7 @@ public abstract class AEntityD_Definable<JSONDefinition extends AJSONMultiModelP
      * the game implementation and settings, since some settings add a default camera offset we need to account for here.**/
     public final Point3D riderCameraPosition = new Point3D();
     public final Point3D prevRiderCameraPosition = new Point3D();
+    public final Point3D riderPosition = new Point3D();
 
     /**
      * The orientation of the {@link #rider}.  This will be relative to this entity, and not global to the world.
@@ -523,7 +524,8 @@ public abstract class AEntityD_Definable<JSONDefinition extends AJSONMultiModelP
                 return false;
             }
 
-            rider.setPosition(position, false);
+            riderPosition.set(position);
+            rider.setPosition(riderPosition, false);
 
             //Set to zero since entity isn't moving themselves.
             rider.setVelocity(ZERO_FOR_CONSTRUCTOR);

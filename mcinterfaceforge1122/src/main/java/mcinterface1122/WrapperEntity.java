@@ -30,7 +30,6 @@ import net.minecraft.util.DamageSource;
 import net.minecraft.util.EntityDamageSource;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextComponentString;
-import net.minecraft.world.World;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -107,13 +106,6 @@ public class WrapperEntity implements IWrapperEntity {
     @Override
     public void setRiding(AEntityE_Interactable<?> entityToRide) {
         entityRiding = entityToRide;
-        if (entityToRide != null && !entityToRide.world.isClient()) {
-            World world = ((WrapperWorld) entityToRide.world).world;
-            BuilderEntityLinkedSeat riding = new BuilderEntityLinkedSeat(this);
-            riding.setPosition(entityToRide.position.x, entityToRide.position.y, entityToRide.position.z);
-            world.spawnEntity(riding);
-            entity.startRiding(riding);
-        }
     }
 
     @Override

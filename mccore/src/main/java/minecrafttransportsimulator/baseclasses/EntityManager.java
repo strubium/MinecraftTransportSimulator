@@ -62,6 +62,12 @@ public abstract class EntityManager {
 
         //Clear rider list on start of update cycles.
         if (mainUpdate) {
+            //Update the rider at the start of the cycle to ensure no other things moved them prior to our next update.
+            entitiesWithRiders.forEach(entity -> {
+                if (entity.rider != null) {
+                    entity.rider.setPosition(entity.riderPosition, false);
+                }
+            });
             entitiesWithRiders.clear();
         }
 
