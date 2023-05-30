@@ -73,6 +73,16 @@ abstract class AEntityVehicleC_Colliding extends AEntityG_Towable<JSONVehicle> {
     }
 
     @Override
+    public boolean loadFromWorldData() {
+        return true;
+    }
+
+    @Override
+    public boolean canCollide() {
+        return true;
+    }
+
+    @Override
     public void destroy(BoundingBox box) {
         //Get drops from parts.  Vehicle just blows up.
         List<IWrapperItemStack> drops = new ArrayList<>();

@@ -1,12 +1,10 @@
 package minecrafttransportsimulator.entities.instances;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 
 import minecrafttransportsimulator.baseclasses.BoundingBox;
 import minecrafttransportsimulator.baseclasses.RotationMatrix;
-import minecrafttransportsimulator.entities.components.AEntityB_Existing;
+import minecrafttransportsimulator.entities.components.AEntityE_Interactable;
 import minecrafttransportsimulator.entities.components.AEntityF_Multipart;
 import minecrafttransportsimulator.entities.instances.PartGun.GunState;
 import minecrafttransportsimulator.items.components.AItemBase;
@@ -33,8 +31,7 @@ import minecrafttransportsimulator.systems.ConfigSystem;
  * @author don_bruce
  */
 public class EntityPlayerGun extends AEntityF_Multipart<JSONDummyPartProvider> {
-    public static final Map<UUID, EntityPlayerGun> playerClientGuns = new HashMap<>();
-    public static final Map<UUID, EntityPlayerGun> playerServerGuns = new HashMap<>();
+    public static EntityPlayerGun playerClientGun;
 
     public final IWrapperPlayer player;
     private final RotationMatrix handRotation = new RotationMatrix();
@@ -70,18 +67,10 @@ public class EntityPlayerGun extends AEntityF_Multipart<JSONDummyPartProvider> {
             }
         }
 
-        //Don't load duplicates.  However, do ensure if we replace a gun we remove it.
-        //These come after the player joins the world where a gun was already present.
-        if (world.isClient()) {
-            if (playerClientGuns.containsKey(player.getID())) {
-                playerClientGuns.get(player.getID()).remove();
-            }
-            playerClientGuns.put(player.getID(), this);
-        } else {
-            if (playerServerGuns.containsKey(player.getID())) {
-                playerServerGuns.get(player.getID()).remove();
-            }
-            playerServerGuns.put(player.getID(), this);
+        //If we are the gun for the current client player, set us as such.
+        //This is a special gun since it can control things on our client.
+        if (world.isClient() && InterfaceManager.clientInterface.getClientPlayer().equals(player)) {
+            playerClientGun = this;
         }
     }
 
@@ -108,8 +97,8 @@ public class EntityPlayerGun extends AEntityF_Multipart<JSONDummyPartProvider> {
     @Override
     public void update() {
         super.update();
-        //Make sure player is still valid and haven't left the server.
-        if (player != null && player.isValid()) {
+        //Make sure player is still valid and haven't left the server or the world we are in.
+        if (player != null && player.isValid() && world == player.getWorld()) {
             //Set our position to the player's position.  We may update this later if we have a gun.
             //We can't update position without the gun as it has an offset defined in it.
             position.set(player.getPosition());
@@ -159,7 +148,7 @@ public class EntityPlayerGun extends AEntityF_Multipart<JSONDummyPartProvider> {
             //Only change firing command on servers to prevent de-syncs.
             //Packets will get sent to clients to change them.
             if (activeGun != null) {
-                AEntityB_Existing ridingEntity = player.getEntityRiding();
+                AEntityE_Interactable<?> ridingEntity = player.getEntityRiding();
                 RotationMatrix playerRotation = ridingEntity != null ? ridingEntity.riderRelativeOrientation : player.getOrientation();
 
                 //Offset to the end of the hand with our offset and current rotation.
@@ -236,10 +225,10 @@ public class EntityPlayerGun extends AEntityF_Multipart<JSONDummyPartProvider> {
     }
 
     @Override
-    public boolean shouldAutomaticallyUpdate() {
+    public EntityUpdateType getUpdateType() {
         //Player guns are queued to be ticked after their players are updated.
         //If not, then they don't move to the right spot.
-        return false;
+        return EntityUpdateType.LAST;
     }
 
     @Override
@@ -265,12 +254,8 @@ public class EntityPlayerGun extends AEntityF_Multipart<JSONDummyPartProvider> {
     @Override
     public void remove() {
         super.remove();
-        if (player != null) {
-            if (world.isClient()) {
-                playerClientGuns.remove(player.getID());
-            } else {
-                playerServerGuns.remove(player.getID());
-            }
+        if (playerClientGun == this) {
+            playerClientGun = null;
         }
     }
 

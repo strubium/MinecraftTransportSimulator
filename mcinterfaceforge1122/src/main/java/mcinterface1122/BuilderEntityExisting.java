@@ -134,6 +134,9 @@ public class BuilderEntityExisting extends ABuilderEntityBase {
                     entity.world.addEntity(entity);
                     loadedFromSavedNBT = true;
                     lastLoadedNBT = null;
+                    //Kill us since we created our entity we needed to, we don't need to exist anymore.
+                    //This will remove our current entity, but will keep the "copy" that was created by the core system.
+                    setDead();
                 } catch (Exception e) {
                     InterfaceManager.coreInterface.logError("Failed to load entity on builder from saved NBT.  Did a pack change?");
                     InterfaceManager.coreInterface.logError(e.getMessage());
@@ -230,12 +233,6 @@ public class BuilderEntityExisting extends ABuilderEntityBase {
             }
         }
         return ItemStack.EMPTY;
-    }
-
-    @Override
-    public boolean canBeCollidedWith() {
-        //This gets overridden to allow players to interact with this entity.
-        return collisionBoxes != null && !collisionBoxes.boxes.isEmpty();
     }
 
     @Override

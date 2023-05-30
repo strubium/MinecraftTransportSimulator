@@ -122,6 +122,11 @@ public class EntityPlacedPart extends AEntityF_Multipart<JSONDummyPartProvider> 
     }
 
     @Override
+    public boolean canCollide() {
+        return true;
+    }
+
+    @Override
     public boolean shouldRenderBeams() {
         return ConfigSystem.client.renderingSettings.vehicleBeams.value;
     }

@@ -46,6 +46,7 @@ import minecrafttransportsimulator.packets.instances.PacketPartSeat;
 import minecrafttransportsimulator.packets.instances.PacketPlayerChatMessage;
 import minecrafttransportsimulator.packets.instances.PacketPlayerCraftItem;
 import minecrafttransportsimulator.packets.instances.PacketPlayerItemTransfer;
+import minecrafttransportsimulator.packets.instances.PacketPlayerJoin;
 import minecrafttransportsimulator.packets.instances.PacketRadioStateChange;
 import minecrafttransportsimulator.packets.instances.PacketTileEntityFuelPumpConnection;
 import minecrafttransportsimulator.packets.instances.PacketTileEntityFuelPumpDispense;
@@ -59,6 +60,8 @@ import minecrafttransportsimulator.packets.instances.PacketTileEntitySignalContr
 import minecrafttransportsimulator.packets.instances.PacketVehicleBeaconChange;
 import minecrafttransportsimulator.packets.instances.PacketVehicleControlNotification;
 import minecrafttransportsimulator.packets.instances.PacketVehicleServerMovement;
+import minecrafttransportsimulator.packets.instances.PacketWorldEntityData;
+import minecrafttransportsimulator.packets.instances.PacketWorldEntityRemove;
 import minecrafttransportsimulator.packets.instances.PacketWorldSavedDataRequest;
 import minecrafttransportsimulator.packets.instances.PacketWorldSavedDataUpdate;
 import minecrafttransportsimulator.packloading.PackParser;
@@ -276,6 +279,7 @@ public abstract class APacketBase {
         InterfaceManager.packetInterface.registerPacket(packetIndex++, PacketPlayerChatMessage.class);
         InterfaceManager.packetInterface.registerPacket(packetIndex++, PacketPlayerCraftItem.class);
         InterfaceManager.packetInterface.registerPacket(packetIndex++, PacketPlayerItemTransfer.class);
+        InterfaceManager.packetInterface.registerPacket(packetIndex++, PacketPlayerJoin.class);
 
         //Radio packets.
         InterfaceManager.packetInterface.registerPacket(packetIndex++, PacketRadioStateChange.class);
@@ -297,6 +301,8 @@ public abstract class APacketBase {
         InterfaceManager.packetInterface.registerPacket(packetIndex++, PacketVehicleServerMovement.class);
 
         //World packets.
+        InterfaceManager.packetInterface.registerPacket(packetIndex++, PacketWorldEntityData.class);
+        InterfaceManager.packetInterface.registerPacket(packetIndex++, PacketWorldEntityRemove.class);
         InterfaceManager.packetInterface.registerPacket(packetIndex++, PacketWorldSavedDataRequest.class);
         InterfaceManager.packetInterface.registerPacket(packetIndex++, PacketWorldSavedDataUpdate.class);
     }

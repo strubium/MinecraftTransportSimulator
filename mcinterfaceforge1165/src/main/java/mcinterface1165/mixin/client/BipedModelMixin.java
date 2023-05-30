@@ -65,7 +65,7 @@ public abstract class BipedModelMixin<T extends LivingEntity> {
         }
 
         if (entity instanceof PlayerEntity) {
-            EntityPlayerGun gunEntity = EntityPlayerGun.playerClientGuns.get(entity.getUUID());
+            EntityPlayerGun gunEntity = EntityPlayerGun.playerClientGun;
             if (gunEntity != null && gunEntity.activeGun != null) {
                 //Get arm rotations.
                 Point3D heldVector;

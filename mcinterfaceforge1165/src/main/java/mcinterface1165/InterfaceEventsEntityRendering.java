@@ -7,6 +7,7 @@ import minecrafttransportsimulator.baseclasses.Point3D;
 import minecrafttransportsimulator.baseclasses.RotationMatrix;
 import minecrafttransportsimulator.baseclasses.TransformationMatrix;
 import minecrafttransportsimulator.entities.components.AEntityB_Existing;
+import minecrafttransportsimulator.entities.components.AEntityE_Interactable;
 import minecrafttransportsimulator.entities.instances.EntityPlayerGun;
 import minecrafttransportsimulator.entities.instances.PartSeat;
 import minecrafttransportsimulator.mcinterface.IWrapperPlayer;
@@ -144,7 +145,7 @@ public class InterfaceEventsEntityRendering {
     public static void on(@SuppressWarnings("rawtypes") RenderLivingEvent.Pre event) {
         LivingEntity entity = event.getEntity();
         WrapperEntity entityWrapper = WrapperEntity.getWrapperFor(entity);
-        AEntityB_Existing ridingEntity = entityWrapper.getEntityRiding();
+        AEntityE_Interactable<?> ridingEntity = entityWrapper.getEntityRiding();
         //This may be null if MC sets this player as riding before the actual entity has time to load NBT.
         if (ridingEntity != null) {
             event.getMatrixStack().pushPose();
@@ -206,7 +207,7 @@ public class InterfaceEventsEntityRendering {
         if (entity instanceof PlayerEntity) {
             //Check if we are holding a gun.  This is the only other time
             //we apply player tweaks besides riding in a vehicle.
-            EntityPlayerGun gunEntity = EntityPlayerGun.playerClientGuns.get(entity.getUUID());
+            EntityPlayerGun gunEntity = EntityPlayerGun.playerClientGun;
             if (gunEntity != null && gunEntity.activeGun != null) {
                 PlayerEntity player = (PlayerEntity) entity;
 
@@ -244,7 +245,7 @@ public class InterfaceEventsEntityRendering {
      */
     @SubscribeEvent
     public static void on(RenderHandEvent event) {
-        EntityPlayerGun entity = EntityPlayerGun.playerClientGuns.get(Minecraft.getInstance().player.getUUID());
+        EntityPlayerGun entity = EntityPlayerGun.playerClientGun;
         if ((entity != null && entity.activeGun != null) || CameraSystem.runningCustomCameras) {
             event.setCanceled(true);
         }
@@ -252,7 +253,7 @@ public class InterfaceEventsEntityRendering {
 
     @SubscribeEvent
     public static void on(RenderArmEvent event) {
-        EntityPlayerGun entity = EntityPlayerGun.playerClientGuns.get(Minecraft.getInstance().player.getUUID());
+        EntityPlayerGun entity = EntityPlayerGun.playerClientGun;
         if ((entity != null && entity.activeGun != null) || CameraSystem.runningCustomCameras) {
             event.setCanceled(true);
         }
