@@ -525,6 +525,7 @@ public abstract class AEntityD_Definable<JSONDefinition extends AJSONMultiModelP
             }
 
             riderPosition.set(position);
+            riderPosition.y += rider.getSeatOffset();
             rider.setPosition(riderPosition, false);
 
             //Set to zero since entity isn't moving themselves.

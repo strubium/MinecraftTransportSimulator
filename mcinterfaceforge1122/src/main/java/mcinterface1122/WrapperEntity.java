@@ -166,6 +166,7 @@ public class WrapperEntity implements IWrapperEntity {
         } else {
             entity.setPosition(position.x, position.y, position.z);
         }
+
         //Set fallDistance to 0 to prevent damage.
         entity.fallDistance = 0;
         entity.onGround = onGround;
