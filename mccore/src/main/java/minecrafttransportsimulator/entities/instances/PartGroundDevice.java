@@ -77,9 +77,9 @@ public class PartGroundDevice extends APart {
     }
 
     @Override
-    public void addPartsPostAddition(IWrapperPlayer placingPlayer, IWrapperNBT data) {
+    public void addPartsPostConstruction(IWrapperPlayer placingPlayer, IWrapperNBT data) {
         //Create the initial boxes and slots.
-        super.addPartsPostAddition(placingPlayer, data);
+        super.addPartsPostConstruction(placingPlayer, data);
 
         //If we are a long ground device, add a fake ground device at the offset to make us
         //have a better contact area.  We don't need to check if we are a fake part since

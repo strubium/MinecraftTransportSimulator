@@ -130,7 +130,7 @@ public class BuilderEntityExisting extends ABuilderEntityBase {
                     WrapperNBT data = new WrapperNBT(lastLoadedNBT);
                     entity = entityMap.get(lastLoadedNBT.getString("entityid")).createEntity(worldWrapper, null, data);
                     if (entity instanceof AEntityF_Multipart) {
-                        ((AEntityF_Multipart<?>) entity).addPartsPostAddition(null, data);
+                        ((AEntityF_Multipart<?>) entity).addPartsPostConstruction(null, data);
                     }
                     entity.world.addEntity(entity);
                     loadedFromSavedNBT = true;

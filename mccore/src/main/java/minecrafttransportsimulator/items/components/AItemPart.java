@@ -61,8 +61,7 @@ public abstract class AItemPart extends AItemSubTyped<JSONPart> implements IItem
         //Construct the class, add ourselves as a part, and spawn.
         IWrapperNBT placerData = InterfaceManager.coreInterface.getNewNBTWrapper();
         EntityPlacedPart entity = new EntityPlacedPart(world, player, placerData);
-        entity.addPartsPostAddition(player, placerData);
-        
+        entity.addPartsPostConstruction(player, placerData);
         populateDefaultData(data);
         APart newPart = entity.addPartFromStack(getNewStack(data), player, 0, true);
 
@@ -70,7 +69,7 @@ public abstract class AItemPart extends AItemSubTyped<JSONPart> implements IItem
         entity.prevPosition.set(position);
         entity.orientation.setToAngles(new Point3D(0, yRotation, 0));
         entity.prevOrientation.set(entity.orientation);
-        entity.world.spawnEntity(entity);
+        entity.world.addEntity(entity);
         return newPart;
     }
 

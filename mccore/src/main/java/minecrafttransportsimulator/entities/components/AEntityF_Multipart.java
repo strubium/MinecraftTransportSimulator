@@ -328,13 +328,13 @@ public abstract class AEntityF_Multipart<JSONDefinition extends AJSONPartProvide
                 //Create new placed part entity, align to part, add part, and spawn.
                 IWrapperNBT placerData = InterfaceManager.coreInterface.getNewNBTWrapper();
                 EntityPlacedPart entity = new EntityPlacedPart(world, null, placerData);
-                entity.addPartsPostAddition(null, placerData);
+                entity.addPartsPostConstruction(null, placerData);
 
                 entity.position.set(currentPart.position);
                 entity.prevPosition.set(entity.position);
                 entity.orientation.set(currentPart.orientation);
                 entity.prevOrientation.set(entity.orientation);
-                entity.world.spawnEntity(entity);
+                entity.world.addEntity(entity);
 
                 //TODO we would normally transfer the part here, but we can't do that since MC does jank.  Remove with EOBeta completion.  This forces the placed part to spawn before we try and add the part.
                 partToPlace = currentPart;
@@ -668,7 +668,7 @@ public abstract class AEntityF_Multipart<JSONDefinition extends AJSONPartProvide
      * sub-parts wouldn't have all the info they needed.  As such, this method should be called only after
      * this multipart exists in the world.  And, if it is a part, it has been added to the multipart it is a part of.
      */
-    public void addPartsPostAddition(IWrapperPlayer placingPlayer, IWrapperNBT data) {
+    public void addPartsPostConstruction(IWrapperPlayer placingPlayer, IWrapperNBT data) {
         //Init part lookup list and add parts.
         if (definition.parts != null) {
             //Need to init slots first, just in case we reference them on sub-part linking logic.
@@ -683,7 +683,7 @@ public abstract class AEntityF_Multipart<JSONDefinition extends AJSONPartProvide
                 try {
                     IWrapperNBT partData = data.getData("part_" + i);
                     if (partData != null) {
-                        addPartFromStack(PackParser.getItem(partData.getString("packID"), partData.getString("systemName"), partData.getString("subName")).getNewStack(partData), placingPlayer, i, true);
+                        addPartFromStack(PackParser.getItem(partData.getString("packID"), partData.getString("systemName"), partData.getString("subName")).getNewStack(partData), placingPlayer, i, false);
                     }
                 } catch (Exception e) {
                     InterfaceManager.coreInterface.logError("Could not load part from NBT.  Did you un-install a pack?");
@@ -732,8 +732,8 @@ public abstract class AEntityF_Multipart<JSONDefinition extends AJSONPartProvide
             IWrapperNBT partData = stack.getData();
             partItem.populateDefaultData(partData);
             APart partToAdd = partItem.createPart(this, playerAdding, newPartDef, partData);
-            addPart(partToAdd, true);
-            partToAdd.addPartsPostAddition(playerAdding, partData);
+            addPart(partToAdd, bypassSlotChecks);
+            partToAdd.addPartsPostConstruction(playerAdding, partData);
             return partToAdd;
         } else {
             return null;

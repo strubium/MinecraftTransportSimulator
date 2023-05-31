@@ -42,7 +42,7 @@ public class PacketPartChange_Add extends APacketEntity<AEntityF_Multipart<?>> {
     public boolean handle(AWrapperWorld world, AEntityF_Multipart<?> entity) {
         APart part = ((AItemPart) partStack.getItem()).createPart(entity, null, entity.definition.parts.get(partSlot), partStack.getData());
         entity.addPart(part, false);
-        part.addPartsPostAddition(null, partStack.getData());
+        part.addPartsPostConstruction(null, partStack.getData());
         return false;
     }
 }

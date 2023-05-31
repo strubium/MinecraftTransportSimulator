@@ -11,6 +11,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import minecrafttransportsimulator.entities.components.AEntityA_Base;
 import minecrafttransportsimulator.entities.components.AEntityA_Base.EntityUpdateType;
 import minecrafttransportsimulator.entities.components.AEntityC_Renderable;
+import minecrafttransportsimulator.entities.components.AEntityD_Definable;
 import minecrafttransportsimulator.entities.components.AEntityE_Interactable;
 import minecrafttransportsimulator.entities.components.AEntityF_Multipart;
 import minecrafttransportsimulator.entities.instances.APart;
@@ -19,6 +20,7 @@ import minecrafttransportsimulator.entities.instances.EntityPlacedPart;
 import minecrafttransportsimulator.entities.instances.EntityVehicleF_Physics;
 import minecrafttransportsimulator.entities.instances.PartGun;
 import minecrafttransportsimulator.mcinterface.InterfaceManager;
+import minecrafttransportsimulator.packets.instances.PacketWorldEntityData;
 
 /**
  * Class that manages entities in a world or other area.
@@ -45,6 +47,15 @@ public abstract class EntityManager {
      * constructors won't complete before the entity is accessed from this list.
      */
     public <EntityType extends AEntityA_Base> void addEntity(EntityType entity) {
+        if (entity.shouldSync()) {
+            AEntityA_Base otherEntity = trackedEntityMap.get(entity.uniqueUUID);
+            if (otherEntity != null) {
+                InterfaceManager.coreInterface.logError("Attempting to add already-created and tracked entity " + entity + " with UUID:" + entity.uniqueUUID + " old entity is being replaced!");
+                removeEntity(otherEntity);
+            }
+            trackedEntityMap.put(entity.uniqueUUID, entity);
+        }
+
         allEntities.add(entity);
         if (entity.getUpdateType() == EntityUpdateType.MAIN) {
             allMainTickableEntities.add(entity);
@@ -53,8 +64,14 @@ public abstract class EntityManager {
         }
         if (entity instanceof AEntityC_Renderable) {
             renderableEntities.add((AEntityC_Renderable) entity);
-            if (entity instanceof AEntityE_Interactable && ((AEntityE_Interactable<?>) entity).canCollide()) {
-                collidableEntities.add((AEntityE_Interactable<?>) entity);
+            if (entity instanceof AEntityD_Definable) {
+                AEntityD_Definable<?> definable = (AEntityD_Definable<?>) entity;
+                if (!entity.world.isClient() && definable.loadFromWorldData()) {
+                    InterfaceManager.packetInterface.sendToAllClients(new PacketWorldEntityData(definable));
+                }
+                if (entity instanceof AEntityE_Interactable && ((AEntityE_Interactable<?>) entity).canCollide()) {
+                    collidableEntities.add((AEntityE_Interactable<?>) entity);
+                }
             }
         }
         if (entity instanceof PartGun) {
@@ -73,14 +90,6 @@ public abstract class EntityManager {
             entitiesByClass.put(entity.getClass(), classList);
         }
         classList.add(entity);
-        if (entity.shouldSync()) {
-            AEntityA_Base otherEntity = trackedEntityMap.get(entity.uniqueUUID);
-            if (otherEntity != null) {
-                InterfaceManager.coreInterface.logError("Attempting to add already-created and tracked entity with UUID:" + entity.uniqueUUID + " old entity is being replaced!");
-                removeEntity(otherEntity);
-            }
-            trackedEntityMap.put(entity.uniqueUUID, entity);
-        }
     }
 
     /**

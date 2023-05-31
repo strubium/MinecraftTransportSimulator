@@ -247,6 +247,11 @@ public class EntityPlayerGun extends AEntityF_Multipart<JSONDummyPartProvider> {
     }
 
     @Override
+    public boolean loadFromWorldData() {
+        return true;
+    }
+
+    @Override
     public boolean requiresDeltaUpdates() {
         return true;
     }
@@ -292,6 +297,7 @@ public class EntityPlayerGun extends AEntityF_Multipart<JSONDummyPartProvider> {
     @Override
     public IWrapperNBT save(IWrapperNBT data) {
         super.save(data);
+        data.setBoolean("isPlayerGun", true);
         if (player != null) {
             data.setUUID("playerUUID", player.getID());
         }

@@ -262,7 +262,6 @@ public class InterfaceClient implements IInterfaceClient {
     @SubscribeEvent
     public static void on(WorldEvent.Load event) {
         if (event.getWorld().isRemote) {
-            System.out.println("HELLO CLIENT WORLD");
             //Delay sending of packet until we tick, as we can't create the wrapper here or we'll not have everything loaded.
             clientWorldToInit = event.getWorld();
         }

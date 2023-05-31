@@ -16,7 +16,6 @@ import minecrafttransportsimulator.blocks.components.ABlockBase.BlockMaterial;
 import minecrafttransportsimulator.blocks.components.ABlockBaseTileEntity;
 import minecrafttransportsimulator.blocks.tileentities.components.ATileEntityBase;
 import minecrafttransportsimulator.entities.components.AEntityA_Base;
-import minecrafttransportsimulator.entities.components.AEntityB_Existing;
 import minecrafttransportsimulator.entities.components.AEntityD_Definable;
 import minecrafttransportsimulator.entities.components.AEntityE_Interactable;
 import minecrafttransportsimulator.entities.components.AEntityF_Multipart;
@@ -81,7 +80,8 @@ public abstract class AWrapperWorld extends EntityManager {
             //Spawn gun.
             IWrapperNBT newData = InterfaceManager.coreInterface.getNewNBTWrapper();
             gun = new EntityPlayerGun(this, player, newData);
-            gun.addPartsPostAddition(player, newData);
+            gun.addPartsPostConstruction(player, newData);
+            addEntity(gun);
             playerServerGuns.put(playerUUID, gun);
 
             //If the player is new, add handbooks.
@@ -142,13 +142,18 @@ public abstract class AWrapperWorld extends EntityManager {
             AEntityD_Definable<?> entity = ((AItemSubTyped<?>) packItem).createEntityFromData(this, data);
             if (entity != null) {
                 if (entity instanceof AEntityF_Multipart) {
-                    ((AEntityF_Multipart<?>) entity).addPartsPostAddition(null, data);
+                    ((AEntityF_Multipart<?>) entity).addPartsPostConstruction(null, data);
                 }
                 addEntity(entity);
-                return;
             }
         } else if (packItem == null) {
-            InterfaceManager.coreInterface.logError("Tried to create entity from NBT but couldn't find an item to create it from.  Did a pack change?");
+            if (data.getBoolean("isPlayerGun")) {
+                EntityPlayerGun entity = new EntityPlayerGun(this, null, data);
+                entity.addPartsPostConstruction(null, data);
+                addEntity(entity);
+            } else {
+                InterfaceManager.coreInterface.logError("Tried to create entity from NBT but couldn't find an item to create it from.  Did a pack change?");
+            }
         } else {
             InterfaceManager.coreInterface.logError("Tried to create entity from NBT but found a pack item that wasn't a sub-typed item.  A pack could have changed, but this is probably a bug and should be reported.");
         }
@@ -288,11 +293,6 @@ public abstract class AWrapperWorld extends EntityManager {
      * Returns a list of all hostile entities in the specified radius.
      */
     public abstract List<IWrapperEntity> getEntitiesHostile(IWrapperEntity lookingEntity, double radius);
-
-    /**
-     * Spawns the brand-new entity into the world.
-     */
-    public abstract void spawnEntity(AEntityB_Existing entity);
 
     /**
      * Attacks all entities that are in the passed-in damage range.

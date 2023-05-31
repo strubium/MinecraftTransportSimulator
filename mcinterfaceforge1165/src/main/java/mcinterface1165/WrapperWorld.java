@@ -271,23 +271,6 @@ public class WrapperWorld extends AWrapperWorld {
         }
         return entities;
     }
-    @Override
-    public void spawnEntity(AEntityB_Existing entity) {
-        spawnEntityInternal(entity);
-    }
-
-    /**
-     * Internal method to spawn entities and return their builders.
-     */
-    protected BuilderEntityExisting spawnEntityInternal(AEntityB_Existing entity) {
-        BuilderEntityExisting builder = new BuilderEntityExisting(BuilderEntityExisting.E_TYPE2.get(), ((WrapperWorld) entity.world).world);
-        builder.loadedFromSavedNBT = true;
-        builder.setPos(entity.position.x, entity.position.y, entity.position.z);
-        builder.entity = entity;
-        world.addFreshEntity(builder);
-        addEntity(entity);
-        return builder;
-    }
 
     @Override
     public List<IWrapperEntity> attackEntities(Damage damage, Point3D motion, boolean generateList) {

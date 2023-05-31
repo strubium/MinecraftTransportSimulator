@@ -109,6 +109,11 @@ public class EntityPlacedPart extends AEntityF_Multipart<JSONDummyPartProvider> 
     }
 
     @Override
+    public boolean loadFromWorldData() {
+        return true;
+    }
+
+    @Override
     public boolean requiresDeltaUpdates() {
         return super.requiresDeltaUpdates() || needToFindGround || (riderPresentLastCheck != riderPresentThisCheck);
     }

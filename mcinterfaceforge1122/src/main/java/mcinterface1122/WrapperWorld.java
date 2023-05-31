@@ -242,16 +242,6 @@ public class WrapperWorld extends AWrapperWorld {
     }
 
     @Override
-    public void spawnEntity(AEntityB_Existing entity) {
-        BuilderEntityExisting builder = new BuilderEntityExisting(((WrapperWorld) entity.world).world);
-        builder.loadedFromSavedNBT = true;
-        builder.setPositionAndRotation(entity.position.x, entity.position.y, entity.position.z, 0, 0);
-        builder.entity = entity;
-        world.spawnEntity(builder);
-        addEntity(entity);
-    }
-
-    @Override
     public List<IWrapperEntity> attackEntities(Damage damage, Point3D motion, boolean generateList) {
         AxisAlignedBB mcBox = WrapperWorld.convert(damage.box);
         List<Entity> collidedEntities;
@@ -924,7 +914,6 @@ public class WrapperWorld extends AWrapperWorld {
     @SubscribeEvent
     public static void on(WorldEvent.Save event) {
         if (!event.getWorld().isRemote) {
-            System.out.println("SAVE WORLD");
             WrapperWorld.getWrapperFor(event.getWorld()).saveEntities();
         }
     }
@@ -935,7 +924,6 @@ public class WrapperWorld extends AWrapperWorld {
     @SubscribeEvent
     public static void on(WorldEvent.Unload event) {
         if (!event.getWorld().isRemote) {
-            System.out.println("DIE WORLD");
             WrapperWorld.getWrapperFor(event.getWorld()).close();
             worldWrappers.remove(event.getWorld());
         }
@@ -947,7 +935,6 @@ public class WrapperWorld extends AWrapperWorld {
     @SubscribeEvent
     public static void on(WorldEvent.Load event) {
         if (!event.getWorld().isRemote) {
-            System.out.println("HELLO SERVER WORLD");
             WrapperWorld.getWrapperFor(event.getWorld()).loadEntities();
         }
     }
@@ -958,7 +945,6 @@ public class WrapperWorld extends AWrapperWorld {
     @SubscribeEvent
     public static void on(GetCollisionBoxesEvent event) {
         //We want to handle this both on server and client worlds.
-        System.out.println("COL CHECK");
         AxisAlignedBB box = event.getAabb();
         WrapperWorld world = WrapperWorld.getWrapperFor(event.getWorld());
         world.mutableCollisionBounds.widthRadius = (box.maxX - box.minX) / 2D;
@@ -972,7 +958,6 @@ public class WrapperWorld extends AWrapperWorld {
             if (entity.encompassingBox.intersects(world.mutableCollisionBounds)) {
                 for (BoundingBox testBox : entity.getCollisionBoxes()) {
                     if (testBox.intersects(world.mutableCollisionBounds)) {
-                        System.out.println("HIT");
                         event.getCollisionBoxesList().add(convert(testBox));
                     }
                 }

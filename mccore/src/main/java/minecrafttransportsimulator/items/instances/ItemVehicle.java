@@ -41,7 +41,7 @@ public class ItemVehicle extends AItemSubTyped<JSONVehicle> implements IItemEnti
             //as if it has been saved in the world rather than into an item.  If there's no data,
             //then we just make a blank, new instance.
             EntityVehicleF_Physics vehicle = new EntityVehicleF_Physics(world, player, data);
-            vehicle.addPartsPostAddition(player, data);
+            vehicle.addPartsPostConstruction(player, data);
 
             //If we have a default fuel, add it now as we SHOULD have an engine to tell
             //us what fuel type we will need to add.
@@ -83,7 +83,7 @@ public class ItemVehicle extends AItemSubTyped<JSONVehicle> implements IItemEnti
             vehicle.prevMotion.set(vehicle.motion);
 
             //Entity is valid.  Spawn it into the world.
-            vehicle.world.spawnEntity(vehicle);
+            vehicle.world.addEntity(vehicle);
 
             //Decrement stack if we are not in creative.
             if (!player.isCreative()) {
