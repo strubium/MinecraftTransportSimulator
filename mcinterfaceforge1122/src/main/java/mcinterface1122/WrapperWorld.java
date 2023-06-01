@@ -230,6 +230,15 @@ public class WrapperWorld extends AWrapperWorld {
     }
 
     @Override
+    public List<IWrapperPlayer> getAllPlayers() {
+        List<IWrapperPlayer> players = new ArrayList<>();
+        for (EntityPlayer player : world.playerEntities) {
+            players.add(WrapperPlayer.getWrapperFor(player));
+        }
+        return players;
+    }
+
+    @Override
     public List<IWrapperEntity> getEntitiesHostile(IWrapperEntity lookingEntity, double radius) {
         List<IWrapperEntity> entities = new ArrayList<>();
         Entity mcLooker = ((WrapperEntity) lookingEntity).entity;
@@ -901,9 +910,9 @@ public class WrapperWorld extends AWrapperWorld {
         if (!event.world.isRemote) {
             WrapperWorld world = WrapperWorld.getWrapperFor(event.world);
             if (event.phase.equals(Phase.START)) {
-                world.runTick(true);
+                world.runTick(world, true);
             } else {
-                world.runTick(false);
+                world.runTick(world, false);
             }
         }
     }
@@ -914,7 +923,8 @@ public class WrapperWorld extends AWrapperWorld {
     @SubscribeEvent
     public static void on(WorldEvent.Save event) {
         if (!event.getWorld().isRemote) {
-            WrapperWorld.getWrapperFor(event.getWorld()).saveEntities();
+            AWrapperWorld world = WrapperWorld.getWrapperFor(event.getWorld());
+            world.saveEntities(world);
         }
     }
 
@@ -924,7 +934,8 @@ public class WrapperWorld extends AWrapperWorld {
     @SubscribeEvent
     public static void on(WorldEvent.Unload event) {
         if (!event.getWorld().isRemote) {
-            WrapperWorld.getWrapperFor(event.getWorld()).close();
+            AWrapperWorld world = WrapperWorld.getWrapperFor(event.getWorld());
+            world.close(world);
             worldWrappers.remove(event.getWorld());
         }
     }
@@ -935,7 +946,8 @@ public class WrapperWorld extends AWrapperWorld {
     @SubscribeEvent
     public static void on(WorldEvent.Load event) {
         if (!event.getWorld().isRemote) {
-            WrapperWorld.getWrapperFor(event.getWorld()).loadEntities();
+            AWrapperWorld world = WrapperWorld.getWrapperFor(event.getWorld());
+            world.loadEntities(world);
         }
     }
 

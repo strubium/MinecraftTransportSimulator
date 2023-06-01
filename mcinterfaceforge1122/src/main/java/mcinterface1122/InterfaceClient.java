@@ -194,7 +194,7 @@ public class InterfaceClient implements IInterfaceClient {
             WrapperWorld world = WrapperWorld.getWrapperFor(Minecraft.getMinecraft().world);
             if (world != null) {
                 if (event.phase.equals(Phase.START)) {
-                    world.runTick(true);
+                    world.runTick(world, true);
 
                     //Check client world if we have it and need to send a packet.
                     if (clientWorldToInit != null) {
@@ -225,7 +225,7 @@ public class InterfaceClient implements IInterfaceClient {
                         }
                     }
                 } else {
-                    world.runTick(false);
+                    world.runTick(world, false);
 
                     //Update camera state and requests.
                     //Needs to happen at the end of the tick to ensure all other change events are processed.

@@ -35,7 +35,7 @@ public class PacketWorldEntityData extends APacketBase {
 
     @Override
     public void handle(AWrapperWorld world) {
-        world.addEntityByData(data);
+        world.addEntityByData(world, data);
     }
 
     @Override

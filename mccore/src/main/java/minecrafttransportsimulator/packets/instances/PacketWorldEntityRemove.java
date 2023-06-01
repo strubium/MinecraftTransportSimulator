@@ -24,7 +24,7 @@ public class PacketWorldEntityRemove extends APacketEntity<AEntityA_Base> {
 
     @Override
     public boolean handle(AWrapperWorld world, AEntityA_Base entity) {
-        world.removeEntity(entity);
+        entity.remove();
         return false;
     }
 

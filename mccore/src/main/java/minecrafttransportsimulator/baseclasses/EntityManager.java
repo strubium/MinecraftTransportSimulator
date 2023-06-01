@@ -14,13 +14,25 @@ import minecrafttransportsimulator.entities.components.AEntityC_Renderable;
 import minecrafttransportsimulator.entities.components.AEntityD_Definable;
 import minecrafttransportsimulator.entities.components.AEntityE_Interactable;
 import minecrafttransportsimulator.entities.components.AEntityF_Multipart;
+import minecrafttransportsimulator.entities.components.AEntityG_Towable;
 import minecrafttransportsimulator.entities.instances.APart;
 import minecrafttransportsimulator.entities.instances.EntityBullet;
 import minecrafttransportsimulator.entities.instances.EntityPlacedPart;
+import minecrafttransportsimulator.entities.instances.EntityPlayerGun;
 import minecrafttransportsimulator.entities.instances.EntityVehicleF_Physics;
 import minecrafttransportsimulator.entities.instances.PartGun;
+import minecrafttransportsimulator.guis.instances.GUIPackMissing;
+import minecrafttransportsimulator.items.components.AItemPack;
+import minecrafttransportsimulator.items.components.AItemSubTyped;
+import minecrafttransportsimulator.mcinterface.AWrapperWorld;
+import minecrafttransportsimulator.mcinterface.IWrapperNBT;
+import minecrafttransportsimulator.mcinterface.IWrapperPlayer;
 import minecrafttransportsimulator.mcinterface.InterfaceManager;
+import minecrafttransportsimulator.packets.instances.PacketPlayerJoin;
 import minecrafttransportsimulator.packets.instances.PacketWorldEntityData;
+import minecrafttransportsimulator.packloading.PackParser;
+import minecrafttransportsimulator.systems.ConfigSystem;
+import minecrafttransportsimulator.systems.ControlSystem;
 
 /**
  * Class that manages entities in a world or other area.
@@ -38,6 +50,58 @@ public abstract class EntityManager {
     protected final ConcurrentHashMap<UUID, AEntityA_Base> trackedEntityMap = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<UUID, PartGun> gunMap = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<UUID, Map<Integer, EntityBullet>> bulletMap = new ConcurrentHashMap<>();
+    protected final Map<UUID, EntityPlayerGun> playerServerGuns = new HashMap<>();
+    private static int packWarningTicks;
+
+    /**
+     * Does all ticking operations for all entities, plus any supplemental logic for housekeeping.
+     */
+    public void runTick(AWrapperWorld world, boolean mainUpdate) {
+        world.beginProfiling("MTS_EntityUpdates", true);
+        for (AEntityA_Base entity : mainUpdate ? allMainTickableEntities : allLastTickableEntities) {
+            if (!(entity instanceof AEntityG_Towable) || !(((AEntityG_Towable<?>) entity).blockMainUpdateCall())) {
+                world.beginProfiling("MTSEntity_" + entity.uniqueUUID, true);
+                entity.update();
+                if (entity instanceof AEntityD_Definable) {
+                    ((AEntityD_Definable<?>) entity).doPostUpdateLogic();
+                }
+                world.endProfiling();
+            }
+        }
+
+        world.beginProfiling("MTS_GeneralFunctions", true);
+        if (mainUpdate) {
+            if (world.isClient()) {
+                //Get player for future client calls and make sure they're valid.
+                IWrapperPlayer player = InterfaceManager.clientInterface.getClientPlayer();
+                if (player != null && !player.isSpectator()) {
+                    //Call controls system to handle inputs.
+                    ControlSystem.controlGlobal(player);
+
+                    //Open pack missing GUI every 5 sec on clients without packs to force them to get some.
+                    if (!PackParser.arePacksPresent() && ++packWarningTicks == 100) {
+                        if (!InterfaceManager.clientInterface.isGUIOpen()) {
+                            new GUIPackMissing();
+                        }
+                        packWarningTicks = 0;
+                    }
+                }
+            } else {
+                //Spawn guns for players that don't have them.
+                //Guns may get killed if the player dies, TPs somewhere else, etc.
+                for (IWrapperPlayer player : world.getAllPlayers()) {
+                    if (!playerServerGuns.containsKey(player.getID())) {
+                        IWrapperNBT newData = InterfaceManager.coreInterface.getNewNBTWrapper();
+                        EntityPlayerGun gun = new EntityPlayerGun(world, player, newData);
+                        gun.addPartsPostConstruction(player, newData);
+                        addEntity(gun);
+                        playerServerGuns.put(player.getID(), gun);
+                    }
+                }
+            }
+        }
+        world.endProfiling();
+    }
 
     /**
      * Adds the entity to the world.  This will make it get update ticks and be rendered
@@ -93,6 +157,37 @@ public abstract class EntityManager {
     }
 
     /**
+     * Like {@link #addEntity(AEntityA_Base)}, except this creates the entity from the data rather than
+     * adding an existing entity.
+     */
+    public void addEntityByData(AWrapperWorld world, IWrapperNBT data) {
+        AItemPack<?> packItem = PackParser.getItem(data.getString("packID"), data.getString("systemName"), data.getString("subName"));
+        if (packItem instanceof AItemSubTyped) {
+            AEntityD_Definable<?> entity = ((AItemSubTyped<?>) packItem).createEntityFromData(world, data);
+            if (entity != null) {
+                if (entity instanceof AEntityF_Multipart) {
+                    ((AEntityF_Multipart<?>) entity).addPartsPostConstruction(null, data);
+                }
+                addEntity(entity);
+            }
+        } else if (packItem == null) {
+            if (data.getBoolean("isPlayerGun")) {
+                EntityPlayerGun entity = new EntityPlayerGun(world, null, data);
+                entity.addPartsPostConstruction(null, data);
+                addEntity(entity);
+            } else if (data.getBoolean("isPlacedPart")) {
+                EntityPlacedPart entity = new EntityPlacedPart(world, null, data);
+                entity.addPartsPostConstruction(null, data);
+                addEntity(entity);
+            } else {
+                InterfaceManager.coreInterface.logError("Tried to create entity from NBT but couldn't find an item to create it from.  Did a pack change?");
+            }
+        } else {
+            InterfaceManager.coreInterface.logError("Tried to create entity from NBT but found a pack item that wasn't a sub-typed item.  A pack could have changed, but this is probably a bug and should be reported.");
+        }
+    }
+
+    /**
      * Removes this entity from the world.  Taking it off the update/functional lists.
      */
     public void removeEntity(AEntityA_Base entity) {
@@ -110,6 +205,9 @@ public abstract class EntityManager {
             if (entity instanceof EntityBullet) {
                 EntityBullet bullet = (EntityBullet) entity;
                 bulletMap.get(bullet.gun.uniqueUUID).remove(bullet.bulletNumber);
+            }
+            if (entity instanceof EntityPlayerGun && !entity.world.isClient()) {
+                playerServerGuns.remove(((EntityPlayerGun) entity).playerID);
             }
         }
         entitiesByClass.get(entity.getClass()).remove(entity);
@@ -202,6 +300,86 @@ public abstract class EntityManager {
             }
         }
         return closestResult;
+    }
+
+    /**
+     * Handles things that happen after the player joins.
+     * Called on both server and client, though mostly just sends
+     * over server entity data to them on their clients.
+     * Note that this is called on the client ITSELF  on join,
+     * but on the server this is called via a PACKET sent by the client.
+     * This ensures the client is connected and ready to receive any data we give it.
+     */
+    public void onPlayerJoin(IWrapperPlayer player) {
+        if (player.getWorld().isClient()) {
+            //Send packet to the server to handle join logic.
+            InterfaceManager.packetInterface.sendToServer(new PacketPlayerJoin(player));
+        } else {
+            //Send data to the client.
+            for (AEntityA_Base entity : trackedEntityMap.values()) {
+                if (entity instanceof AEntityD_Definable) {
+                    AEntityD_Definable<?> definable = (AEntityD_Definable<?>) entity;
+                    if (definable.loadFromWorldData()) {
+                        player.sendPacket(new PacketWorldEntityData(definable));
+                    }
+                }
+            }
+
+            //If the player is new, add handbooks.
+            UUID playerUUID = player.getID();
+            if (ConfigSystem.settings.general.giveManualsOnJoin.value && !ConfigSystem.settings.general.joinedPlayers.value.contains(playerUUID)) {
+                player.getInventory().addStack(PackParser.getItem("mts", "handbook_car").getNewStack(null));
+                player.getInventory().addStack(PackParser.getItem("mts", "handbook_plane").getNewStack(null));
+                ConfigSystem.settings.general.joinedPlayers.value.add(playerUUID);
+                ConfigSystem.saveToDisk();
+            }
+        }
+    }
+
+    /**
+     * Called to save all entities that are currently active in this manager.
+     * Only called on servers, as clients don't save anything.
+     */
+    public void saveEntities(AWrapperWorld world) {
+        IWrapperNBT entityData = InterfaceManager.coreInterface.getNewNBTWrapper();
+        int entityCount = 0;
+        for (AEntityA_Base entity : trackedEntityMap.values()) {
+            if (entity instanceof AEntityD_Definable) {
+                AEntityD_Definable<?> definable = (AEntityD_Definable<?>) entity;
+                if (definable.loadFromWorldData()) {
+                    entityData.setData("entity" + entityCount++, entity.save(InterfaceManager.coreInterface.getNewNBTWrapper()));
+                }
+            }
+        }
+        entityData.setInteger("entityCount", entityCount);
+        world.setData("entities", entityData);
+    }
+
+    /**
+     * Called to load all entities that were previously saved.
+     * Only called on servers, as clients don't save anything.
+     */
+    public void loadEntities(AWrapperWorld world) {
+        IWrapperNBT entityData = world.getData("entities");
+        if (entityData != null) {
+            int entityCount = entityData.getInteger("entityCount");
+            System.out.println("Found X ents to load " + entityCount);
+            for (int i = 0; i < entityCount; ++i) {
+                System.out.println("Trying to load " + "entity" + i);
+                addEntityByData(world, entityData.getData("entity" + i));
+            }
+        }
+    }
+
+    /**
+     * Called to close out this manager.
+     * This does a final save, and calls all entity remove methods so they get out of memory.
+     */
+    public void close(AWrapperWorld world) {
+        saveEntities(world);
+        for (AEntityA_Base entity : allEntities) {
+            entity.remove();
+        }
     }
 
     /**

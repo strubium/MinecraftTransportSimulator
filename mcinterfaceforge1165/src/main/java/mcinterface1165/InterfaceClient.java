@@ -239,12 +239,12 @@ public class InterfaceClient implements IInterfaceClient {
             AWrapperWorld world = InterfaceManager.clientInterface.getClientWorld();
             if (world != null) {
                 if (event.phase.equals(Phase.START)) {
-                    world.runTick(true);
+                    world.runTick(world, true);
 
                     //Need to update world brightness since sky darken isn't calculated normally on clients.
                     ((WrapperWorld) world).world.updateSkyBrightness();
                 } else {
-                    world.runTick(false);
+                    world.runTick(world, false);
 
                     //Update camera state and requests.
                     //Needs to happen at the end of the tick to ensure all other change events are processed.

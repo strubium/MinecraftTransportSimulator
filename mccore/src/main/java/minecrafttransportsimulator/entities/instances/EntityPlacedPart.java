@@ -141,4 +141,11 @@ public class EntityPlacedPart extends AEntityF_Multipart<JSONDummyPartProvider> 
         //Don't render the placed part entity.  Only render the part itself.
         return true;
     }
+
+    @Override
+    public IWrapperNBT save(IWrapperNBT data) {
+        super.save(data);
+        data.setBoolean("isPlacedPart", true);
+        return data;
+    }
 }

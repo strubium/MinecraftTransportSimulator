@@ -2,7 +2,6 @@ package minecrafttransportsimulator.entities.instances;
 
 import java.util.UUID;
 
-import minecrafttransportsimulator.baseclasses.BoundingBox;
 import minecrafttransportsimulator.baseclasses.RotationMatrix;
 import minecrafttransportsimulator.entities.components.AEntityE_Interactable;
 import minecrafttransportsimulator.entities.components.AEntityF_Multipart;
@@ -33,6 +32,7 @@ import minecrafttransportsimulator.systems.ConfigSystem;
 public class EntityPlayerGun extends AEntityF_Multipart<JSONDummyPartProvider> {
     public static EntityPlayerGun playerClientGun;
 
+    public final UUID playerID;
     public final IWrapperPlayer player;
     private final RotationMatrix handRotation = new RotationMatrix();
     private int hotbarSelected = -1;
@@ -45,26 +45,21 @@ public class EntityPlayerGun extends AEntityF_Multipart<JSONDummyPartProvider> {
         //Get the player spawning us.
         if (placingPlayer != null) {
             //Newly-spawned entity.
+            this.playerID = placingPlayer.getID();
             this.player = placingPlayer;
             position.set(player.getPosition());
             prevPosition.set(position);
+        } else if (!world.isClient()) {
+            //Guns on servers without placing players are invalid and will be removed.
+            //Only spawn fresh ones, since we need to do this whenever the player dies or changes dims.
+            this.playerID = data.getUUID("playerUUID");
+            this.player = null;
         } else {
-            //Saved entity.  Either on the server or client.
-            //Get player via saved NBT.  If the player isn't found, we're not valid.
-            UUID playerUUID = data.getUUID("playerUUID");
-            IWrapperPlayer foundPlayer = null;
-            for (IWrapperPlayer player : world.getPlayersWithin(new BoundingBox(position, 16, 16, 16))) {
-                if (player.getID().equals(playerUUID)) {
-                    foundPlayer = player;
-                    break;
-                }
-            }
-            if (foundPlayer != null) {
-                this.player = foundPlayer;
-            } else {
-                this.player = null;
-                return;
-            }
+            //Saved entity sent from server to client.
+            //Get player via saved NBT.  If the player isn't found, we need to just wait.
+            //Server guns without players will kill themselves and will take us with them if they're invalid.
+            this.playerID = data.getUUID("playerUUID");
+            this.player = (IWrapperPlayer) world.getExternalEntity(playerID);
         }
 
         //If we are the gun for the current client player, set us as such.
@@ -212,9 +207,11 @@ public class EntityPlayerGun extends AEntityF_Multipart<JSONDummyPartProvider> {
                 }
             }
         } else {
-            //Player is either null or not valid.  Remove us.
+            //Player is either null or not valid.  Remove us if we are on a server.
             //Don't update post movement, as the gun will crash on update.
-            remove();
+            if (!world.isClient()) {
+                remove();
+            }
             return;
         }
 

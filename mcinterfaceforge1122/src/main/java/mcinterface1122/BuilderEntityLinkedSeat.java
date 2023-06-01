@@ -116,6 +116,10 @@ public class BuilderEntityLinkedSeat extends ABuilderEntityBase {
     public void updatePassenger(Entity passenger) {
         if (entity != null) {
             entity.updateRider();
+            if (entity.rider != null) {
+                entity.rider.getYawDelta();
+                entity.rider.getPitchDelta();
+            }
         }
     }
 
