@@ -36,7 +36,7 @@ public class EntityVehicleF_Physics extends AEntityVehicleE_Powered {
     public double aileronTrim;
     public static final double MAX_AILERON_ANGLE = 25;
     public static final double MAX_AILERON_TRIM = 10;
-    public static final double AILERON_DAMPEN_RATE = 0.6;
+    public static final float AILERON_DAMPEN_RATE = 0.6F;
     public static final String AILERON_INPUT_VARIABLE = "input_aileron";
     public static final String AILERON_VARIABLE = "aileron";
     public static final String AILERON_TRIM_VARIABLE = "trim_aileron";
@@ -50,7 +50,7 @@ public class EntityVehicleF_Physics extends AEntityVehicleE_Powered {
     public double elevatorTrim;
     public static final double MAX_ELEVATOR_ANGLE = 25;
     public static final double MAX_ELEVATOR_TRIM = 10;
-    public static final double ELEVATOR_DAMPEN_RATE = 0.6;
+    public static final float ELEVATOR_DAMPEN_RATE = 0.6F;
     public static final String ELEVATOR_INPUT_VARIABLE = "input_elevator";
     public static final String ELEVATOR_VARIABLE = "elevator";
     public static final String ELEVATOR_TRIM_VARIABLE = "trim_elevator";
@@ -64,7 +64,7 @@ public class EntityVehicleF_Physics extends AEntityVehicleE_Powered {
     public double rudderTrim;
     public static final double MAX_RUDDER_ANGLE = 45;
     public static final double MAX_RUDDER_TRIM = 10;
-    public static final double RUDDER_DAMPEN_RATE = 2.0;
+    public static final float RUDDER_DAMPEN_RATE = 2.0F;
     public static final String RUDDER_INPUT_VARIABLE = "input_rudder";
     public static final String RUDDER_VARIABLE = "rudder";
     public static final String RUDDER_TRIM_VARIABLE = "trim_rudder";
@@ -77,9 +77,6 @@ public class EntityVehicleF_Physics extends AEntityVehicleE_Powered {
     public static final String FLAPS_VARIABLE = "flaps_setpoint";
 
     //External state control.
-    public boolean turningLeft;
-    public boolean turningRight;
-    public byte turningCooldown;
     public int repairCooldownTicks;
     @DerivedValue
     public double autopilotSetting;

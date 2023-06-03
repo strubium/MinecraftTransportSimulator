@@ -32,8 +32,8 @@ public class GUIConfig extends AGUIBase {
     //Config variables.
     private boolean configuringControls = true;
     private boolean configuringRendering = false;
-    private final Map<GUIComponentButton, JSONConfigEntry<Boolean>> renderConfigButtons = new HashMap<>();
-    private final Map<GUIComponentButton, JSONConfigEntry<Boolean>> controlConfigButtons = new HashMap<>();
+    private final Map<GUIComponentButton, JSONConfigEntry<?>> renderConfigButtons = new HashMap<>();
+    private final Map<GUIComponentButton, JSONConfigEntry<?>> controlConfigButtons = new HashMap<>();
 
     //Keybind selection variables.
     private String vehicleConfiguring = "";
@@ -41,11 +41,6 @@ public class GUIConfig extends AGUIBase {
     private final Map<GUIComponentButton, String> vehicleSelectionButtons = new HashMap<>();
     private GUIComponentLabel vehicleSelectionFaultLabel;
     private GUIComponentButton finishKeyboardBindingsButton;
-
-    //Volume level variables.
-    private GUIComponentButton volumeUpButton;
-    private GUIComponentButton volumeDownButton;
-    private GUIComponentLabel volumeLabel;
 
     //Keyboard assignment variables.
     private boolean configuringKeyboard;
@@ -156,24 +151,6 @@ public class GUIConfig extends AGUIBase {
                 addComponent(new GUIComponentLabel(guiLeft + 20, guiTop + 10, ColorRGB.BLACK, JSONConfigLanguage.GUI_CONFIG_CONTROLS_TITLE.value).setComponent(buttonKeyboard));
             }
         }
-
-        //Add volume buttons and label.
-        addComponent(volumeUpButton = new GUIComponentButton(guiLeft + 68, guiTop + 160, 20, 20, "/\\") {
-            @Override
-            public void onClicked(boolean leftSide) {
-                ConfigSystem.client.controlSettings.masterVolume.value = (((int) (ConfigSystem.client.controlSettings.masterVolume.value * 10)) + 1) / 10F;
-                ConfigSystem.saveToDisk();
-            }
-        });
-        addComponent(volumeDownButton = new GUIComponentButton(guiLeft + 168, guiTop + 160, 20, 20, "\\/") {
-            @Override
-            public void onClicked(boolean leftSide) {
-                ConfigSystem.client.controlSettings.masterVolume.value = (((int) (ConfigSystem.client.controlSettings.masterVolume.value * 10)) - 1) / 10F;
-                ConfigSystem.saveToDisk();
-            }
-        });
-        addComponent(volumeLabel = new GUIComponentLabel(guiLeft + 128, guiTop + 165, ColorRGB.BLACK, JSONConfigLanguage.GUI_CONFIG_CONTROLS_VOLUME.value + ConfigSystem.client.controlSettings.masterVolume.value, TextAlignment.CENTERED, 1.0F));
-        volumeLabel.setComponent(volumeDownButton);
 
         //Now add joystick buttons.
         for (String vehicleType : vehicleTypes) {
@@ -442,18 +419,6 @@ public class GUIConfig extends AGUIBase {
             button.visible = configuringControls && vehicleConfiguring.isEmpty() && (!vehicleSelectionButtons.get(button).endsWith(".joystick") || InterfaceManager.inputInterface.isJoystickSupportEnabled());
         }
 
-        //If we haven't selected anything, render the volume controls.
-        if (configuringControls && vehicleConfiguring.isEmpty()) {
-            volumeUpButton.visible = true;
-            volumeUpButton.enabled = ConfigSystem.client.controlSettings.masterVolume.value < 1.5;
-            volumeDownButton.visible = true;
-            volumeDownButton.enabled = ConfigSystem.client.controlSettings.masterVolume.value > 0;
-            volumeLabel.text = JSONConfigLanguage.GUI_CONFIG_CONTROLS_VOLUME.value + ConfigSystem.client.controlSettings.masterVolume.value;
-        } else {
-            volumeUpButton.visible = false;
-            volumeDownButton.visible = false;
-        }
-
         //If we have selected a vehicle, and are configuring a keyboard, render the keyboard controls.
         //Only enable the boxes and labels for the vehicle we are configuring, however.
         //If a box is focused, we should set the text to a blank value.
@@ -593,17 +558,52 @@ public class GUIConfig extends AGUIBase {
     }
 
     @SuppressWarnings("unchecked")
-    private void populateConfigButtonList(Map<GUIComponentButton, JSONConfigEntry<Boolean>> configButtons, Object configObject) {
+    private void populateConfigButtonList(Map<GUIComponentButton, JSONConfigEntry<?>> configButtons, Object configObject) {
         configButtons.clear();
+        int xCoord = guiLeft + 85;
+        int yCoord = guiTop + 4;
         for (Field field : configObject.getClass().getFields()) {
             if (field.getType().equals(JSONConfigEntry.class)) {
                 try {
                     JSONConfigEntry<?> configEntry = (JSONConfigEntry<?>) field.get(configObject);
-                    if (configEntry.value.getClass().equals(Boolean.class)) {
-                        GUIComponentButton button = new GUIComponentButton(guiLeft + 85 + 120 * (configButtons.size() % 2), guiTop + 20 + 16 * (configButtons.size() / 2), 40, 16, String.valueOf(configEntry.value)) {
+                    if (configEntry.value.getClass().equals(Boolean.class) || configEntry.value.getClass().equals(Float.class)) {
+                        boolean isFloat = configEntry.value.getClass().equals(Float.class);
+                        if (isFloat) {
+                            xCoord = guiLeft + 125;
+                            yCoord += 16;
+                        } else {
+                            xCoord = guiLeft + 85 + 120 * (configButtons.size() % 2);
+                            if (configButtons.size() % 2 == 0) {
+                                yCoord += 16;
+                            }
+                        }
+                        GUIComponentButton button = new GUIComponentButton(xCoord, yCoord, 40, 16, String.valueOf(configEntry.value)) {
                             @Override
                             public void onClicked(boolean leftSide) {
-                                configButtons.get(this).value = !Boolean.parseBoolean(text);
+                                if (isFloat) {
+                                    JSONConfigEntry<Float> config = (JSONConfigEntry<Float>) configButtons.get(this);
+                                    if (configButtons == renderConfigButtons) {
+                                        if (leftSide) {
+                                            if (config.value > 0) {
+                                                config.value = (float) ((int) (config.value - 1));
+                                            }
+                                        } else {
+                                            config.value = (float) ((int) (config.value + 1));
+                                        }
+                                    } else {
+                                        if (leftSide) {
+                                            if (config.value > 0) {
+                                                config.value = ((int) (config.value * 10 - 1)) / 10F;
+                                            }
+                                        } else {
+                                            config.value = ((int) (config.value * 10 + 1)) / 10F;
+                                        }
+                                    }
+
+                                } else {
+                                    JSONConfigEntry<Boolean> config = (JSONConfigEntry<Boolean>) configButtons.get(this);
+                                    config.value = !Boolean.parseBoolean(text);
+                                }
                                 ConfigSystem.saveToDisk();
                                 text = String.valueOf(configButtons.get(this).value);
                             }
@@ -615,9 +615,9 @@ public class GUIConfig extends AGUIBase {
                                 return tooltipText;
                             }
                         };
+                        configButtons.put(button, configEntry);
                         addComponent(button);
-                        configButtons.put(button, (JSONConfigEntry<Boolean>) configEntry);
-                        addComponent(new GUIComponentLabel(button.constructedX - 75, button.constructedY + 5, ColorRGB.BLACK, field.getName()).setComponent(button));
+                        addComponent(new GUIComponentLabel(button.constructedX - (isFloat ? 115 : 75), button.constructedY + 5, ColorRGB.BLACK, field.getName()).setComponent(button));
                     }
                 } catch (Exception e) {
                     //How the heck does this even happen?

@@ -37,6 +37,8 @@ public class JSONConfigClient {
 
         public JSONConfigEntry<Boolean> playerTweaks = new JSONConfigEntry<>(true, "If true, player hands will be modified when holding guns, and hands and legs will be modified when riding in vehicles.  Set this to false (and restart the game) if mods cause issues, like two-hand rendering or player model issues.  Automatically set to false if some mods are detected.");
 
+        public JSONConfigEntry<Float> carRenderPlus = new JSONConfigEntry<>(4F, "How many chunks past the render distance to render cars.  i.e., if your render distance is 16, and this is 4, cars will render 20 chunks away.  Does not affect physics or updates, only rendering.");
+        public JSONConfigEntry<Float> planeRenderPlus = new JSONConfigEntry<>(16F, "How many chunks past the render distance to render planes.  i.e., if your render distance is 16, and this is 16, planes will render 32 chunks away.  Does not affect physics or updates, only rendering.");
     }
 
     public static class JSONControlSettings {
@@ -53,10 +55,9 @@ public class JSONConfigClient {
         public JSONConfigEntry<Boolean> classicJystk = new JSONConfigEntry<>(false, "If true, the classic controller code will be used.  Note: THIS CODE MAY CRASH MOBILE DEVICES!  Also note that switching will probably mess up your keybinds.  Only do this if you are having issues with a joystick or controller not being recognized.  After changing this setting, reboot the game to make it take effect.");
 
 
-        public JSONConfigEntry<Double> steeringControlRate = new JSONConfigEntry<>(EntityVehicleF_Physics.RUDDER_DAMPEN_RATE, "How many degrees to turn the wheels on vehicles for every tick the button is held down.  This is not used when using a joystick.");
-        public JSONConfigEntry<Double> flightControlRate = new JSONConfigEntry<>(EntityVehicleF_Physics.AILERON_DAMPEN_RATE, "How many degrees to move the elevators and ailerons on aircraft for every tick the button is held down.  This is not used when using a joystick.");
-        public JSONConfigEntry<Double> mouseYokeRate = new JSONConfigEntry<>(0.1D, "How many degrees to move control surfaces for every 1 mouse unit change.  Used for mouse yoke controls.");
-        public JSONConfigEntry<Double> joystickDeadZone = new JSONConfigEntry<>(0.03D, "Dead zone for joystick axis.  This is NOT joystick specific.");
+        public JSONConfigEntry<Float> steeringControlRate = new JSONConfigEntry<>(EntityVehicleF_Physics.RUDDER_DAMPEN_RATE, "How many degrees to turn the wheels on vehicles for every tick the button is held down.  This is not used when using a joystick.");
+        public JSONConfigEntry<Float> flightControlRate = new JSONConfigEntry<>(EntityVehicleF_Physics.AILERON_DAMPEN_RATE, "How many degrees to move the elevators and ailerons on aircraft for every tick the button is held down.  This is not used when using a joystick.");
+        public JSONConfigEntry<Float> joystickDeadZone = new JSONConfigEntry<>(0.03F, "Dead zone for joystick axis.  This is NOT joystick specific.");
         public JSONConfigEntry<Float> masterVolume = new JSONConfigEntry<>(1.0F, "Volume for all sounds in the mod.  This is used instead of the game's master volume.");
     }
 

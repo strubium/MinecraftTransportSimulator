@@ -97,6 +97,13 @@ public class WrapperWorld extends AWrapperWorld {
     protected final World world;
     private final IWrapperNBT savedData;
 
+    @Override
+    public void runTick(AWrapperWorld world, boolean mainUpdate) {
+        super.runTick(world, mainUpdate);
+        //Check all vehicles and placed parts to see if they need a builder.
+        //Builders are spawned if the 
+    }
+
     /**
      * Returns a wrapper instance for the passed-in world instance.
      * Wrapper is cached to avoid re-creating the wrapper each time it is requested.
@@ -337,9 +344,15 @@ public class WrapperWorld extends AWrapperWorld {
             }
         }
     }
+    
+    @Override
+    public boolean isValidPosition(Point3D position) {
+        BlockPos pos = new BlockPos(position.x, position.y, position.z);
+        return !(world.isOutsideBuildHeight(pos) ? position.y < 0 : !world.getWorldBorder().contains(pos));
+    }
 
     @Override
-    public boolean chunkLoaded(Point3D position) {
+    public boolean isChunkLoaded(Point3D position) {
         return world.isBlockLoaded(new BlockPos(position.x, position.y, position.z));
     }
 

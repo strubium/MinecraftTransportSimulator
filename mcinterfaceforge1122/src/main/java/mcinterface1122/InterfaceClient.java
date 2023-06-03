@@ -103,6 +103,11 @@ public class InterfaceClient implements IInterfaceClient {
     }
 
     @Override
+    public int getRenderDistance() {
+        return Minecraft.getMinecraft().gameSettings.renderDistanceChunks;
+    }
+
+    @Override
     public int getCameraDefaultZoom() {
         return 4;
     }

@@ -1,7 +1,5 @@
 package minecrafttransportsimulator.items.components;
 
-import java.util.Map;
-
 import minecrafttransportsimulator.baseclasses.Point3D;
 import minecrafttransportsimulator.blocks.components.ABlockBase.Axis;
 import minecrafttransportsimulator.entities.components.AEntityF_Multipart;
@@ -22,7 +20,7 @@ import minecrafttransportsimulator.mcinterface.InterfaceManager;
  *
  * @author don_bruce
  */
-public abstract class AItemPart extends AItemSubTyped<JSONPart> implements IItemEntityProvider {
+public abstract class AItemPart extends AItemSubTyped<JSONPart> {
 
     public AItemPart(JSONPart definition, JSONSubDefinition subDefinition, String sourcePackID) {
         super(definition, subDefinition, sourcePackID);
@@ -47,11 +45,6 @@ public abstract class AItemPart extends AItemSubTyped<JSONPart> implements IItem
         } else {
             return false;
         }
-    }
-
-    @Override
-    public void registerEntities(Map<String, IItemEntityFactory> entityMap) {
-        entityMap.put(EntityPlacedPart.class.getSimpleName(), (world, placingPlayer, data) -> new EntityPlacedPart(world, placingPlayer, data));
     }
 
     /**

@@ -82,6 +82,11 @@ public interface IInterfaceClient {
     void toggleFirstPerson();
 
     /**
+     * Returns the render distance, in chunks.
+     */
+    int getRenderDistance();
+
+    /**
      * Returns the camera-zero default zoom distance.  This can vary from 0 to 4 depending on
      * how the interface handles camera transforms.
      */

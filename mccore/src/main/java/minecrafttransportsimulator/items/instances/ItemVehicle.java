@@ -1,14 +1,11 @@
 package minecrafttransportsimulator.items.instances;
 
-import java.util.Map;
-
 import minecrafttransportsimulator.baseclasses.Point3D;
 import minecrafttransportsimulator.blocks.components.ABlockBase.Axis;
 import minecrafttransportsimulator.entities.instances.APart;
 import minecrafttransportsimulator.entities.instances.EntityVehicleF_Physics;
 import minecrafttransportsimulator.entities.instances.PartEngine;
 import minecrafttransportsimulator.items.components.AItemSubTyped;
-import minecrafttransportsimulator.items.components.IItemEntityProvider;
 import minecrafttransportsimulator.jsondefs.JSONConfigLanguage;
 import minecrafttransportsimulator.jsondefs.JSONPart.EngineType;
 import minecrafttransportsimulator.jsondefs.JSONSubDefinition;
@@ -21,7 +18,7 @@ import minecrafttransportsimulator.mcinterface.InterfaceManager;
 import minecrafttransportsimulator.packets.instances.PacketPlayerChatMessage;
 import minecrafttransportsimulator.systems.ConfigSystem;
 
-public class ItemVehicle extends AItemSubTyped<JSONVehicle> implements IItemEntityProvider {
+public class ItemVehicle extends AItemSubTyped<JSONVehicle> {
 
     public ItemVehicle(JSONVehicle definition, JSONSubDefinition subDefinition, String sourcePackID) {
         super(definition, subDefinition, sourcePackID);
@@ -97,11 +94,6 @@ public class ItemVehicle extends AItemSubTyped<JSONVehicle> implements IItemEnti
     public void repair(IWrapperNBT data) {
         super.repair(data);
         data.setDouble("electricPower", 12);
-    }
-
-    @Override
-    public void registerEntities(Map<String, IItemEntityFactory> entityMap) {
-        entityMap.put(EntityVehicleF_Physics.class.getSimpleName(), (world, placingPlayer, data) -> new EntityVehicleF_Physics(world, placingPlayer, data));
     }
 
     @Override

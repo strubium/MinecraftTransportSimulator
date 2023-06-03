@@ -41,17 +41,19 @@ import minecrafttransportsimulator.systems.ControlSystem;
  * @author don_bruce
  */
 public abstract class EntityManager {
-    protected final ConcurrentLinkedQueue<AEntityA_Base> allEntities = new ConcurrentLinkedQueue<>();
-    protected final ConcurrentLinkedQueue<AEntityA_Base> allMainTickableEntities = new ConcurrentLinkedQueue<>();
-    protected final ConcurrentLinkedQueue<AEntityA_Base> allLastTickableEntities = new ConcurrentLinkedQueue<>();
-    public final ConcurrentLinkedQueue<AEntityC_Renderable> renderableEntities = new ConcurrentLinkedQueue<>();
-    public final ConcurrentLinkedQueue<AEntityE_Interactable<?>> collidableEntities = new ConcurrentLinkedQueue<>();
+    private final ConcurrentLinkedQueue<AEntityA_Base> allEntities = new ConcurrentLinkedQueue<>();
+    private final ConcurrentLinkedQueue<AEntityA_Base> allMainTickableEntities = new ConcurrentLinkedQueue<>();
+    private final ConcurrentLinkedQueue<AEntityA_Base> allLastTickableEntities = new ConcurrentLinkedQueue<>();
+    private final ConcurrentLinkedQueue<AEntityC_Renderable> renderableEntities = new ConcurrentLinkedQueue<>();
     private final ConcurrentHashMap<Class<? extends AEntityA_Base>, ConcurrentLinkedQueue<? extends AEntityA_Base>> entitiesByClass = new ConcurrentHashMap<>();
-    protected final ConcurrentHashMap<UUID, AEntityA_Base> trackedEntityMap = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<UUID, AEntityA_Base> trackedEntityMap = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<UUID, PartGun> gunMap = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<UUID, Map<Integer, EntityBullet>> bulletMap = new ConcurrentHashMap<>();
-    protected final Map<UUID, EntityPlayerGun> playerServerGuns = new HashMap<>();
+    private final Map<UUID, EntityPlayerGun> playerServerGuns = new HashMap<>();
     private static int packWarningTicks;
+
+    public final ConcurrentLinkedQueue<AEntityC_Renderable> entitiesToRender = new ConcurrentLinkedQueue<>();
+    public final ConcurrentLinkedQueue<AEntityE_Interactable<?>> collidableEntities = new ConcurrentLinkedQueue<>();
 
     /**
      * Does all ticking operations for all entities, plus any supplemental logic for housekeeping.
@@ -67,6 +69,36 @@ public abstract class EntityManager {
                 }
                 world.endProfiling();
             }
+        }
+        if (!mainUpdate && world.isClient()) {
+            Point3D playerPosition = InterfaceManager.clientInterface.getClientPlayer().getPosition();
+            int renderDistance = InterfaceManager.clientInterface.getRenderDistance() * 16;
+            float aircraftDistance = renderDistance + ConfigSystem.client.renderingSettings.planeRenderPlus.value * 16;
+            float carDistance = renderDistance + ConfigSystem.client.renderingSettings.carRenderPlus.value * 16;
+            entitiesToRender.clear();
+            renderableEntities.forEach(entity -> {
+                if (!entity.disableRendering()) {
+                    float maxDistance;
+                    AEntityC_Renderable testEntity;
+                    if (entity instanceof APart) {
+                        testEntity = ((APart) entity).masterEntity;
+                    } else {
+                        testEntity = entity;
+                    }
+                    if (testEntity instanceof EntityVehicleF_Physics) {
+                        if (((EntityVehicleF_Physics) testEntity).definition.motorized.isAircraft) {
+                            maxDistance = aircraftDistance;
+                        } else {
+                            maxDistance = carDistance;
+                        }
+                    } else {
+                        maxDistance = renderDistance;
+                    }
+                    if (playerPosition.isDistanceToCloserThan(testEntity.position, maxDistance)) {
+                        entitiesToRender.add(entity);
+                    }
+                }
+            });
         }
 
         world.beginProfiling("MTS_GeneralFunctions", true);

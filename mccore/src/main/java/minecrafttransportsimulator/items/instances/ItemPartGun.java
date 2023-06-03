@@ -1,10 +1,8 @@
 package minecrafttransportsimulator.items.instances;
 
 import java.util.List;
-import java.util.Map;
 
 import minecrafttransportsimulator.entities.components.AEntityF_Multipart;
-import minecrafttransportsimulator.entities.instances.EntityPlayerGun;
 import minecrafttransportsimulator.entities.instances.PartGun;
 import minecrafttransportsimulator.items.components.AItemPart;
 import minecrafttransportsimulator.jsondefs.JSONConfigLanguage;
@@ -48,12 +46,6 @@ public class ItemPartGun extends AItemPart {
     @Override
     public boolean canBreakBlocks() {
         return !definition.gun.handHeld;
-    }
-
-    @Override
-    public void registerEntities(Map<String, IItemEntityFactory> entityMap) {
-        super.registerEntities(entityMap);
-        entityMap.put(EntityPlayerGun.class.getSimpleName(), (world, placingPlayer, data) -> new EntityPlayerGun(world, placingPlayer, data));
     }
 
     public static final AItemPartCreator CREATOR = new AItemPartCreator() {

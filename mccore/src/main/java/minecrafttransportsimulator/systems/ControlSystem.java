@@ -108,7 +108,8 @@ public final class ControlSystem {
             Point3D endPosition = player.getLineOfSight(3.5).add(startPosition);
 
             interactResult = player.getWorld().getMultipartEntityIntersect(startPosition, endPosition);
-            if (interactResult != null) {
+            //This prevents us from accidentally clicking newly-spawned entities.
+            if (interactResult != null && interactResult.entity.ticksExisted > 20) {
                 InterfaceManager.packetInterface.sendToServer(new PacketEntityInteract(interactResult.entity, player, interactResult.box, clickingLeft, clickingRight));
             }
         } else if (interactResult != null) {
@@ -258,7 +259,7 @@ public final class ControlSystem {
         }
     }
 
-    private static void controlControlSurface(EntityVehicleF_Physics vehicle, ControlsJoystick axis, ControlsKeyboard increment, ControlsKeyboard decrement, double rate, double bounds, String variable, double currentValue, double dampenRate) {
+    private static void controlControlSurface(EntityVehicleF_Physics vehicle, ControlsJoystick axis, ControlsKeyboard increment, ControlsKeyboard decrement, float rate, double bounds, String variable, double currentValue, double dampenRate) {
         if (InterfaceManager.inputInterface.isJoystickPresent(axis.config.joystickName)) {
             double axisValue = axis.getAxisState(false);
             if (Double.isNaN(axisValue)) {
@@ -560,20 +561,20 @@ public final class ControlSystem {
             if (!powered.turningLeft && powered.rudderInput < -20) {
                 powered.turningLeft = true;
                 powered.turningCooldown = 40;
-                InterfaceManager.packetInterface.sendToServer(new PacketEntityVariableToggle(powered, EntityVehicleF_Physics.LEFTTURNLIGHT_VARIABLE));
+                InterfaceManager.packetInterface.sendToServer(new PacketEntityVariableSet(powered, EntityVehicleF_Physics.LEFTTURNLIGHT_VARIABLE, 1));
             }
             if (!powered.turningRight && powered.rudderInput > 20) {
                 powered.turningRight = true;
                 powered.turningCooldown = 40;
-                InterfaceManager.packetInterface.sendToServer(new PacketEntityVariableToggle(powered, EntityVehicleF_Physics.RIGHTTURNLIGHT_VARIABLE));
+                InterfaceManager.packetInterface.sendToServer(new PacketEntityVariableSet(powered, EntityVehicleF_Physics.RIGHTTURNLIGHT_VARIABLE, 1));
             }
             if (powered.turningLeft && (powered.rudderInput > 0 || powered.turningCooldown == 0)) {
                 powered.turningLeft = false;
-                InterfaceManager.packetInterface.sendToServer(new PacketEntityVariableToggle(powered, EntityVehicleF_Physics.LEFTTURNLIGHT_VARIABLE));
+                InterfaceManager.packetInterface.sendToServer(new PacketEntityVariableSet(powered, EntityVehicleF_Physics.LEFTTURNLIGHT_VARIABLE, 0));
             }
             if (powered.turningRight && (powered.rudderInput < 0 || powered.turningCooldown == 0)) {
                 powered.turningRight = false;
-                InterfaceManager.packetInterface.sendToServer(new PacketEntityVariableToggle(powered, EntityVehicleF_Physics.RIGHTTURNLIGHT_VARIABLE));
+                InterfaceManager.packetInterface.sendToServer(new PacketEntityVariableSet(powered, EntityVehicleF_Physics.RIGHTTURNLIGHT_VARIABLE, 0));
             }
             if (powered.velocity != 0 && powered.turningCooldown > 0 && powered.rudderInput == 0) {
                 --powered.turningCooldown;

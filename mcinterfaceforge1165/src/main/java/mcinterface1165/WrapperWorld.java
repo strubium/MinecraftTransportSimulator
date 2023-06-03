@@ -370,7 +370,13 @@ public class WrapperWorld extends AWrapperWorld {
     }
 
     @Override
-    public boolean chunkLoaded(Point3D position) {
+    public boolean isValidPosition(Point3D position) {
+        BlockPos pos = new BlockPos(position.x, position.y, position.z);
+        return !(World.isOutsideBuildHeight(pos) ? position.y < 0 : !world.getWorldBorder().isWithinBounds(pos));
+    }
+
+    @Override
+    public boolean isChunkLoaded(Point3D position) {
         return world.isLoaded(new BlockPos(position.x, position.y, position.z));
     }
 

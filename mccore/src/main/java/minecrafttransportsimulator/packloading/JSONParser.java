@@ -685,13 +685,11 @@ public class JSONParser {
      * for all worlds where things are active.  Therefore, this method is seperate to allow sided-calling.
      */
     public static void applyImports(AWrapperWorld world) {
-        for (AEntityA_Base entity : world.allEntities) {
-            if (entity instanceof AEntityD_Definable) {
-                //Reset animations for all entities, as we don't know part linking or instrument placement or whatnot.
-                ((AEntityD_Definable<?>) entity).animationsInitialized = false;
-                if (world.isClient()) {
-                    AEntityD_Definable.clearObjectCaches(((AEntityD_Definable<?>) entity).definition);
-                }
+        for (AEntityA_Base entity : world.getEntitiesExtendingType(AEntityD_Definable.class)) {
+            //Reset animations for all entities, as we don't know part linking or instrument placement or whatnot.
+            ((AEntityD_Definable<?>) entity).animationsInitialized = false;
+            if (world.isClient()) {
+                AEntityD_Definable.clearObjectCaches(((AEntityD_Definable<?>) entity).definition);
             }
         }
     }

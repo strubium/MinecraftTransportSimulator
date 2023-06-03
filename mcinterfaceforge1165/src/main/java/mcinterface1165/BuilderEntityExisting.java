@@ -1,8 +1,6 @@
 package mcinterface1165;
 
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 
 import minecrafttransportsimulator.baseclasses.BoundingBox;
 import minecrafttransportsimulator.baseclasses.Damage;
@@ -12,9 +10,7 @@ import minecrafttransportsimulator.entities.components.AEntityE_Interactable;
 import minecrafttransportsimulator.entities.components.AEntityF_Multipart;
 import minecrafttransportsimulator.entities.instances.APart;
 import minecrafttransportsimulator.entities.instances.EntityVehicleF_Physics;
-import minecrafttransportsimulator.items.components.IItemEntityProvider.IItemEntityFactory;
 import minecrafttransportsimulator.mcinterface.IWrapperItemStack;
-import minecrafttransportsimulator.mcinterface.InterfaceManager;
 import minecrafttransportsimulator.systems.ConfigSystem;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntitySize;
@@ -25,7 +21,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
@@ -49,11 +44,6 @@ import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 public class BuilderEntityExisting extends ABuilderEntityBase {
     public static RegistryObject<EntityType<BuilderEntityExisting>> E_TYPE2;
     private EntitySize mutableDims = new EntitySize(1.0F, 1.0F, false);
-
-    /**
-     * Maps Entity class names to instances of the IItemEntityProvider class that creates them.
-     **/
-    protected static final Map<String, IItemEntityFactory> entityMap = new HashMap<>();
 
     /**
      * Current entity we are built around.  This MAY be null if we haven't loaded NBT from the server yet.
@@ -88,18 +78,6 @@ public class BuilderEntityExisting extends ABuilderEntityBase {
             } else {
                 //Set the new position. 
                 setPos(entity.position.x, entity.position.y, entity.position.z);
-
-                //If we are outside valid bounds on the server, set us as dead and exit.
-                //If we are outside height bounds, only remove if we are less than 0.  Don't remove for being too high.
-                //If we are in height bounds, but outside spawnable bounds, remove, since we're over the world border.
-                if (!level.isClientSide) {
-                    BlockPos pos = blockPosition();
-                    if (World.isOutsideBuildHeight(pos) ? position().y < 0 : !level.getWorldBorder().isWithinBounds(pos)) {
-                        remove();
-                        return;
-                    }
-                }
-
                 if (entity instanceof AEntityE_Interactable) {
                     AEntityE_Interactable<?> interactable = ((AEntityE_Interactable<?>) entity);
 
@@ -126,20 +104,13 @@ public class BuilderEntityExisting extends ABuilderEntityBase {
             //If we have NBT, and haven't loaded it, do so now.
             if (!loadedFromSavedNBT && loadFromSavedNBT) {
                 WrapperWorld worldWrapper = WrapperWorld.getWrapperFor(level);
-                try {
-                    WrapperNBT data = new WrapperNBT(lastLoadedNBT);
-                    entity = entityMap.get(lastLoadedNBT.getString("entityid")).createEntity(worldWrapper, null, data);
-                    if (entity instanceof AEntityF_Multipart) {
-                        ((AEntityF_Multipart<?>) entity).addPartsPostConstruction(null, data);
-                    }
-                    entity.world.addEntity(entity);
-                    loadedFromSavedNBT = true;
-                    lastLoadedNBT = null;
-                } catch (Exception e) {
-                    InterfaceManager.coreInterface.logError("Failed to load entity on builder from saved NBT.  Did a pack change?");
-                    InterfaceManager.coreInterface.logError(e.getMessage());
+                entity = worldWrapper.getEntity(lastLoadedNBT.getUUID("entityid"));
+                if (entity == null && !worldWrapper.isClient()) {
+                    //Entity doesn't exist, die.
                     remove();
                 }
+                loadedFromSavedNBT = true;
+                lastLoadedNBT = null;
             }
         }
     }
@@ -147,15 +118,6 @@ public class BuilderEntityExisting extends ABuilderEntityBase {
     @Override
     public EntitySize getDimensions(Pose pPose) {
         return mutableDims;
-    }
-
-    @Override
-    public void remove() {
-        super.remove();
-        //Notify internal entity of it being invalid.
-        if (entity != null) {
-            entity.remove();
-        }
     }
 
     @Override
@@ -246,10 +208,7 @@ public class BuilderEntityExisting extends ABuilderEntityBase {
     public CompoundNBT saveWithoutId(CompoundNBT tag) {
         super.saveWithoutId(tag);
         if (entity != null) {
-            //Entity is valid, save it and return the modified tag.
-            //Also save the class ID so we know what to construct when MC loads this Entity back up.
-            entity.save(new WrapperNBT(tag));
-            tag.putString("entityid", entity.getClass().getSimpleName());
+            tag.putUUID("entityid", entity.uniqueUUID);
         }
         return tag;
     }

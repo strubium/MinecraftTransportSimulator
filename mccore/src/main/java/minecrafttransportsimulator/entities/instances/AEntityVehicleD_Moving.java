@@ -41,6 +41,9 @@ abstract class AEntityVehicleD_Moving extends AEntityVehicleC_Colliding {
     public static final String PARKINGBRAKE_VARIABLE = "p_brake";
 
     //External state control.
+    public boolean turningLeft;
+    public boolean turningRight;
+    public byte turningCooldown;
     @DerivedValue
     public double brake;
     @DerivedValue
@@ -162,10 +165,10 @@ abstract class AEntityVehicleD_Moving extends AEntityVehicleC_Colliding {
                     remove();
                     world.endProfiling();
                     return;
-                } else {
-                    addToServerDeltas(null, null, 0);
                 }
             }
+            //Flag server deltas for motion applied since we changed deltas here for testing.
+            addToServerDeltas(null, null, 0);
         }
 
         //Update brake status.  This is used in a lot of locations, so we don't want to query the set every time.
@@ -186,7 +189,11 @@ abstract class AEntityVehicleD_Moving extends AEntityVehicleC_Colliding {
             moveVehicle();
             if (!world.isClient()) {
                 adjustControlSurfaces();
+                if (!world.isValidPosition(position)) {
+                    remove();
+                }
             }
+
         }
         world.endProfiling();
     }

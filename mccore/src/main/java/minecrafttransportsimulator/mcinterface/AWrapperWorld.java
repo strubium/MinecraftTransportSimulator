@@ -143,9 +143,15 @@ public abstract class AWrapperWorld extends EntityManager {
     public abstract void loadEntities(BoundingBox box, AEntityE_Interactable<?> entityToLoad);
 
     /**
+     * Returns true if the position is not valid for the world. In general, 
+     * this means the position is below the lowest=plane of the world.
+     */
+    public abstract boolean isValidPosition(Point3D position);
+
+    /**
      * Returns true if the chunk that contains the position is loaded.
      */
-    public abstract boolean chunkLoaded(Point3D position);
+    public abstract boolean isChunkLoaded(Point3D position);
 
     /**
      * Returns the block at the passed-in position, or null if it doesn't exist in the world.

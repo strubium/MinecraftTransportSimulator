@@ -18,7 +18,6 @@ import minecrafttransportsimulator.blocks.tileentities.components.ITileEntityInv
 import minecrafttransportsimulator.items.components.AItemBase;
 import minecrafttransportsimulator.items.components.AItemPack;
 import minecrafttransportsimulator.items.components.IItemBlock;
-import minecrafttransportsimulator.items.components.IItemEntityProvider;
 import minecrafttransportsimulator.items.components.IItemFood;
 import minecrafttransportsimulator.items.instances.ItemItem;
 import minecrafttransportsimulator.jsondefs.JSONPack;
@@ -211,13 +210,6 @@ public class InterfaceLoader {
         //Init entities.
         BuilderEntityExisting.E_TYPE2 = ABuilderEntityBase.ENTITIES.register("builder_existing", () -> EntityType.Builder.<BuilderEntityExisting>of(BuilderEntityExisting::new, EntityClassification.MISC).sized(0.05F, 0.05F).clientTrackingRange(32 * 16).updateInterval(5).build("builder_existing"));
         BuilderEntityLinkedSeat.E_TYPE3 = ABuilderEntityBase.ENTITIES.register("builder_seat", () -> EntityType.Builder.<BuilderEntityLinkedSeat>of(BuilderEntityLinkedSeat::new, EntityClassification.MISC).sized(0.05F, 0.05F).clientTrackingRange(32 * 16).updateInterval(5).build("builder_seat"));
-
-        //Iterate over all pack items and find those that spawn entities.
-        for (AItemPack<?> packItem : PackParser.getAllPackItems()) {
-            if (packItem instanceof IItemEntityProvider) {
-                ((IItemEntityProvider) packItem).registerEntities(BuilderEntityExisting.entityMap);
-            }
-        }
 
         //Init networking interface.  This will register packets as well.
         InterfacePacket.init();

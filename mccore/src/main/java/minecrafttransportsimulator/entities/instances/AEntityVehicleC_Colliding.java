@@ -16,6 +16,7 @@ import minecrafttransportsimulator.mcinterface.IWrapperItemStack;
 import minecrafttransportsimulator.mcinterface.IWrapperNBT;
 import minecrafttransportsimulator.mcinterface.IWrapperPlayer;
 import minecrafttransportsimulator.mcinterface.InterfaceManager;
+import minecrafttransportsimulator.packets.instances.PacketEntityVariableSet;
 import minecrafttransportsimulator.systems.ConfigSystem;
 
 /**
@@ -63,9 +64,16 @@ abstract class AEntityVehicleC_Colliding extends AEntityG_Towable<JSONVehicle> {
 
         //Auto-close any open doors that should be closed.
         //Only do this once a second to prevent lag.
-        if (velocity > 0.5 && ticksExisted % 20 == 0) {
+        if (!world.isClient() && velocity > 0.5 && ticksExisted % 20 == 0) {
             world.beginProfiling("CloseDoors", false);
-            variables.keySet().removeIf(s -> s.startsWith("door"));
+            for (String variable : variables.keySet()) {
+                if (variable.startsWith("door")) {
+                    variables.remove(variable);
+                    InterfaceManager.packetInterface.sendToAllClients(new PacketEntityVariableSet(this, variable, 0));
+                    //Need to do this or we CME on the loop.
+                    break;
+                }
+            }
         }
 
         world.endProfiling();

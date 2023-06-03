@@ -84,7 +84,7 @@ public class InterfaceEventsModelLoader {
                 EntityPlayer player = Minecraft.getMinecraft().player;
                 Entity cameraEntity = Minecraft.getMinecraft().getRenderViewEntity();
                 if (player.equals(builder.playerFollowing) && builder.shouldRenderEntity(partialTicks)) {
-                    ConcurrentLinkedQueue<AEntityC_Renderable> allEntities = world.renderableEntities;
+                    ConcurrentLinkedQueue<AEntityC_Renderable> allEntities = world.entitiesToRender;
                     if (allEntities != null) {
                         boolean blendingEnabled = (MinecraftForgeClient.getRenderPass() == -1 ? InterfaceRender.lastRenderPassActualPass : MinecraftForgeClient.getRenderPass()) == 1;
 

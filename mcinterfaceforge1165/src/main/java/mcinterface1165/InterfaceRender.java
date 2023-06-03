@@ -532,7 +532,7 @@ public class InterfaceRender implements IInterfaceRender {
         renderBuffer = buffer;
 
         AWrapperWorld world = InterfaceManager.clientInterface.getClientWorld();
-        ConcurrentLinkedQueue<AEntityC_Renderable> allEntities = world.renderableEntities;
+        ConcurrentLinkedQueue<AEntityC_Renderable> allEntities = world.entitiesToRender;
         if (allEntities != null) {
             world.beginProfiling("MTSRendering_Setup", true);
             //NOTE: this operation occurs on a ConcurrentLinkedQueue.  Therefore, updates will

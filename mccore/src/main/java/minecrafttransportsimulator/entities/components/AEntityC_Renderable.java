@@ -69,57 +69,54 @@ public abstract class AEntityC_Renderable extends AEntityB_Existing {
      * After this, the main model rendering method is called.
      */
     public final void render(boolean blendingEnabled, float partialTicks) {
-        //If we need to render, do so now.
-        if (!disableRendering(partialTicks)) {
+        world.beginProfiling("RenderSetup", true);
 
-            //Get interpolated orientation if required.
-            world.beginProfiling("RenderSetup", true);
-            if (requiresDeltaUpdates()) {
-                getInterpolatedOrientation(interpolatedOrientationHolder, partialTicks);
-            } else {
-                interpolatedOrientationHolder.set(orientation);
-            }
+        //Get interpolated orientation if required.
+        if (requiresDeltaUpdates()) {
+            getInterpolatedOrientation(interpolatedOrientationHolder, partialTicks);
+        } else {
+            interpolatedOrientationHolder.set(orientation);
+        }
 
-            //Set up matrixes.
-            translatedMatrix.resetTransforms();
-            if (requiresDeltaUpdates()) {
-                interpolatedPositionHolder.set(prevPosition).interpolate(position, partialTicks).subtract(position);
-                translatedMatrix.setTranslation(interpolatedPositionHolder);
-            }
-            rotatedMatrix.set(translatedMatrix);
-            rotatedMatrix.applyRotation(interpolatedOrientationHolder);
-            interpolatedScaleHolder.set(scale).subtract(prevScale).scale(partialTicks).add(prevScale);
-            rotatedMatrix.applyScaling(interpolatedScaleHolder);
-            world.endProfiling();
+        //Set up matrixes.
+        translatedMatrix.resetTransforms();
+        if (requiresDeltaUpdates()) {
+            interpolatedPositionHolder.set(prevPosition).interpolate(position, partialTicks).subtract(position);
+            translatedMatrix.setTranslation(interpolatedPositionHolder);
+        }
+        rotatedMatrix.set(translatedMatrix);
+        rotatedMatrix.applyRotation(interpolatedOrientationHolder);
+        interpolatedScaleHolder.set(scale).subtract(prevScale).scale(partialTicks).add(prevScale);
+        rotatedMatrix.applyScaling(interpolatedScaleHolder);
+        world.endProfiling();
 
-            //Render the main model.
-            renderModel(rotatedMatrix, blendingEnabled, partialTicks);
+        //Render the main model.
+        renderModel(rotatedMatrix, blendingEnabled, partialTicks);
 
-            //End rotation render matrix.
-            //Render holoboxes.
-            if (blendingEnabled) {
-                renderHolographicBoxes(translatedMatrix);
-            }
+        //End rotation render matrix.
+        //Render holoboxes.
+        if (blendingEnabled) {
+            renderHolographicBoxes(translatedMatrix);
+        }
 
-            //Render bounding boxes.
-            if (!blendingEnabled && InterfaceManager.renderingInterface.shouldRenderBoundingBoxes()) {
-                world.beginProfiling("BoundingBoxes", true);
-                renderBoundingBoxes(translatedMatrix);
-                world.endProfiling();
-            }
-
-            //Handle sounds.  These will be partial-tick only ones.
-            //Normal sounds are handled on the main tick loop.
-            world.beginProfiling("Sounds", true);
-            updateSounds(partialTicks);
+        //Render bounding boxes.
+        if (!blendingEnabled && InterfaceManager.renderingInterface.shouldRenderBoundingBoxes()) {
+            world.beginProfiling("BoundingBoxes", true);
+            renderBoundingBoxes(translatedMatrix);
             world.endProfiling();
         }
+
+        //Handle sounds.  These will be partial-tick only ones.
+        //Normal sounds are handled on the main tick loop.
+        world.beginProfiling("Sounds", true);
+        updateSounds(partialTicks);
+        world.endProfiling();
     }
 
     /**
      * If rendering needs to be skipped for any reason, return true here.
      */
-    protected boolean disableRendering(float partialTicks) {
+    public boolean disableRendering() {
         //Don't render on the first tick, as we might have not created some variables yet.
         return ticksExisted == 0;
     }
