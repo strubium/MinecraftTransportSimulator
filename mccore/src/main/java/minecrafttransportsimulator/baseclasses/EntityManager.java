@@ -78,24 +78,29 @@ public abstract class EntityManager {
             entitiesToRender.clear();
             renderableEntities.forEach(entity -> {
                 if (!entity.disableRendering()) {
-                    float maxDistance;
-                    AEntityC_Renderable testEntity;
-                    if (entity instanceof APart) {
-                        testEntity = ((APart) entity).masterEntity;
-                    } else {
-                        testEntity = entity;
-                    }
-                    if (testEntity instanceof EntityVehicleF_Physics) {
-                        if (((EntityVehicleF_Physics) testEntity).definition.motorized.isAircraft) {
-                            maxDistance = aircraftDistance;
-                        } else {
-                            maxDistance = carDistance;
-                        }
-                    } else {
-                        maxDistance = renderDistance;
-                    }
-                    if (playerPosition.isDistanceToCloserThan(testEntity.position, maxDistance)) {
+                    if (entity instanceof EntityBullet) {
+                        //Always render bullets.
                         entitiesToRender.add(entity);
+                    } else {
+                        float maxDistance;
+                        AEntityC_Renderable testEntity;
+                        if (entity instanceof APart) {
+                            testEntity = ((APart) entity).masterEntity;
+                        } else {
+                            testEntity = entity;
+                        }
+                        if (testEntity instanceof EntityVehicleF_Physics) {
+                            if (((EntityVehicleF_Physics) testEntity).definition.motorized.isAircraft) {
+                                maxDistance = aircraftDistance;
+                            } else {
+                                maxDistance = carDistance;
+                            }
+                        } else {
+                            maxDistance = renderDistance;
+                        }
+                        if (playerPosition.isDistanceToCloserThan(testEntity.position, maxDistance)) {
+                            entitiesToRender.add(entity);
+                        }
                     }
                 }
             });
