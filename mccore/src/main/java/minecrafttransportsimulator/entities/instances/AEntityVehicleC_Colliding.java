@@ -130,6 +130,15 @@ abstract class AEntityVehicleC_Colliding extends AEntityG_Towable<JSONVehicle> {
     }
 
     @Override
+    public boolean canRenderAtDistance(Point3D playerPosition, int gameRenderDistance) {
+        if (definition.motorized.isAircraft) {
+            return playerPosition.isDistanceToCloserThan(position, gameRenderDistance + ConfigSystem.client.renderingSettings.planeRenderPlus.value * 16);
+        } else {
+            return playerPosition.isDistanceToCloserThan(position, gameRenderDistance + ConfigSystem.client.renderingSettings.carRenderPlus.value * 16);
+        }
+    }
+
+    @Override
     public int getWorldLightValue() {
         //Offset position by 1 to prevent super darkness while being in the ground.
         ++position.y;

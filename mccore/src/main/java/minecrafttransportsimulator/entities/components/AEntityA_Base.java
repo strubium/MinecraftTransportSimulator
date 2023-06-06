@@ -66,6 +66,14 @@ public abstract class AEntityA_Base {
     }
 
     /**
+     * Returns true if the main update call for this entity can be called.
+     * This is checked if {@link #getUpdateType()} indicates an update is possible.
+     */
+    public boolean canUpdate() {
+        return true;
+    }
+
+    /**
      * Called to update this entity.  This  may not be called if the entity extending this class
      * is not slated for updates in some sort of system.
      */

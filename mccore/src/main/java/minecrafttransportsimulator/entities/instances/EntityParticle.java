@@ -394,6 +394,11 @@ public class EntityParticle extends AEntityC_Renderable {
     }
 
     @Override
+    public boolean canRenderAtDistance(Point3D playerPosition, int gameRenderDistance) {
+        return entitySpawning.canRenderAtDistance(playerPosition, gameRenderDistance);
+    }
+
+    @Override
     protected void renderModel(TransformationMatrix transform, boolean blendingEnabled, float partialTicks) {
         if (definition.toTransparency != 0) {
             renderable.alpha = interpolate(definition.transparency, definition.toTransparency, (ticksExisted + partialTicks) / maxAge, true, partialTicks);

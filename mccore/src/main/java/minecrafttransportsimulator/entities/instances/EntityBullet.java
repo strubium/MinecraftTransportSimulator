@@ -543,6 +543,11 @@ public class EntityBullet extends AEntityD_Definable<JSONBullet> {
         return true;
     }
 
+    @Override
+    public boolean canRenderAtDistance(Point3D playerPosition, int gameRenderDistance) {
+        return true;
+    }
+
     public double getRelativePos(int axisIndex, float partialTicks) {
         if (relativeGunPos == null) {
             relativeGunPos = position.copy().subtract(gun.position).reOrigin(gun.orientation);

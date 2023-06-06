@@ -66,6 +66,12 @@ public abstract class AEntityG_Towable<JSONDefinition extends AJSONPartProvider>
     }
 
     @Override
+    public boolean canUpdate() {
+        //Only let us update if we aren't being towed.  If we are being towed, our towing vehicle will update us.
+        return towedByConnection == null;
+    }
+
+    @Override
     public void update() {
         super.update();
         world.beginProfiling("EntityG_Level", true);
@@ -192,14 +198,6 @@ public abstract class AEntityG_Towable<JSONDefinition extends AJSONPartProvider>
         }
 
         world.endProfiling();
-    }
-
-    /**
-     * Returns true if the main update call for this entity should be blocked.
-     * This allows the entity update to be delayed to a later point in the code.
-     */
-    public boolean blockMainUpdateCall() {
-        return towedByConnection != null;
     }
 
     @Override

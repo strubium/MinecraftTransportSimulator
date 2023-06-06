@@ -14,7 +14,6 @@ import minecrafttransportsimulator.entities.components.AEntityC_Renderable;
 import minecrafttransportsimulator.entities.components.AEntityD_Definable;
 import minecrafttransportsimulator.entities.components.AEntityE_Interactable;
 import minecrafttransportsimulator.entities.components.AEntityF_Multipart;
-import minecrafttransportsimulator.entities.components.AEntityG_Towable;
 import minecrafttransportsimulator.entities.instances.APart;
 import minecrafttransportsimulator.entities.instances.EntityBullet;
 import minecrafttransportsimulator.entities.instances.EntityPlacedPart;
@@ -61,7 +60,7 @@ public abstract class EntityManager {
     public void runTick(AWrapperWorld world, boolean mainUpdate) {
         world.beginProfiling("MTS_EntityUpdates", true);
         for (AEntityA_Base entity : mainUpdate ? allMainTickableEntities : allLastTickableEntities) {
-            if (!(entity instanceof AEntityG_Towable) || !(((AEntityG_Towable<?>) entity).blockMainUpdateCall())) {
+            if (entity.canUpdate()) {
                 world.beginProfiling("MTSEntity_" + entity.uniqueUUID, true);
                 entity.update();
                 if (entity instanceof AEntityD_Definable) {
@@ -73,35 +72,10 @@ public abstract class EntityManager {
         if (!mainUpdate && world.isClient()) {
             Point3D playerPosition = InterfaceManager.clientInterface.getClientPlayer().getPosition();
             int renderDistance = InterfaceManager.clientInterface.getRenderDistance() * 16;
-            float aircraftDistance = renderDistance + ConfigSystem.client.renderingSettings.planeRenderPlus.value * 16;
-            float carDistance = renderDistance + ConfigSystem.client.renderingSettings.carRenderPlus.value * 16;
             entitiesToRender.clear();
             renderableEntities.forEach(entity -> {
-                if (!entity.disableRendering()) {
-                    if (entity instanceof EntityBullet) {
-                        //Always render bullets.
-                        entitiesToRender.add(entity);
-                    } else {
-                        float maxDistance;
-                        AEntityC_Renderable testEntity;
-                        if (entity instanceof APart) {
-                            testEntity = ((APart) entity).masterEntity;
-                        } else {
-                            testEntity = entity;
-                        }
-                        if (testEntity instanceof EntityVehicleF_Physics) {
-                            if (((EntityVehicleF_Physics) testEntity).definition.motorized.isAircraft) {
-                                maxDistance = aircraftDistance;
-                            } else {
-                                maxDistance = carDistance;
-                            }
-                        } else {
-                            maxDistance = renderDistance;
-                        }
-                        if (playerPosition.isDistanceToCloserThan(testEntity.position, maxDistance)) {
-                            entitiesToRender.add(entity);
-                        }
-                    }
+                if (!entity.disableRendering() && entity.canRenderAtDistance(playerPosition, renderDistance)) {
+                    entitiesToRender.add(entity);
                 }
             });
         }

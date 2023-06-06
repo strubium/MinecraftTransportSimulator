@@ -114,6 +114,14 @@ public abstract class AEntityC_Renderable extends AEntityB_Existing {
     }
 
     /**
+     * Returns true if the entity can render at this time.  The player position, and the game
+     * render distance (in blocks), are passed-in parameters.
+     */
+    public boolean canRenderAtDistance(Point3D playerPosition, int gameRenderDistance) {
+        return playerPosition.isDistanceToCloserThan(position, gameRenderDistance);
+    }
+
+    /**
      * If rendering needs to be skipped for any reason, return true here.
      */
     public boolean disableRendering() {
