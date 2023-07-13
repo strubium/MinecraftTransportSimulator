@@ -495,8 +495,6 @@ public class WrapperWorld extends AWrapperWorld {
                             mutableCollidingAABBs.add(state.getBoundingBox(world, pos).offset(pos));
                             box.collidingBlockPositions.add(new Point3D(i, j, k));
                         }
-                    } else {
-                        System.out.println("NEIN");
                     }
                 }
             }
