@@ -17,6 +17,7 @@ import minecrafttransportsimulator.jsondefs.JSONCollisionBox;
 import minecrafttransportsimulator.jsondefs.JSONCollisionGroup;
 import minecrafttransportsimulator.jsondefs.JSONConfigLanguage;
 import minecrafttransportsimulator.mcinterface.AWrapperWorld;
+import minecrafttransportsimulator.mcinterface.AWrapperWorld.CollisionMovementType;
 import minecrafttransportsimulator.mcinterface.IWrapperNBT;
 import minecrafttransportsimulator.mcinterface.IWrapperPlayer;
 import minecrafttransportsimulator.mcinterface.InterfaceManager;
@@ -51,6 +52,7 @@ abstract class AEntityVehicleD_Moving extends AEntityVehicleC_Colliding {
     public static final double MAX_BRAKE = 1D;
 
     //Internal states.
+    public boolean inLoadedChunk;
     public boolean goingInReverse;
     public boolean slipping;
     public boolean skidSteerActive;
@@ -155,7 +157,7 @@ abstract class AEntityVehicleD_Moving extends AEntityVehicleC_Colliding {
             position.add(motionApplied);
             for (BoundingBox coreBox : allBlockCollisionBoxes) {
                 coreBox.updateToEntity(this, null);
-                if (coreBox.updateCollisions(world, new Point3D(0D, -furthestDownPoint, 0D), false)) {
+                if (coreBox.updateCollisions(world, new Point3D(0D, -furthestDownPoint, 0D), CollisionMovementType.ZERO)) {
                     //New vehicle shouldn't have been spawned.  Bail out.
                     placingPlayer.sendPacket(new PacketPlayerChatMessage(placingPlayer, JSONConfigLanguage.INTERACT_VEHICLE_NOSPACE));
                     //Need to add stack back as it will have been removed here.
@@ -178,6 +180,7 @@ abstract class AEntityVehicleD_Moving extends AEntityVehicleC_Colliding {
         //Now do update calculations and logic.
         if (!ConfigSystem.settings.general.noclipVehicles.value || groundDeviceCollective.isReady()) {
             world.beginProfiling("GroundForces", false);
+            inLoadedChunk = groundDeviceCollective.areAllChunksLoaded();
             getForcesAndMotions();
             world.beginProfiling("GroundOperations", false);
             if (towedByConnection == null || !towedByConnection.hitchConnection.mounted) {
@@ -726,6 +729,7 @@ abstract class AEntityVehicleD_Moving extends AEntityVehicleC_Colliding {
                         motion.y += groundMotion.y;
                         groundMotion.y = 0;
                     }
+
                     groundDeviceCollective.updateCollisions();
                 }
 
@@ -844,6 +848,7 @@ abstract class AEntityVehicleD_Moving extends AEntityVehicleC_Colliding {
 
             //Now adjust our movement to sync with the server.
             if (world.isClient()) {
+                //Don't do delta application if we are resting with 
                 //Get the delta difference, and square it.  Then divide it by 25.
                 //This gives us a good "rubberbanding correction" formula for deltas.
                 //We add this correction motion to the existing motion applied.
@@ -952,7 +957,7 @@ abstract class AEntityVehicleD_Moving extends AEntityVehicleC_Colliding {
         for (BoundingBox box : allBlockCollisionBoxes) {
             //If we collided, so check to see if we can break some blocks or if we need to explode.
             //Don't bother with this logic if it's impossible for us to break anything.
-            if (box.updateCollisions(world, collisionMotion, true)) {
+            if (box.updateCollisions(world, collisionMotion, CollisionMovementType.MOTION)) {
                 float hardnessHitThisBox = 0;
                 boolean inhibitMovement = false;
                 for (Point3D blockPosition : box.collidingBlockPositions) {
@@ -1006,7 +1011,7 @@ abstract class AEntityVehicleD_Moving extends AEntityVehicleC_Colliding {
         if (!rotation.angles.isZero()) {
             for (BoundingBox box : allBlockCollisionBoxes) {
                 tempBoxPosition.set(box.globalCenter).subtract(position).rotate(rotation).add(position).addScaled(motion, speedFactor);
-                if (box.updateCollisions(world, tempBoxPosition.subtract(box.globalCenter), false)) {
+                if (box.updateCollisions(world, tempBoxPosition.subtract(box.globalCenter), CollisionMovementType.ZERO)) {
                     rotation.setToZero();
                     break;
                 }

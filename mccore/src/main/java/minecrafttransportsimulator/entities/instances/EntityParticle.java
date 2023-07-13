@@ -19,6 +19,7 @@ import minecrafttransportsimulator.jsondefs.JSONParticle.JSONSubParticle;
 import minecrafttransportsimulator.jsondefs.JSONParticle.ParticleRenderingOrientation;
 import minecrafttransportsimulator.jsondefs.JSONParticle.ParticleSpawningOrientation;
 import minecrafttransportsimulator.jsondefs.JSONParticle.ParticleType;
+import minecrafttransportsimulator.mcinterface.AWrapperWorld.CollisionMovementType;
 import minecrafttransportsimulator.mcinterface.IWrapperPlayer;
 import minecrafttransportsimulator.mcinterface.InterfaceManager;
 import minecrafttransportsimulator.rendering.AModelParser;
@@ -311,12 +312,13 @@ public class EntityParticle extends AEntityC_Renderable {
 
             //Check collision movement.  If we hit a block, don't move.
             if (!definition.ignoreCollision) {
-                touchingBlocks = boundingBox.updateCollisions(world, motion, true);
+                touchingBlocks = boundingBox.updateCollisions(world, motion, CollisionMovementType.MOTION);
                 if (touchingBlocks) {
                     motion.subtract(boundingBox.currentCollisionDepth);
                     if (definition.stopsOnGround && definition.groundSounds != null) {
                         double distance = position.distanceTo(clientPlayer.getPosition());
                         if (distance < SoundInstance.DEFAULT_MAX_DISTANCE) {
+
                             SoundInstance sound = new SoundInstance(this, definition.groundSounds.get(particleRandom.nextInt(definition.groundSounds.size())));
                             sound.volume = (float) (1 - distance / SoundInstance.DEFAULT_MAX_DISTANCE);
                             InterfaceManager.soundInterface.playQuickSound(sound);

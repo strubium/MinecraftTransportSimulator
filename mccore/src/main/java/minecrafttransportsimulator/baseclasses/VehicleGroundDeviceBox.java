@@ -7,6 +7,7 @@ import java.util.Set;
 import minecrafttransportsimulator.entities.instances.APart;
 import minecrafttransportsimulator.entities.instances.EntityVehicleF_Physics;
 import minecrafttransportsimulator.entities.instances.PartGroundDevice;
+import minecrafttransportsimulator.mcinterface.AWrapperWorld.CollisionMovementType;
 
 /**
  * This class is a IWrapper for vehicle ground device collision points.  It's used to get a point
@@ -29,6 +30,7 @@ public class VehicleGroundDeviceBox {
     private final List<PartGroundDevice> groundDevices = new ArrayList<>();
     private final List<PartGroundDevice> liquidDevices = new ArrayList<>();
 
+    public boolean isReady;
     public boolean isBlockedVertically;
     public boolean canRollOnGround;
     public boolean contactedEntity;
@@ -150,6 +152,7 @@ public class VehicleGroundDeviceBox {
             }
         }
         this.climbHeight = !groundDevices.isEmpty() ? totalClimbHeight / groundDevices.size() : 0;
+        this.isReady = !groundDevices.isEmpty() || !liquidCollisionBoxes.isEmpty() || !liquidDevices.isEmpty();
     }
 
     /**
@@ -220,17 +223,12 @@ public class VehicleGroundDeviceBox {
         collisionDepth = 0;
 
         Point3D vehicleMotionOffset = vehicle.motion.copy().scale(vehicle.speedFactor);
-        if (vehicleMotionOffset.y == 0 && vehicle.towedByConnection != null && !vehicle.towedByConnection.hookupConnection.mounted) {
-            //Need to add a super-small amount of -y motion here.
-            //If we don't, then we won't do trailer physics right as those always need to check for blocks below them.
-            vehicleMotionOffset.y = -0.00001;
-        }
         Point3D groundCollisionOffset = vehicleMotionOffset.copy().add(PartGroundDevice.groundDetectionOffset);
         if (!groundDevices.isEmpty()) {
             contactPoint.set(solidBox.localCenter);
             contactPoint.add(0D, -solidBox.heightRadius, 0D);
             solidBox.globalCenter.set(solidBox.localCenter).rotate(vehicle.orientation).rotate(vehicle.rotation).add(vehicle.position).add(vehicleMotionOffset);
-            vehicle.world.updateBoundingBoxCollisions(solidBox, vehicleMotionOffset, false);
+            vehicle.world.updateBoundingBoxCollisions(solidBox, vehicleMotionOffset, CollisionMovementType.ALL);
 
             contactedEntity = checkEntityCollisions(vehicleMotionOffset);
             isCollided = contactedEntity || !solidBox.collidingBlockPositions.isEmpty();
@@ -264,7 +262,7 @@ public class VehicleGroundDeviceBox {
                 }
             } else {
                 solidBox.globalCenter.add(PartGroundDevice.groundDetectionOffset);
-                vehicle.world.updateBoundingBoxCollisions(solidBox, groundCollisionOffset, false);
+                vehicle.world.updateBoundingBoxCollisions(solidBox, groundCollisionOffset, CollisionMovementType.ALL);
                 contactedEntity = checkEntityCollisions(groundCollisionOffset);
                 solidBox.globalCenter.subtract(PartGroundDevice.groundDetectionOffset);
                 isGrounded = contactedEntity || !solidBox.collidingBlockPositions.isEmpty();
@@ -276,7 +274,7 @@ public class VehicleGroundDeviceBox {
             } else {
                 groundCollisionOffset = vehicleMotionOffset.copy().add(PartGroundDevice.groundOperationOffset);
                 solidBox.globalCenter.add(PartGroundDevice.groundOperationOffset);
-                vehicle.world.updateBoundingBoxCollisions(solidBox, groundCollisionOffset, false);
+                vehicle.world.updateBoundingBoxCollisions(solidBox, groundCollisionOffset, CollisionMovementType.ALL);
                 contactedEntity = checkEntityCollisions(groundCollisionOffset);
                 solidBox.globalCenter.subtract(PartGroundDevice.groundOperationOffset);
                 isAbleToDoGroundOperations = contactedEntity || !solidBox.collidingBlockPositions.isEmpty();
@@ -286,7 +284,7 @@ public class VehicleGroundDeviceBox {
         if (!canRollOnGround || !isAbleToDoGroundOperations) {
             if (!liquidDevices.isEmpty() || !liquidCollisionBoxes.isEmpty()) {
                 liquidBox.globalCenter.set(liquidBox.localCenter).rotate(vehicle.orientation).rotate(vehicle.rotation).add(vehicle.position).add(vehicleMotionOffset);
-                vehicle.world.updateBoundingBoxCollisions(liquidBox, vehicleMotionOffset, false);
+                vehicle.world.updateBoundingBoxCollisions(liquidBox, vehicleMotionOffset, CollisionMovementType.ALL);
                 isCollidedLiquid = !liquidBox.collidingBlockPositions.isEmpty();
                 double liquidCollisionDepth = -liquidBox.currentCollisionDepth.y;
 
@@ -295,7 +293,7 @@ public class VehicleGroundDeviceBox {
                     isAirborne = false;
                 } else {
                     liquidBox.globalCenter.add(PartGroundDevice.groundDetectionOffset);
-                    vehicle.world.updateBoundingBoxCollisions(liquidBox, groundCollisionOffset, false);
+                    vehicle.world.updateBoundingBoxCollisions(liquidBox, groundCollisionOffset, CollisionMovementType.ALL);
                     liquidBox.globalCenter.subtract(PartGroundDevice.groundDetectionOffset);
                     isGroundedLiquid = !liquidBox.collidingBlockPositions.isEmpty();
                 }
@@ -306,7 +304,7 @@ public class VehicleGroundDeviceBox {
                 } else {
                     groundCollisionOffset = vehicleMotionOffset.copy().add(PartGroundDevice.groundOperationOffset);
                     liquidBox.globalCenter.add(PartGroundDevice.groundOperationOffset);
-                    vehicle.world.updateBoundingBoxCollisions(liquidBox, groundCollisionOffset, false);
+                    vehicle.world.updateBoundingBoxCollisions(liquidBox, groundCollisionOffset, CollisionMovementType.ALL);
                     liquidBox.globalCenter.subtract(PartGroundDevice.groundOperationOffset);
                     isAbleToDoGroundOperationsLiquid = !liquidBox.collidingBlockPositions.isEmpty();
                 }
@@ -386,13 +384,6 @@ public class VehicleGroundDeviceBox {
             }
         }
         return didCollision;
-    }
-
-    /**
-     * Returns true if this box has any boxes and is ready for collision operations.
-     */
-    public boolean isReady() {
-        return !groundDevices.isEmpty() || !liquidCollisionBoxes.isEmpty() || !liquidDevices.isEmpty();
     }
 
     /**

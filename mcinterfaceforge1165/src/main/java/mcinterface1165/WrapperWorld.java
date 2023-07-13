@@ -490,7 +490,7 @@ public class WrapperWorld extends AWrapperWorld {
     }
 
     @Override
-    public void updateBoundingBoxCollisions(BoundingBox box, Point3D collisionMotion, boolean ignoreIfGreater) {
+    public void updateBoundingBoxCollisions(BoundingBox box, Point3D collisionMotion, CollisionMovementType movementType) {
         AxisAlignedBB mcBox = WrapperWorld.convert(box);
         VoxelShape mcShape = VoxelShapes.create(mcBox);
         box.collidingBlockPositions.clear();
@@ -519,42 +519,42 @@ public class WrapperWorld extends AWrapperWorld {
         box.currentCollisionDepth.set(0D, 0D, 0D);
         double boxCollisionDepth;
         for (AxisAlignedBB colBox : mutableCollidingAABBs) {
-            if (collisionMotion.x > 0) {
-                boxCollisionDepth = mcBox.maxX - colBox.minX;
-                if (box.currentCollisionDepth.x < boxCollisionDepth) {
-                    box.currentCollisionDepth.x = boxCollisionDepth;
-                }
-            } else if (collisionMotion.x < 0) {
+            if (collisionMotion.x < 0) {
                 boxCollisionDepth = -(colBox.maxX - mcBox.minX);
                 if (box.currentCollisionDepth.x > boxCollisionDepth) {
                     box.currentCollisionDepth.x = boxCollisionDepth;
                 }
-            }
-            if (collisionMotion.y > 0) {
-                boxCollisionDepth = mcBox.maxY - colBox.minY;
-                if (box.currentCollisionDepth.y < boxCollisionDepth) {
-                    box.currentCollisionDepth.y = boxCollisionDepth;
+            } else if (collisionMotion.x > 0 || movementType == CollisionMovementType.ALL) {
+                boxCollisionDepth = mcBox.maxX - colBox.minX;
+                if (box.currentCollisionDepth.x < boxCollisionDepth) {
+                    box.currentCollisionDepth.x = boxCollisionDepth;
                 }
-            } else if (collisionMotion.y < 0) {
+            }
+            if (collisionMotion.y < 0) {
                 boxCollisionDepth = -(colBox.maxY - mcBox.minY);
                 if (box.currentCollisionDepth.y > boxCollisionDepth) {
                     box.currentCollisionDepth.y = boxCollisionDepth;
                 }
-            }
-            if (collisionMotion.z > 0) {
-                boxCollisionDepth = mcBox.maxZ - colBox.minZ;
-                if (box.currentCollisionDepth.z < boxCollisionDepth) {
-                    box.currentCollisionDepth.z = boxCollisionDepth;
+            } else if (collisionMotion.y > 0 || movementType == CollisionMovementType.ALL) {
+                boxCollisionDepth = mcBox.maxY - colBox.minY;
+                if (box.currentCollisionDepth.y < boxCollisionDepth) {
+                    box.currentCollisionDepth.y = boxCollisionDepth;
                 }
-            } else if (collisionMotion.z < 0) {
+            }
+            if (collisionMotion.z < 0) {
                 boxCollisionDepth = -(colBox.maxZ - mcBox.minZ);
                 if (box.currentCollisionDepth.z > boxCollisionDepth) {
+                    box.currentCollisionDepth.z = boxCollisionDepth;
+                }
+            } else if (collisionMotion.z > 0 || movementType == CollisionMovementType.ALL) {
+                boxCollisionDepth = mcBox.maxZ - colBox.minZ;
+                if (box.currentCollisionDepth.z < boxCollisionDepth) {
                     box.currentCollisionDepth.z = boxCollisionDepth;
                 }
             }
         }
 
-        if (ignoreIfGreater) {
+        if (movementType == CollisionMovementType.MOTION) {
             if (collisionMotion.x > 0 && box.currentCollisionDepth.x > collisionMotion.x) {
                 box.currentCollisionDepth.x = collisionMotion.x;
             } else if (collisionMotion.x < 0 && box.currentCollisionDepth.x < collisionMotion.x) {

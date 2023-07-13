@@ -9,6 +9,7 @@ import minecrafttransportsimulator.items.components.AItemPack;
 import minecrafttransportsimulator.items.components.AItemPart;
 import minecrafttransportsimulator.jsondefs.JSONDummyPartProvider;
 import minecrafttransportsimulator.mcinterface.AWrapperWorld;
+import minecrafttransportsimulator.mcinterface.AWrapperWorld.CollisionMovementType;
 import minecrafttransportsimulator.mcinterface.IWrapperNBT;
 import minecrafttransportsimulator.mcinterface.IWrapperPlayer;
 import minecrafttransportsimulator.packloading.PackParser;
@@ -94,7 +95,7 @@ public class EntityPlacedPart extends AEntityF_Multipart<JSONDummyPartProvider> 
                                     motionApplied.y = motion.y;
                                 }
                                 encompassingBox.globalCenter.set(position).add(motionApplied);
-                                world.updateBoundingBoxCollisions(encompassingBox, motionApplied, true);
+                                world.updateBoundingBoxCollisions(encompassingBox, motionApplied, CollisionMovementType.MOTION);
 
                                 if (encompassingBox.currentCollisionDepth.y != 0) {
                                     position.add(motionApplied).subtract(encompassingBox.currentCollisionDepth);

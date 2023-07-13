@@ -222,13 +222,8 @@ public abstract class AWrapperWorld extends EntityManager {
     /**
      * Updates the blocks and depths of collisions for the passed-in BoundingBox to the box's internal variables.
      * This is done as it allows for re-use of the variables by the calling object to avoid excess object creation.
-     * Note that if the offset value passed-in for an axis is 0, then no collision checks will be performed on that axis.
-     * This prevents excess calculations when trying to do movement calculations for a single axis.  If ignoreIfGreater
-     * is set, then the system will not set the collisionDepth of corresponding axis if the motion is less than the
-     * collisionMotion axis.  If this value is not set, the function simply looks for a non-zero value to make the
-     * collisionDepth be set for that axis.
      */
-    public abstract void updateBoundingBoxCollisions(BoundingBox box, Point3D collisionMotion, boolean ignoreIfGreater);
+    public abstract void updateBoundingBoxCollisions(BoundingBox box, Point3D collisionMotion, CollisionMovementType movementType);
 
     /**
      * Checks the passed-in bounding box for collisions with other blocks.  Returns true if they collided,
@@ -403,4 +398,17 @@ public abstract class AWrapperWorld extends EntityManager {
             this.side = side;
         }
     }
+
+    /**
+     * Enum for collision requests
+     */
+    public static enum CollisionMovementType {
+        /**Ignores collisions that exceed the motion value for that axis.**/
+        MOTION,
+        /**Ignores collisions that have axis that are zero.**/
+        ZERO,
+        /**Ignores no collisions and checks all of them.**/
+        ALL;
+    }
+
 }

@@ -528,8 +528,8 @@ public class EntityVehicleF_Physics extends AEntityVehicleE_Powered {
                 currentBallastVolume = 0;
             }
 
-            //Finally, get gravity.
-            gravitationalForce = currentBallastVolume == 0 ? currentMass * (9.8 / 400) : 0;
+            //Finally, get gravity.  Don't let us go down though if we are resting on blocks.
+            gravitationalForce = currentBallastVolume == 0 && !groundDeviceCollective.isResting() ? currentMass * (9.8 / 400) : 0;
             if (currentWaterBallastFactor != 0 && world.isBlockLiquid(position)) {
                 gravitationalForce -= gravitationalForce * currentWaterBallastFactor;
             }
@@ -538,11 +538,20 @@ public class EntityVehicleF_Physics extends AEntityVehicleE_Powered {
             }
 
             //Add all forces to the main force matrix and apply them.
-            totalForce.set(0D, wingForce - elevatorForce, 0D).rotate(orientation);
+            totalForce.set(0D, wingForce - elevatorForce, 0D);
+            if (!totalForce.isZero()) {
+                totalForce.rotate(orientation);
+            }
             totalForce.add(thrustForce);
-            totalForce.addScaled(normalizedVelocityVector, -dragForce);
-            totalForce.y += ballastForce - gravitationalForce;
+            if (dragForce != 0) {
+                totalForce.addScaled(normalizedVelocityVector, -dragForce);
+            }
+            totalForce.y += -gravitationalForce;
             motion.addScaled(totalForce, 1 / currentMass);
+            if (motion.length() < 0.005) {
+                //Set motion to 0 for small motions to allow other systems to not do work if not moving.
+                motion.set(0, 0, 0);
+            }
 
             //Add all torques to the main torque matrix and apply them.
             totalTorque.set(elevatorTorque, rudderTorque, aileronTorque).add(thrustTorque).scale(180D / Math.PI);

@@ -8,6 +8,7 @@ import minecrafttransportsimulator.entities.components.AEntityD_Definable;
 import minecrafttransportsimulator.jsondefs.JSONCollisionBox;
 import minecrafttransportsimulator.jsondefs.JSONCollisionGroup;
 import minecrafttransportsimulator.mcinterface.AWrapperWorld;
+import minecrafttransportsimulator.mcinterface.AWrapperWorld.CollisionMovementType;
 import minecrafttransportsimulator.rendering.RenderableObject;
 
 /**
@@ -112,10 +113,10 @@ public class BoundingBox {
      * Note that the passed-in offset is only applied for this check,  and is reverted after this call.
      * If blocks collided with this box after this method, true is returned.
      */
-    public boolean updateCollisions(AWrapperWorld world, Point3D offset, boolean ignoreIfGreater) {
+    public boolean updateCollisions(AWrapperWorld world, Point3D offset, CollisionMovementType movementType) {
         tempGlobalCenter.set(globalCenter);
         globalCenter.add(offset);
-        world.updateBoundingBoxCollisions(this, offset, ignoreIfGreater);
+        world.updateBoundingBoxCollisions(this, offset, movementType);
         globalCenter.set(tempGlobalCenter);
         return !collidingBlockPositions.isEmpty();
     }

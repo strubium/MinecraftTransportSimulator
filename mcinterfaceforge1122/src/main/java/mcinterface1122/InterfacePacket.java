@@ -155,7 +155,7 @@ class InterfacePacket implements IInterfacePacket {
             } else {
                 if (ctx.side.isServer()) {
                     message.packet.handle(getServerWorld(ctx));
-                } else {
+                } else if (InterfaceManager.clientInterface.getClientPlayer() != null) {
                     message.packet.handle(InterfaceManager.clientInterface.getClientWorld());
                 }
             }

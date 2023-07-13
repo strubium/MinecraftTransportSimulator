@@ -25,6 +25,7 @@ public class VehicleGroundDeviceCollection {
     private final Point3D translationApplied = new Point3D();
     private final RotationMatrix rotationApplied = new RotationMatrix();
     private final TransformationMatrix transformApplied = new TransformationMatrix();
+    private boolean cachedRestingState;
     public final Set<PartGroundDevice> groundedGroundDevices = new HashSet<>();
 
     public VehicleGroundDeviceCollection(EntityVehicleF_Physics vehicle) {
@@ -65,6 +66,42 @@ public class VehicleGroundDeviceCollection {
         frontRightGDB.updateCollisionStatuses(groundedGroundDevices);
         rearLeftGDB.updateCollisionStatuses(groundedGroundDevices);
         rearRightGDB.updateCollisionStatuses(groundedGroundDevices);
+        cachedRestingState = true;
+        if (frontLeftGDB.isCollided || frontRightGDB.isCollided || rearLeftGDB.isCollided || rearRightGDB.isCollided) {
+            //Can't be resting if we have collided boxes.
+            cachedRestingState = false;
+        } else {
+            //Check cross-sectional boxes for grounded state if they are ready.
+            if (frontLeftGDB.isReady && frontRightGDB.isReady && rearRightGDB.isReady && rearLeftGDB.isReady) {
+                if (!((frontLeftGDB.isGrounded && rearRightGDB.isGrounded) || (frontRightGDB.isGrounded && rearLeftGDB.isGrounded))) {
+                    //Don't have an opposite pair grounded for either pair, we can still do rotation operations.
+                    cachedRestingState = false;
+                }
+            } else {
+                //Cross-sectionals are not ready.  We must be a trailer or missing wheels.
+                //Check all ready boxes then.  If we find any that aren't grounded, we are not ready.
+                if (frontLeftGDB.isReady) {
+                    if (!frontLeftGDB.isGrounded) {
+                        cachedRestingState = false;
+                    }
+                }
+                if (frontRightGDB.isReady) {
+                    if (!frontRightGDB.isGrounded) {
+                        cachedRestingState = false;
+                    }
+                }
+                if (rearLeftGDB.isReady) {
+                    if (!rearLeftGDB.isGrounded) {
+                        cachedRestingState = false;
+                    }
+                }
+                if (rearRightGDB.isReady) {
+                    if (!rearRightGDB.isGrounded) {
+                        cachedRestingState = false;
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -170,26 +207,26 @@ public class VehicleGroundDeviceCollection {
         boolean haveCenterPoint = false;
         boolean haveFrontPoint = false;
         boolean haveRearPoint = false;
-        if (frontLeftGDB.isReady()) {
+        if (frontLeftGDB.isReady) {
             haveLeftPoint = true;
             haveFrontPoint = true;
             haveCenterPoint = frontLeftGDB.contactPoint.x == 0;
         }
-        if (frontRightGDB.isReady()) {
+        if (frontRightGDB.isReady) {
             haveRightPoint = true;
             haveFrontPoint = true;
             if (!haveCenterPoint) {
                 haveCenterPoint = frontRightGDB.contactPoint.x == 0;
             }
         }
-        if (rearLeftGDB.isReady()) {
+        if (rearLeftGDB.isReady) {
             haveLeftPoint = true;
             haveRearPoint = true;
             if (!haveCenterPoint) {
                 haveCenterPoint = rearLeftGDB.contactPoint.x == 0;
             }
         }
-        if (rearRightGDB.isReady()) {
+        if (rearRightGDB.isReady) {
             haveRightPoint = true;
             haveRearPoint = true;
             if (!haveCenterPoint) {
@@ -198,6 +235,24 @@ public class VehicleGroundDeviceCollection {
         }
         //Ready only if left/right wheels are present, or if we are a center-lined vehicle with front and rear wheels.
         return (haveLeftPoint && haveRightPoint) || (haveFrontPoint && haveRearPoint && haveCenterPoint);
+    }
+
+    /**
+     * Returns true if the boxes are all in loaded chunks.  If boxes aren't in loaded chunks no other calculations with them
+     * should be performed since the state will be un-defined.  Additionally, vehicles should limit their movement depending on state. 
+     */
+    public boolean areAllChunksLoaded() {
+        return vehicle.world.isChunkLoaded(frontLeftGDB.getBoundingBox().globalCenter) && vehicle.world.isChunkLoaded(frontRightGDB.getBoundingBox().globalCenter) && vehicle.world.isChunkLoaded(rearLeftGDB.getBoundingBox().globalCenter) && vehicle.world.isChunkLoaded(rearRightGDB.getBoundingBox().globalCenter);
+    }
+
+    /**
+     * Returns true if the boxes are "resting".  This implies that no rotationalal or translational movement
+     * can be performed on them as opposite boxes are all grounded (but not collided).  Essentially, if this
+     * returns true, then one can skip calls to {@link #performPitchCorrection(Point3D)} and {@link #performRollCorrection(Point3D)}
+     * since those functions wouldn't change anything.  Though other functions can also be skipped if needed. 
+     */
+    public boolean isResting() {
+        return cachedRestingState || !vehicle.inLoadedChunk;
     }
 
     /**
@@ -263,7 +318,7 @@ public class VehicleGroundDeviceCollection {
     public void performPitchCorrection(Point3D groundMotion) {
         if (vehicle.towedByConnection == null) {
             //Counter-clockwise rotation if both rear wheels are airborne
-            if (rearLeftGDB.isAirborne && rearLeftGDB.isReady() && rearRightGDB.isAirborne && rearRightGDB.isReady()) {
+            if (rearLeftGDB.isAirborne && rearLeftGDB.isReady && rearRightGDB.isAirborne && rearRightGDB.isReady) {
                 //Make sure front is not airborne on at least one wheel before rotating.
                 if (!frontLeftGDB.isAirborne) {
                     if (!frontRightGDB.isAirborne) {
@@ -279,7 +334,7 @@ public class VehicleGroundDeviceCollection {
             }
 
             //Clockwise rotation if both front wheels are airborne
-            if (frontLeftGDB.isAirborne && frontLeftGDB.isReady() && frontRightGDB.isAirborne && frontRightGDB.isReady()) {
+            if (frontLeftGDB.isAirborne && frontLeftGDB.isReady && frontRightGDB.isAirborne && frontRightGDB.isReady) {
                 //Make sure rear is not airborne on at least one wheel before rotating.
                 if (!rearLeftGDB.isAirborne) {
                     if (!rearRightGDB.isAirborne) {
@@ -322,35 +377,35 @@ public class VehicleGroundDeviceCollection {
             hookupRelativePosition.set(vehicle.towedByConnection.hookupCurrentPosition).subtract(vehicle.position).reOrigin(vehicle.orientation);
             if (hookupRelativePosition.z > 0) {
                 //Hookup is in front of the vehicle, need to rotate clockwise if wheels are collided, counter-clockwise if free.
-                if ((rearLeftGDB.isAirborne || !rearLeftGDB.isReady()) && (rearRightGDB.isAirborne || !rearRightGDB.isReady()) && (rearLeftGDB.isAirborne || !rearLeftGDB.isReady()) && (rearRightGDB.isAirborne || !rearRightGDB.isReady())) {
+                if ((rearLeftGDB.isAirborne || !rearLeftGDB.isReady) && (rearRightGDB.isAirborne || !rearRightGDB.isReady) && (rearLeftGDB.isAirborne || !rearLeftGDB.isReady) && (rearRightGDB.isAirborne || !rearRightGDB.isReady)) {
                     //Ground devices are all free (or just don't exist).  Do rotation to put them on the ground.
-                    if (rearLeftGDB.isReady() && rearRightGDB.isReady()) {
+                    if (rearLeftGDB.isReady && rearRightGDB.isReady) {
                         adjustAnglesMatrix(hookupRelativePosition, rearLeftGDB, rearRightGDB, false, true, true, groundMotion);
-                    } else if (frontLeftGDB.isReady() && frontRightGDB.isReady()) {
+                    } else if (frontLeftGDB.isReady && frontRightGDB.isReady) {
                         adjustAnglesMatrix(hookupRelativePosition, frontLeftGDB, frontRightGDB, false, true, true, groundMotion);
                     }
                 } else {
                     //Ground devices are either collided, or just don't exist.  Do rotation to un-collide them.
-                    if ((rearLeftGDB.isCollided || rearRightGDB.isCollided) && rearLeftGDB.isReady() && rearRightGDB.isReady()) {
+                    if ((rearLeftGDB.isCollided || rearRightGDB.isCollided) && rearLeftGDB.isReady && rearRightGDB.isReady) {
                         adjustAnglesMatrix(hookupRelativePosition, rearLeftGDB, rearRightGDB, true, true, false, groundMotion);
-                    } else if ((frontLeftGDB.isCollided || frontRightGDB.isCollided) && frontLeftGDB.isReady() && frontRightGDB.isReady()) {
+                    } else if ((frontLeftGDB.isCollided || frontRightGDB.isCollided) && frontLeftGDB.isReady && frontRightGDB.isReady) {
                         adjustAnglesMatrix(hookupRelativePosition, frontLeftGDB, frontRightGDB, true, true, false, groundMotion);
                     }
                 }
             } else {
                 //Hookup is in rear of the vehicle, need to rotate counter-clockwise if wheels are collided, clockwise if free.
-                if ((rearLeftGDB.isAirborne || !rearLeftGDB.isReady()) && (rearRightGDB.isAirborne || !rearRightGDB.isReady()) && (rearLeftGDB.isAirborne || !rearLeftGDB.isReady()) && (rearRightGDB.isAirborne || !rearRightGDB.isReady())) {
+                if ((rearLeftGDB.isAirborne || !rearLeftGDB.isReady) && (rearRightGDB.isAirborne || !rearRightGDB.isReady) && (rearLeftGDB.isAirborne || !rearLeftGDB.isReady) && (rearRightGDB.isAirborne || !rearRightGDB.isReady)) {
                     //Ground devices are all free (or just don't exist).  Do rotation to put them on the ground.
-                    if (frontLeftGDB.isReady() && frontRightGDB.isReady()) {
+                    if (frontLeftGDB.isReady && frontRightGDB.isReady) {
                         adjustAnglesMatrix(hookupRelativePosition, frontLeftGDB, frontRightGDB, true, true, true, groundMotion);
-                    } else if (rearLeftGDB.isReady() && rearRightGDB.isReady()) {
+                    } else if (rearLeftGDB.isReady && rearRightGDB.isReady) {
                         adjustAnglesMatrix(hookupRelativePosition, rearLeftGDB, rearRightGDB, true, true, true, groundMotion);
                     }
                 } else {
                     //Ground devices are either collided, or just don't exist.  Do rotation to un-collide them.
-                    if ((frontLeftGDB.isCollided || frontRightGDB.isCollided) && frontLeftGDB.isReady() && frontRightGDB.isReady()) {
+                    if ((frontLeftGDB.isCollided || frontRightGDB.isCollided) && frontLeftGDB.isReady && frontRightGDB.isReady) {
                         adjustAnglesMatrix(hookupRelativePosition, frontLeftGDB, frontRightGDB, false, true, false, groundMotion);
-                    } else if ((rearLeftGDB.isCollided || rearRightGDB.isCollided) && rearLeftGDB.isReady() && rearRightGDB.isReady()) {
+                    } else if ((rearLeftGDB.isCollided || rearRightGDB.isCollided) && rearLeftGDB.isReady && rearRightGDB.isReady) {
                         adjustAnglesMatrix(hookupRelativePosition, rearLeftGDB, rearRightGDB, false, true, false, groundMotion);
                     }
                 }
@@ -366,7 +421,7 @@ public class VehicleGroundDeviceCollection {
      */
     public void performRollCorrection(Point3D groundMotion) {
         //Counter-clockwise rotation if both left wheels are free 
-        if (!frontLeftGDB.isCollided && !frontLeftGDB.isGrounded && frontLeftGDB.isReady() && !rearLeftGDB.isCollided && !rearLeftGDB.isGrounded && rearLeftGDB.isReady()) {
+        if (!frontLeftGDB.isCollided && !frontLeftGDB.isGrounded && frontLeftGDB.isReady && !rearLeftGDB.isCollided && !rearLeftGDB.isGrounded && rearLeftGDB.isReady) {
             //Make sure right is grounded or collided on at least one wheel before rotating.
             //This prevents us from doing rotation in the air.
             if (frontRightGDB.isCollided || frontRightGDB.isGrounded) {
@@ -381,7 +436,7 @@ public class VehicleGroundDeviceCollection {
         }
 
         //Clockwise rotation if both right wheels are free
-        if (!frontRightGDB.isCollided && !frontRightGDB.isGrounded && frontRightGDB.isReady() && !rearRightGDB.isCollided && !rearRightGDB.isGrounded && rearRightGDB.isReady()) {
+        if (!frontRightGDB.isCollided && !frontRightGDB.isGrounded && frontRightGDB.isReady && !rearRightGDB.isCollided && !rearRightGDB.isGrounded && rearRightGDB.isReady) {
             //Make sure left is grounded or collided on at least one wheel before rotating.
             //This prevents us from doing rotation in the air.
             if (frontLeftGDB.isCollided || frontLeftGDB.isGrounded) {
@@ -397,7 +452,7 @@ public class VehicleGroundDeviceCollection {
 
         //The above cases handle normal 4-point vehicles.  For those, we need to use opposite corners to ensure we don't over-correct.
         //However, this does not work for vehicles with a mid-wheel layout, or those without mid-wheels entierly.  We check those now.
-        if (frontLeftGDB.contactPoint.x == 0 && frontRightGDB.contactPoint.x == 0 && rearLeftGDB.isReady() && rearRightGDB.isReady()) {
+        if (frontLeftGDB.contactPoint.x == 0 && frontRightGDB.contactPoint.x == 0 && rearLeftGDB.isReady && rearRightGDB.isReady) {
             //Only use rear wheels for roll on this vehicle.
             //Counter-clockwise rotation if left wheel is free and right is touching.  Clockwise otherwise.
             if (!rearLeftGDB.isCollided && !rearLeftGDB.isGrounded && (rearRightGDB.isCollided || rearRightGDB.isGrounded)) {
@@ -405,7 +460,7 @@ public class VehicleGroundDeviceCollection {
             } else if (!rearRightGDB.isCollided && !rearRightGDB.isGrounded && (rearLeftGDB.isCollided || rearLeftGDB.isGrounded)) {
                 adjustAnglesMatrix(rearLeftGDB.contactPoint, rearRightGDB, rearRightGDB, true, false, true, groundMotion);
             }
-        } else if (rearLeftGDB.contactPoint.x == 0 && rearRightGDB.contactPoint.x == 0 && frontLeftGDB.isReady() && frontRightGDB.isReady()) {
+        } else if (rearLeftGDB.contactPoint.x == 0 && rearRightGDB.contactPoint.x == 0 && frontLeftGDB.isReady && frontRightGDB.isReady) {
             //Only use front wheels for roll on this vehicle.
             //Counter-clockwise rotation if left wheel is free and right is touching.  Clockwise otherwise.
             if (!frontLeftGDB.isCollided && !frontLeftGDB.isGrounded && (frontRightGDB.isCollided || frontRightGDB.isGrounded)) {
@@ -478,6 +533,7 @@ public class VehicleGroundDeviceCollection {
             //This rotates the vehicle's center point locally and obtains a new point.  The delta between these points can then be taken.
             translationApplied.set(0, 0, 0).transform(transformApplied).rotate(vehicle.orientation);
             groundMotion.add(translationApplied);
+            updateCollisions();
         }
     }
 }
