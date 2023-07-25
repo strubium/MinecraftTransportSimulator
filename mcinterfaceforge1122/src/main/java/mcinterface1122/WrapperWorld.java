@@ -353,7 +353,7 @@ public class WrapperWorld extends AWrapperWorld {
 
     @Override
     public boolean isChunkLoaded(Point3D position) {
-        return world.isBlockLoaded(new BlockPos(position.x, position.y, position.z));
+        return world.isBlockLoaded(new BlockPos(position.x, position.y, position.z), false);
     }
 
     @Override
@@ -482,7 +482,7 @@ public class WrapperWorld extends AWrapperWorld {
             for (int j = (int) Math.floor(mcBox.minY); j < Math.ceil(mcBox.maxY); ++j) {
                 for (int k = (int) Math.floor(mcBox.minZ); k < Math.ceil(mcBox.maxZ); ++k) {
                     BlockPos pos = new BlockPos(i, j, k);
-                    if (world.isBlockLoaded(pos)) {
+                    if (world.isBlockLoaded(pos, false)) {
                         IBlockState state = world.getBlockState(pos);
                         if (state.getBlock().canCollideCheck(state, false) && state.getCollisionBoundingBox(world, pos) != null) {
                             int oldCollidingBlockCount = mutableCollidingAABBs.size();
@@ -574,7 +574,7 @@ public class WrapperWorld extends AWrapperWorld {
                 for (int k = (int) Math.floor(mcBox.minZ); k < Math.ceil(mcBox.maxZ); ++k) {
                     BlockPos pos = new BlockPos(i, j, k);
                     if (!knownAirBlocks.contains(pos)) {
-                        if (world.isBlockLoaded(pos)) {
+                        if (world.isBlockLoaded(pos, false)) {
                             IBlockState state = world.getBlockState(pos);
                             if (state.getBlock().canCollideCheck(state, false) && state.getCollisionBoundingBox(world, pos) != null) {
                                 int oldCollidingBlockCount = mutableCollidingAABBs.size();

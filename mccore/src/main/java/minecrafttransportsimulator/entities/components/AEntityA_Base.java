@@ -82,7 +82,7 @@ public abstract class AEntityA_Base {
     }
 
     /**
-     * Returns the update type for the entity.
+     * Returns the update type for the entity.  This CANNOT change after construction.
      */
     public EntityUpdateType getUpdateType() {
         return EntityUpdateType.MAIN;
