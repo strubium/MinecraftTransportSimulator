@@ -68,6 +68,8 @@ public abstract class AEntityA_Base {
     /**
      * Returns true if the main update call for this entity can be called.
      * This is checked if {@link #getUpdateType()} indicates an update is possible.
+     * This should only be called ONCE per tick, as some entities may want to execute
+     * update-independent logic in this function.
      */
     public boolean canUpdate() {
         return true;
