@@ -68,7 +68,7 @@ public abstract class AEntityG_Towable<JSONDefinition extends AJSONPartProvider>
     @Override
     public boolean canUpdate() {
         //Only let us update if we aren't being towed.  If we are being towed, our towing vehicle will update us.
-        return towedByConnection == null;
+        return super.canUpdate() && towedByConnection == null;
     }
 
     @Override
