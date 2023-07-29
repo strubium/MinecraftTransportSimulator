@@ -222,6 +222,11 @@ public class EntityPlayerGun extends AEntityF_Multipart<JSONDummyPartProvider> {
     }
 
     @Override
+    public boolean canUpdate() {
+        return world.isChunkLoaded(position);
+    }
+
+    @Override
     public EntityUpdateType getUpdateType() {
         //Player guns are queued to be ticked after their players are updated.
         //If not, then they don't move to the right spot.

@@ -199,6 +199,11 @@ public abstract class AEntityVehicleE_Powered extends AEntityVehicleD_Moving {
     }
 
     @Override
+    public boolean canUpdate() {
+        return super.canUpdate() && (world.isChunkLoaded(position) || enginesRunning || !groundDeviceCollective.isAnythingOnGround());
+    }
+
+    @Override
     public void destroy(BoundingBox box) {
         //Spawn instruments in the world.
         for (ItemInstrument instrument : instruments) {

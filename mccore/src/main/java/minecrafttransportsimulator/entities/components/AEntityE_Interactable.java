@@ -334,11 +334,6 @@ public abstract class AEntityE_Interactable<JSONDefinition extends AJSONInteract
     }
 
     @Override
-    public boolean canUpdate() {
-        return world.isChunkLoaded(position);
-    }
-
-    @Override
     public void update() {
         super.update();
 
