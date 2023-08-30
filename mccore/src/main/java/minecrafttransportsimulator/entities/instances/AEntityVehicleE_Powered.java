@@ -200,7 +200,11 @@ public abstract class AEntityVehicleE_Powered extends AEntityVehicleD_Moving {
 
     @Override
     public boolean canUpdate() {
-        return super.canUpdate() && (world.isChunkLoaded(position) || enginesRunning || !groundDeviceCollective.isAnythingOnGround());
+        boolean result = super.canUpdate() && (world.isChunkLoaded(position) || enginesRunning || !groundDeviceCollective.isAnythingOnGround());
+        if (!result && world.isClient()) {
+            performSyncingOperations();
+        }
+        return result;
     }
 
     @Override

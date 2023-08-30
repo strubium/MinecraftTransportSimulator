@@ -203,7 +203,64 @@ abstract class AEntityVehicleD_Moving extends AEntityVehicleC_Colliding {
     }
 
     @Override
-    public boolean canUpdate() {
+    protected void updateAllpartList() {
+        super.updateAllpartList();
+        if (ticksExisted > 1) {
+            updateGroundDevicesRequest = true;
+        }
+    }
+
+    @Override
+    protected void updateEncompassingBox() {
+        super.updateEncompassingBox();
+        if (ticksExisted == 1 || updateGroundDevicesRequest) {
+            groundDeviceCollective.updateMembers();
+            groundDeviceCollective.updateBounds();
+            groundDeviceCollective.updateCollisions();
+            updateGroundDevicesRequest = false;
+        }
+    }
+
+    @Override
+    public void connectTrailer(TowingConnection connection) {
+        super.connectTrailer(connection);
+        AEntityVehicleD_Moving towedVehicle = connection.towedVehicle;
+        if (towedVehicle.parkingBrakeOn) {
+            towedVehicle.setVariable(PARKINGBRAKE_VARIABLE, 0);
+        }
+        towedVehicle.setVariable(BRAKE_VARIABLE, 0);
+        towedVehicle.frontFollower = null;
+        towedVehicle.rearFollower = null;
+
+        //Stop all ground devices from turning on a mounted connection.
+        towedVehicle.groundDeviceCollective.groundedGroundDevices.clear();
+        if (connection.hitchConnection.mounted) {
+            for (APart part : towedVehicle.allParts) {
+                if (part instanceof PartGroundDevice) {
+                    PartGroundDevice ground = (PartGroundDevice) part;
+                    ground.angularVelocity = 0;
+                    ground.skipAngularCalcs = false;
+                    ground.animateAsOnGround = false;
+                }
+            }
+        }
+    }
+
+    @Override
+    public void disconnectTrailer(int connectionIndex) {
+        TowingConnection connection = towingConnections.get(connectionIndex);
+        if (connection.towedVehicle.definition.motorized.isTrailer) {
+            connection.towedVehicle.setVariable(PARKINGBRAKE_VARIABLE, 1);
+        }
+        super.disconnectTrailer(connectionIndex);
+    }
+
+    /**
+     * Helper function to perform syncing operations.  May either be called in the middle of movement, or 
+     * as its own function on the CLIENT if this entity has skipped updating via {@link #canUpdate()} 
+     * to allow the client to sync it despite it not actively moving.
+     */
+    protected void performSyncingOperations() {
         if (serverSyncOperationCooldown > 0) {
             //Get the delta difference, and square it.  Then divide it by 25.
             //This gives us a good "rubberbanding correction" formula for deltas.
@@ -255,60 +312,6 @@ abstract class AEntityVehicleD_Moving extends AEntityVehicleC_Colliding {
             }
             --serverSyncOperationCooldown;
         }
-        return super.canUpdate();
-    }
-
-    @Override
-    protected void updateAllpartList() {
-        super.updateAllpartList();
-        if (ticksExisted > 1) {
-            updateGroundDevicesRequest = true;
-        }
-    }
-
-    @Override
-    protected void updateEncompassingBox() {
-        super.updateEncompassingBox();
-        if (ticksExisted == 1 || updateGroundDevicesRequest) {
-            groundDeviceCollective.updateMembers();
-            groundDeviceCollective.updateBounds();
-            groundDeviceCollective.updateCollisions();
-            updateGroundDevicesRequest = false;
-        }
-    }
-
-    @Override
-    public void connectTrailer(TowingConnection connection) {
-        super.connectTrailer(connection);
-        AEntityVehicleD_Moving towedVehicle = connection.towedVehicle;
-        if (towedVehicle.parkingBrakeOn) {
-            towedVehicle.setVariable(PARKINGBRAKE_VARIABLE, 0);
-        }
-        towedVehicle.setVariable(BRAKE_VARIABLE, 0);
-        towedVehicle.frontFollower = null;
-        towedVehicle.rearFollower = null;
-
-        //Stop all ground devices from turning on a mounted connection.
-        towedVehicle.groundDeviceCollective.groundedGroundDevices.clear();
-        if (connection.hitchConnection.mounted) {
-            for (APart part : towedVehicle.allParts) {
-                if (part instanceof PartGroundDevice) {
-                    PartGroundDevice ground = (PartGroundDevice) part;
-                    ground.angularVelocity = 0;
-                    ground.skipAngularCalcs = false;
-                    ground.animateAsOnGround = false;
-                }
-            }
-        }
-    }
-
-    @Override
-    public void disconnectTrailer(int connectionIndex) {
-        TowingConnection connection = towingConnections.get(connectionIndex);
-        if (connection.towedVehicle.definition.motorized.isTrailer) {
-            connection.towedVehicle.setVariable(PARKINGBRAKE_VARIABLE, 1);
-        }
-        super.disconnectTrailer(connectionIndex);
     }
 
     /**
@@ -906,6 +909,8 @@ abstract class AEntityVehicleD_Moving extends AEntityVehicleC_Colliding {
             //Add to server deltas if we are on the server.
             if (!world.isClient()) {
                 addToServerDeltas(null, null, 0);
+            } else {
+                performSyncingOperations();
             }
         } else {
             //Mounted vehicles don't do most motions, only a sub-set of them.
