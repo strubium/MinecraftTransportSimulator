@@ -8,6 +8,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import mcinterface1165.BuilderEntityExisting;
 import mcinterface1165.WrapperEntity;
 import minecrafttransportsimulator.entities.components.AEntityD_Definable;
+import minecrafttransportsimulator.entities.components.AEntityE_Interactable;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.Pose;
 import net.minecraft.util.math.AxisAlignedBB;
@@ -21,7 +22,7 @@ public abstract class EntityMixin {
      */
     @Inject(method = "getEyePosition(F)Lnet/minecraft/util/math/vector/Vector3d;", at = @At(value = "HEAD"), cancellable = true)
     private void inject_getEyePosition(float pPartialTicks, CallbackInfoReturnable<Vector3d> ci) {
-        AEntityD_Definable<?> riding = WrapperEntity.getWrapperFor((Entity) ((Object) this)).getEntityRiding();
+        AEntityE_Interactable<?> riding = WrapperEntity.getWrapperFor((Entity) ((Object) this)).getEntityRiding();
         if (riding != null) {
             ci.setReturnValue(new Vector3d(riding.riderHeadPosition.x, riding.riderHeadPosition.y, riding.riderHeadPosition.z));
         }
