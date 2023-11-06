@@ -332,9 +332,8 @@ public final class PartSeat extends APart {
     }
 
     @Override
-    public void updateRider() {
-        super.updateRider();
-        if (rider != null) {
+    public boolean updateRider() {
+        if (super.updateRider()) {
             //Update scale, need to not include main vehicle scaling since that doesn't affect player scale.
             if (vehicleOn != null) {
                 riderScale.set(scale.x / vehicleOn.scale.x, scale.y / vehicleOn.scale.y, scale.z / vehicleOn.scale.z);
@@ -356,6 +355,9 @@ public final class PartSeat extends APart {
             if (world.isClient() && !InterfaceManager.clientInterface.isChatOpen() && riderIsClient) {
                 ControlSystem.controlMultipart(masterEntity, placementDefinition.isController);
             }
+            return true;
+        } else {
+            return false;
         }
     }
 

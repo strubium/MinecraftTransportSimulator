@@ -85,7 +85,7 @@ public abstract class EntityManager {
 
         //Update riders on last update cycle.
         if (!mainUpdate) {
-            for (AEntityD_Definable<?> entity : entitiesWithRiders) {
+            for (AEntityE_Interactable<?> entity : entitiesWithRiders) {
                 if (entity.updateRider()) {
                     //Call getters so it resets to current value.
                     //This allows the calling of the method in other areas to see MC deltas.
@@ -140,7 +140,8 @@ public abstract class EntityManager {
         }
         world.endProfiling();
     }
-    public final List<AEntityD_Definable<?>> entitiesWithRiders = new ArrayList<>();
+
+    public final List<AEntityE_Interactable<?>> entitiesWithRiders = new ArrayList<>();
 
     /**
      * Adds the entity to the world.  This will make it get update ticks and be rendered

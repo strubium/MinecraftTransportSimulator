@@ -60,6 +60,8 @@ public abstract class AEntityE_Interactable<JSONDefinition extends AJSONInteract
      * make a multipart entity where each part has a rider to allow for effectively multiple riders per entity.
      **/
     public IWrapperEntity rider;
+    public final Point3D riderPosition = new Point3D();
+    private UUID savedRiderUUID;
 
     /**
      * True if the running instance is the client, and the rider on this entity is the client player.
@@ -222,6 +224,9 @@ public abstract class AEntityE_Interactable<JSONDefinition extends AJSONInteract
         super(world, placingPlayer, data);
         this.locked = data.getBoolean("locked");
         this.ownerUUID = placingPlayer != null ? placingPlayer.getID() : data.getUUID("ownerUUID");
+
+        //Load rider UUID, if we had one before.
+        this.savedRiderUUID = data.getUUID("riderUUID");
         this.zoomLevel = data.getInteger("zoomLevel");
         this.cameraIndex = data.getInteger("cameraIndex");
 
@@ -367,12 +372,45 @@ public abstract class AEntityE_Interactable<JSONDefinition extends AJSONInteract
             }
         }
 
+        //Check for saved rider, if we need to get one.
+        if (savedRiderUUID != null) {
+            if (ticksExisted % 20 == 0) {
+                if (ticksExisted <= 100) {
+                    IWrapperEntity newRider = world.getExternalEntity(savedRiderUUID);
+                    if (newRider != null) {
+                        setRider(newRider, false, true);
+                        savedRiderUUID = null;
+                    }
+                } else {
+                    savedRiderUUID = null;
+                    InterfaceManager.coreInterface.logError("Could not load a saved rider on an entity.  Something might be going wrong here?");
+                }
+            }
+        }
+
+        if (rider != null) {
+            //Add ourselves to the entity manager as having a rider to queue up an update later.
+            world.entitiesWithRiders.add(this);
+        }
+
         world.endProfiling();
     }
 
     @Override
+    public void remove() {
+        if (isValid) {
+            super.remove();
+
+            //Remove rider to allow post-removal logic.
+            if (rider != null) {
+                removeRider(false);
+            }
+        }
+    }
+
+    @Override
     public double getMass() {
-        return rider != null ? 100 : 0;
+        return super.getMass() + (rider != null ? 100 : 0);
     }
 
     @Override
@@ -401,7 +439,7 @@ public abstract class AEntityE_Interactable<JSONDefinition extends AJSONInteract
      * Note: this will only set them to face forwards on the tick they mount.
      * It won't block them from turning to a different orientation later.
      */
-    public boolean setRider(IWrapperEntity newRider, boolean facesForwards) {
+    public boolean setRider(IWrapperEntity newRider, boolean facesForwards, boolean loadedFromData) {
         if (rider != null) {
             return false;
         } else {
@@ -428,7 +466,7 @@ public abstract class AEntityE_Interactable<JSONDefinition extends AJSONInteract
             rider.getYawDelta();
             rider.getPitchDelta();
             rider.setRiding(this);
-            if (!world.isClient()) {
+            if (!loadedFromData && !world.isClient()) {
                 InterfaceManager.packetInterface.sendToAllClients(new PacketEntityRiderChange(this, rider, facesForwards));
             }
             return true;
@@ -437,26 +475,44 @@ public abstract class AEntityE_Interactable<JSONDefinition extends AJSONInteract
 
     /**
      * Called to remove the rider that is currently riding this entity.
+     * Call this from code only on the server; clients will get packets to call this method.
+     * If this remove is from general entity loading, set unloaded to true.  This will have
+     * the rider be removed, but will keep their data saved for when this entity is re-loaded
+     * into the world to make the rider re-ride it. 
      */
-    public void removeRider() {
+    public void removeRider(boolean unloaded) {
         rider.setRiding(null);
         if (!world.isClient()) {
             InterfaceManager.packetInterface.sendToAllClients(new PacketEntityRiderChange(this, rider));
+        }
+        if (unloaded) {
+            savedRiderUUID = rider.getID();
         }
         rider = null;
         riderIsClient = false;
     }
 
     /**
-     * Called to update the rider's position on this entity.
-     * Must be called when the rider is expecting such an update rather than willy-nilly,
-     * as it'll cause issues with the position deltas if updated outside of the main update loop.
+     * Called to update the rider on this entity.  This gets called after the update loop,
+     * as the entity needs to move to its new position before we can know where the
+     * riders of said entity will be.  The calling function will assure that the rider
+     * is non-null at this point, so null checks are not required in this function.
+     * However, if the rider is removed, false is returned, and further processing should halt.
      */
-    public void updateRider() {
+    public boolean updateRider() {
         //Update entity position, motion, and orientation.
         if (rider.isValid()) {
-            rider.setPosition(position, false);
-            rider.setVelocity(motion);
+            //Remove sneaking rider on servers; clients get packets.
+            if (!world.isClient() && rider instanceof IWrapperPlayer && ((IWrapperPlayer) rider).isSneaking()) {
+                removeRider(false);
+                return false;
+            }
+
+            riderPosition.set(position);
+            riderPosition.y += rider.getSeatOffset();
+            rider.setPosition(riderPosition, false);
+            //Set to zero since entity isn't moving themselves.
+            rider.setVelocity(ZERO_FOR_CONSTRUCTOR);
             prevRiderRelativeOrientation.set(riderRelativeOrientation);
             riderRelativeOrientation.angles.y += rider.getYawDelta();
             //Need to clamp between +/- 180 to ensure that we don't confuse things.
@@ -502,12 +558,14 @@ public abstract class AEntityE_Interactable<JSONDefinition extends AJSONInteract
                     riderCameraPosition.set(riderEyePosition);
                 }
             }
+            return true;
         } else {
             //Remove invalid rider.
             //Don't call this on the client; they will get a removal packet from this method.
             if (!world.isClient()) {
-                removeRider();
+                removeRider(false);
             }
+            return false;
         }
     }
 
@@ -842,6 +900,11 @@ public abstract class AEntityE_Interactable<JSONDefinition extends AJSONInteract
         }
         data.setInteger("zoomLevel", zoomLevel);
         data.setInteger("cameraIndex", cameraIndex);
+        if (rider != null) {
+            data.setUUID("riderUUID", rider.getID());
+        } else if (savedRiderUUID != null) {
+            data.setUUID("riderUUID", savedRiderUUID);
+        }
 
         if (definition.instruments != null) {
             for (int i = 0; i < definition.instruments.size(); ++i) {
