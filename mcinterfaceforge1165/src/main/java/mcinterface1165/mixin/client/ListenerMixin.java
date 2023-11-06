@@ -7,7 +7,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import minecrafttransportsimulator.baseclasses.Point3D;
-import minecrafttransportsimulator.entities.components.AEntityB_Existing;
+import minecrafttransportsimulator.entities.components.AEntityE_Interactable;
 import minecrafttransportsimulator.mcinterface.IWrapperPlayer;
 import minecrafttransportsimulator.mcinterface.InterfaceManager;
 import net.minecraft.client.audio.Listener;
@@ -25,7 +25,7 @@ public abstract class ListenerMixin {
     public void inject_setListenerOrientation(Vector3f pClientViewVector, Vector3f pViewVectorRaised, CallbackInfo ci) {
         IWrapperPlayer player = InterfaceManager.clientInterface.getClientPlayer();
         if (player != null) {
-            AEntityB_Existing playerRiding = player.getEntityRiding();
+            AEntityE_Interactable<?> playerRiding = player.getEntityRiding();
             if (playerRiding != null) {
                 forwards.set(0, 0, 1).rotate(playerRiding.orientation).rotate(playerRiding.riderRelativeOrientation);
                 up.set(0, 1, 0).rotate(playerRiding.orientation).rotate(playerRiding.riderRelativeOrientation);
