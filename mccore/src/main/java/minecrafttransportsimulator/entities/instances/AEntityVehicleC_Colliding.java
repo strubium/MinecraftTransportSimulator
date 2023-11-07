@@ -31,7 +31,6 @@ import minecrafttransportsimulator.systems.ConfigSystem;
 abstract class AEntityVehicleC_Colliding extends AEntityG_Towable<JSONVehicle> {
 
     //Internal states.
-    private boolean isInUnloadedChunk;
     public double currentMass;
     public double axialVelocity;
     public final Point3D headingVector = new Point3D();
@@ -90,39 +89,6 @@ abstract class AEntityVehicleC_Colliding extends AEntityG_Towable<JSONVehicle> {
     @Override
     public boolean canCollide() {
         return true;
-    }
-
-    @Override
-    public boolean canUpdate() {
-        if (!super.canUpdate()) {
-            isInUnloadedChunk = true;
-            return false;
-        } else {
-            tempPos.set(position).add(-encompassingBox.widthRadius, 0, -encompassingBox.depthRadius);
-            if (!world.isChunkLoaded(tempPos)) {
-                isInUnloadedChunk = true;
-            } else {
-                tempPos.x += encompassingBox.widthRadius + encompassingBox.widthRadius;
-                if (!world.isChunkLoaded(tempPos)) {
-                    isInUnloadedChunk = true;
-                } else {
-                    tempPos.x -= encompassingBox.widthRadius + encompassingBox.widthRadius;
-                    tempPos.z += encompassingBox.depthRadius + encompassingBox.depthRadius;
-                    if (!world.isChunkLoaded(tempPos)) {
-                        isInUnloadedChunk = true;
-                    } else {
-                        tempPos.x += encompassingBox.widthRadius + encompassingBox.widthRadius;
-                        isInUnloadedChunk = !world.isChunkLoaded(tempPos);
-                    }
-                }
-            }
-            return !isInUnloadedChunk;
-        }
-    }
-
-    @Override
-    public boolean requiresDeltaUpdates() {
-        return super.requiresDeltaUpdates() && !isInUnloadedChunk;
     }
 
     @Override

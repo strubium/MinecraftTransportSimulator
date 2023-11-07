@@ -160,12 +160,7 @@ public class WrapperEntity implements IWrapperEntity {
 
     @Override
     public void setPosition(Point3D position, boolean onGround) {
-        if (entityRiding != null) {
-            //Need to offset down to make bounding hitbox go down like normal. 
-            entity.setPosition(position.x, position.y + getSeatOffset(), position.z);
-        } else {
-            entity.setPosition(position.x, position.y, position.z);
-        }
+        entity.setPosition(position.x, position.y, position.z);
 
         //Set fallDistance to 0 to prevent damage.
         entity.fallDistance = 0;
