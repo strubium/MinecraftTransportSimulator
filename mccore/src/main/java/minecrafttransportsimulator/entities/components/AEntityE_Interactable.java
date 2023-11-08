@@ -511,8 +511,7 @@ public abstract class AEntityE_Interactable<JSONDefinition extends AJSONInteract
             riderPosition.set(position);
             riderPosition.y += rider.getSeatOffset();
             rider.setPosition(riderPosition, false);
-            //Set to zero since entity isn't moving themselves.
-            rider.setVelocity(ZERO_FOR_CONSTRUCTOR);
+            rider.setVelocity(motion);
             prevRiderRelativeOrientation.set(riderRelativeOrientation);
             riderRelativeOrientation.angles.y += rider.getYawDelta();
             //Need to clamp between +/- 180 to ensure that we don't confuse things.
