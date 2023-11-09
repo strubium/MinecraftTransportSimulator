@@ -2,6 +2,7 @@ package mcinterface1122;
 
 import minecrafttransportsimulator.baseclasses.Point3D;
 import minecrafttransportsimulator.mcinterface.InterfaceManager;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
@@ -21,9 +22,14 @@ import net.minecraftforge.fml.common.registry.EntityEntryBuilder;
  * @author don_bruce
  */
 @EventBusSubscriber
-public class BuilderEntityRenderForwarder extends ABuilderEntityBase {
+public class BuilderEntityRenderForwarder extends Entity {
     protected static BuilderEntityRenderForwarder lastClientInstance;
 
+    /**
+     * An idle tick counter.  This is set to 0 each time the update method is called, but is incremented each game tick.
+     * This allows us to track how long this entity has been idle, and do logic if it's been idle too long.
+     **/
+    public int idleTickCounter;
     protected EntityPlayer playerFollowing;
     private final long[] lastTickRendered = new long[]{0L, 0L, 0L};
     private final float[] lastPartialTickRendered = new float[]{0F, 0F, 0F};
@@ -47,8 +53,20 @@ public class BuilderEntityRenderForwarder extends ABuilderEntityBase {
     }
 
     @Override
+    public void onUpdate() {
+        //Don't call the super, because some mods muck with our logic here.
+        //Said mods are Sponge plugins, but I'm sure there are others.
+        //super.onUpdate();
+        idleTickCounter = 0;
+        onEntityUpdate();
+    }
+
+    @Override
     public void onEntityUpdate() {
-        super.onEntityUpdate();
+        //Don't call the super, because some mods muck with our logic here.
+        //Said mods are Sponge plugins, but I'm sure there are others.
+        //super.onEntityUpdate();
+
         if (playerFollowing != null && playerFollowing.world == this.world && !playerFollowing.isDead) {
             //Need to move the fake entity forwards to account for the partial ticks interpolation MC does.
             //If we don't do this, and we move faster than 1 block per tick, we'll get flickering.
@@ -61,12 +79,12 @@ public class BuilderEntityRenderForwarder extends ABuilderEntityBase {
             //Don't restore saved entities on the server.
             //These get loaded, but might not tick if they're out of chunk range.
             setDead();
-        } else if (!loadedFromSavedNBT && loadFromSavedNBT) {
-            //Load player following from client NBT.
-            playerFollowing = world.getPlayerEntityByUUID(lastLoadedNBT.getUniqueId("playerFollowing"));
-            loadedFromSavedNBT = true;
-            lastLoadedNBT = null;
         }
+    }
+
+    @Override
+    public void setPositionAndRotationDirect(double posX, double posY, double posZ, float yaw, float pitch, int posRotationIncrements, boolean teleport) {
+        //Overridden due to stupid tracker behavior.
     }
 
     @Override
@@ -139,14 +157,17 @@ public class BuilderEntityRenderForwarder extends ABuilderEntityBase {
         }
     }
 
+    //Junk methods, forced to pull in.
     @Override
-    public NBTTagCompound writeToNBT(NBTTagCompound tag) {
-        super.writeToNBT(tag);
-        if (playerFollowing != null) {
-            //Player valid, save it and return the modified tag.
-            tag.setUniqueId("playerFollowing", playerFollowing.getUniqueID());
-        }
-        return tag;
+    protected void entityInit() {
+    }
+
+    @Override
+    protected void readEntityFromNBT(NBTTagCompound p_70037_1_) {
+    }
+
+    @Override
+    protected void writeEntityToNBT(NBTTagCompound p_70014_1_) {
     }
 
     /**

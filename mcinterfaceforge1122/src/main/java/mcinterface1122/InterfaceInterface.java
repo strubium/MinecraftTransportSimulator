@@ -1,7 +1,6 @@
 package mcinterface1122;
 
 import minecrafttransportsimulator.blocks.tileentities.components.ATileEntityBase;
-import minecrafttransportsimulator.entities.components.AEntityB_Existing;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.IInventory;
@@ -26,21 +25,6 @@ public class InterfaceInterface {
 
     public static World toExternal(WrapperWorld world) {
         return world.world;
-    }
-
-    public static AEntityB_Existing toInternal(BuilderEntityExisting entity) {
-        return entity.entity;
-    }
-
-    public static BuilderEntityExisting toExternal(AEntityB_Existing entity) {
-        for (Entity mcEntity : ((WrapperWorld) entity.world).world.loadedEntityList) {
-            if (mcEntity instanceof BuilderEntityExisting) {
-                if (entity.equals(((BuilderEntityExisting) mcEntity).entity)) {
-                    return (BuilderEntityExisting) mcEntity;
-                }
-            }
-        }
-        return null;
     }
 
     public static ATileEntityBase<?> toInternal(BuilderTileEntity<?> tile) {

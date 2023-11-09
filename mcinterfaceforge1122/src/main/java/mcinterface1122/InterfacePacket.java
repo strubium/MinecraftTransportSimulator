@@ -35,10 +35,8 @@ class InterfacePacket implements IInterfacePacket {
         network.registerMessage(WrapperHandler.class, WrapperPacket.class, 0, Side.CLIENT);
         network.registerMessage(WrapperHandler.class, WrapperPacket.class, 1, Side.SERVER);
 
-        //Register internal packets, then external.
+        //Register internal packets.
         byte packetIndex = 0;
-        InterfaceManager.packetInterface.registerPacket(packetIndex++, PacketEntityCSHandshakeClient.class);
-        InterfaceManager.packetInterface.registerPacket(packetIndex++, PacketEntityCSHandshakeServer.class);
         APacketBase.initPackets(packetIndex);
     }
 

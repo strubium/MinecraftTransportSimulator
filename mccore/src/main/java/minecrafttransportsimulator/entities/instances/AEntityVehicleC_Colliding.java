@@ -82,7 +82,7 @@ abstract class AEntityVehicleC_Colliding extends AEntityG_Towable<JSONVehicle> {
     }
 
     @Override
-    public boolean loadFromWorldData() {
+    public boolean shouldSave() {
         return true;
     }
 

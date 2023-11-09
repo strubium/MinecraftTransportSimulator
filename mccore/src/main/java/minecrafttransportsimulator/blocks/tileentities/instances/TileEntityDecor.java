@@ -59,17 +59,6 @@ public class TileEntityDecor extends ATileEntityBase<JSONDecor> {
     }
 
     @Override
-    public void doPostUpdateLogic() {
-        super.doPostUpdateLogic();
-        /*
-        if (rider != null) {
-            position.y += definition.decor.sittingOffset;
-            rider.setPosition(position, false);
-            position.y -= definition.decor.sittingOffset;
-        }*/
-    }
-
-    @Override
     public boolean interact(IWrapperPlayer player) {
         if (player.isHoldingItemType(ItemComponentType.PAINT_GUN)) {
             //Don't do decor actions if we are holding a paint gun.

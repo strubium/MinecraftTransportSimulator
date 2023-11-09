@@ -249,7 +249,7 @@ public class EntityPlayerGun extends AEntityF_Multipart<JSONDummyPartProvider> {
     }
 
     @Override
-    public boolean loadFromWorldData() {
+    public boolean shouldSendDataToClients() {
         return true;
     }
 

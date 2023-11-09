@@ -225,7 +225,6 @@ public class InterfaceClient implements IInterfaceClient {
                         //Follower does not exist, check if player has been present for 3 seconds and spawn it.
                         if (++ticksSincePlayerJoin == 60) {
                             activeFollower = new BuilderEntityRenderForwarder(mcPlayer);
-                            activeFollower.loadedFromSavedNBT = true;
                             world.world.spawnEntity(activeFollower);
                         }
                     }

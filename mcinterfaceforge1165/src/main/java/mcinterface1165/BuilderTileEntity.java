@@ -1,13 +1,8 @@
 package mcinterface1165;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import minecrafttransportsimulator.baseclasses.Point3D;
 import minecrafttransportsimulator.blocks.components.ABlockBaseTileEntity;
 import minecrafttransportsimulator.blocks.tileentities.components.ATileEntityBase;
-import minecrafttransportsimulator.mcinterface.IWrapperNBT;
-import minecrafttransportsimulator.mcinterface.IWrapperPlayer;
 import minecrafttransportsimulator.mcinterface.InterfaceManager;
 import net.minecraft.block.BlockState;
 import net.minecraft.nbt.CompoundNBT;
@@ -40,10 +35,6 @@ public class BuilderTileEntity extends TileEntity implements ITickableTileEntity
     protected ATileEntityBase<?> tileEntity;
 
     /**
-     * This flag is true if we need to get server data for syncing.  Set on construction tick, but only used on clients.
-     **/
-    private boolean needDataFromServer = true;
-    /**
      * Data loaded on last NBT call.  Saved here to prevent loading of things until the update method.  This prevents
      * loading entity data when this entity isn't being ticked.  Some mods love to do this by making a lot of entities
      * to do their funky logic.  I'm looking at YOU The One Probe!  This should be either set by NBT loaded from disk
@@ -60,12 +51,6 @@ public class BuilderTileEntity extends TileEntity implements ITickableTileEntity
      * Set to true when loaded NBT is parsed and loaded.  This is done to prevent re-parsing of NBT from triggering a second load command.
      **/
     protected boolean loadedFromSavedNBT;
-    /**
-     * Players requesting data for this builder.  This is populated by packets sent to the server.  Each tick players in this list are
-     * sent data about this builder, and the list cleared.  Done this way to prevent the server from trying to handle the packet before
-     * it has created the entity, as the entity is created on the update call, but the packet might get here due to construction.
-     **/
-    protected final List<IWrapperPlayer> playersRequestingData = new ArrayList<>();
 
     public BuilderTileEntity() {
         this(TE_TYPE.get());
@@ -81,54 +66,22 @@ public class BuilderTileEntity extends TileEntity implements ITickableTileEntity
     public void tick() {
         //World and pos might be null on first few scans.
         if (level != null && worldPosition != null) {
-            if (tileEntity != null) {
-                tileEntity.update();
-                tileEntity.doPostUpdateLogic();
-            } else if (!loadedFromSavedNBT) {
-                //If we are on the server, set the NBT flag.
-                if (lastLoadedNBT != null && !level.isClientSide) {
-                    loadFromSavedNBT = true;
-                }
-
-                //If we have NBT, and haven't loaded it, do so now.
-                //Hold off on loading until blocks load: this can take longer than 1 update if the server/client is laggy.
-                if (loadFromSavedNBT && level.isLoaded(worldPosition)) {
-                    try {
-                        //Get the block that makes this TE and restore it from saved state.
-                        WrapperWorld worldWrapper = WrapperWorld.getWrapperFor(level);
-                        Point3D position = new Point3D(worldPosition.getX(), worldPosition.getY(), worldPosition.getZ());
-                        ABlockBaseTileEntity block = (ABlockBaseTileEntity) worldWrapper.getBlock(position);
-                        setTileEntity(block.createTileEntity(worldWrapper, position, null, new WrapperNBT(lastLoadedNBT)));
-                        tileEntity.world.addEntity(tileEntity);
-                        loadedFromSavedNBT = true;
-                        lastLoadedNBT = null;
-                    } catch (Exception e) {
-                        InterfaceManager.coreInterface.logError("Failed to load tile entity on builder from saved NBT.  Did a pack change?");
-                        InterfaceManager.coreInterface.logError(e.getMessage());
-                        level.removeBlock(worldPosition, false);
-                    }
-                }
-            }
-
-            //Now that we have done update/NBT stuff, check for syncing.
-            if (level.isClientSide) {
-                //No data.  Wait for NBT to be loaded.
-                //As we are on a client we need to send a packet to the server to request NBT data.
-                ///Although we could call this in the constructor, Minecraft changes the
-                //entity IDs after spawning and that fouls things up.
-                if (needDataFromServer) {
-                    InterfaceManager.packetInterface.sendToServer(new PacketEntityCSHandshakeClient(InterfaceManager.clientInterface.getClientPlayer(), this));
-                    needDataFromServer = false;
-                }
-            } else {
-                //Send any packets to clients that requested them.
-                if (!playersRequestingData.isEmpty()) {
-                    for (IWrapperPlayer player : playersRequestingData) {
-                        IWrapperNBT data = InterfaceManager.coreInterface.getNewNBTWrapper();
-                        save(((WrapperNBT) data).tag);
-                        player.sendPacket(new PacketEntityCSHandshakeServer(this, data));
-                    }
-                    playersRequestingData.clear();
+            //If we are on the server, and need to make our TE, do it now.
+            //Hold off on loading until blocks load: this can take longer than 1 update if the server/client is laggy.
+            if (!level.isClientSide && !loadedFromSavedNBT && lastLoadedNBT != null && level.isLoaded(worldPosition)) {
+                try {
+                    //Get the block that makes this TE and restore it from saved state.
+                    WrapperWorld worldWrapper = WrapperWorld.getWrapperFor(level);
+                    Point3D position = new Point3D(worldPosition.getX(), worldPosition.getY(), worldPosition.getZ());
+                    ABlockBaseTileEntity block = (ABlockBaseTileEntity) worldWrapper.getBlock(position);
+                    setTileEntity(block.createTileEntity(worldWrapper, position, null, new WrapperNBT(lastLoadedNBT)));
+                    tileEntity.world.addEntity(tileEntity);
+                    loadedFromSavedNBT = true;
+                    lastLoadedNBT = null;
+                } catch (Exception e) {
+                    InterfaceManager.coreInterface.logError("Failed to load tile entity on builder from saved NBT.  Did a pack change?");
+                    InterfaceManager.coreInterface.logError(e.getMessage());
+                    level.removeBlock(worldPosition, false);
                 }
             }
         }

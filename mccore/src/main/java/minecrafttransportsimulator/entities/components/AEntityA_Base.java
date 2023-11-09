@@ -111,6 +111,17 @@ public abstract class AEntityA_Base {
     }
 
     /**
+     * Entities are, by most defaults, only created on the server.  This means that they will not normally be visible on clients.
+     * To correct this, we have this function.  Normally, all entities that save data on servers will send said data to clients for
+     * loading, as it is assumed that the client also needs to load this data for entity re-creation.  This behavior may be overridden,
+     * however, if it is desired to send data to clients for a non-saved, dynamically-created, entity, or if a saved entity has no reason
+     * to exist on a client.
+     */
+    public boolean shouldSendDataToClients() {
+        return shouldSave();
+    }
+
+    /**
      * Called to remove this entity from the world.  Removal should perform any and all logic required to ensure
      * no references are left to this entity in any objects.  This ensures memory can be freed for use elsewhere,
      * and lingering references do not exist.  After removal, the entity should be removed from the world map

@@ -116,7 +116,7 @@ public class EntityPlacedPart extends AEntityF_Multipart<JSONDummyPartProvider> 
     }
 
     @Override
-    public boolean loadFromWorldData() {
+    public boolean shouldSave() {
         return true;
     }
 

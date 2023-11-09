@@ -246,9 +246,7 @@ public class WrapperWorld extends AWrapperWorld {
     public List<IWrapperEntity> getEntitiesWithin(BoundingBox box) {
         List<IWrapperEntity> entities = new ArrayList<>();
         for (Entity entity : world.getEntitiesOfClass(Entity.class, WrapperWorld.convert(box))) {
-            if (!(entity instanceof ABuilderEntityBase)) {
-                entities.add(WrapperEntity.getWrapperFor(entity));
-            }
+            entities.add(WrapperEntity.getWrapperFor(entity));
         }
         return entities;
     }
@@ -311,27 +309,24 @@ public class WrapperWorld extends AWrapperWorld {
         //Validate the collided entities to make sure we didn't hit something we shouldn't have.
         //Also get rayTrace hits for advanced checking.
         for (Entity mcEntityCollided : collidedEntities) {
-            //Don't check internal entities, we do this in the main classes.
-            if (!(mcEntityCollided instanceof ABuilderEntityBase)) {
-                //If the damage came from a source, verify that source can hurt the entity.
-                if (damage.damgeSource != null) {
-                    AEntityD_Definable<?> internalRidingEntity = WrapperEntity.getWrapperFor(mcEntityCollided).getEntityRiding();
-                    if (damage.damgeSource == internalRidingEntity) {
-                        //Entity can't attack entities riding itself.
+            //If the damage came from a source, verify that source can hurt the entity.
+            if (damage.damgeSource != null) {
+                AEntityD_Definable<?> internalRidingEntity = WrapperEntity.getWrapperFor(mcEntityCollided).getEntityRiding();
+                if (damage.damgeSource == internalRidingEntity) {
+                    //Entity can't attack entities riding itself.
+                    continue;
+                } else if (internalRidingEntity instanceof APart) {
+                    //Attacked entity is riding a part, don't attack if a part on that multipart is the attacker,
+                    APart ridingPart = (APart) internalRidingEntity;
+                    if (ridingPart.masterEntity.allParts.contains(damage.damgeSource)) {
                         continue;
-                    } else if (internalRidingEntity instanceof APart) {
-                        //Attacked entity is riding a part, don't attack if a part on that multipart is the attacker,
-                        APart ridingPart = (APart) internalRidingEntity;
-                        if (ridingPart.masterEntity.allParts.contains(damage.damgeSource)) {
-                            continue;
-                        }
                     }
                 }
+            }
 
-                //Didn't hit a rider on the damage source. Do normal raytracing or just add if there's no motion.
-                if (motion == null || mcEntityCollided.getBoundingBox().clip(start, end).isPresent()) {
-                    hitEntities.add(WrapperEntity.getWrapperFor(mcEntityCollided));
-                }
+            //Didn't hit a rider on the damage source. Do normal raytracing or just add if there's no motion.
+            if (motion == null || mcEntityCollided.getBoundingBox().clip(start, end).isPresent()) {
+                hitEntities.add(WrapperEntity.getWrapperFor(mcEntityCollided));
             }
         }
 

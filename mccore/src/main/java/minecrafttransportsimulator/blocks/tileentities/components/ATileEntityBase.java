@@ -53,6 +53,12 @@ public abstract class ATileEntityBase<JSONDefinition extends AJSONMultiModelProv
     }
 
     @Override
+    public boolean shouldSendDataToClients() {
+        //Send data, even though we don't save, since we use MC for loading currently.
+        return true;
+    }
+
+    @Override
     public boolean canUpdate() {
         //Don't update in unloaded chunks.  This wastes cycles, especially since we won't even be rendered.
         return world.isChunkLoaded(position);

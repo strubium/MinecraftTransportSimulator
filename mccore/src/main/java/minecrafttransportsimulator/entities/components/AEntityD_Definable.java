@@ -229,11 +229,6 @@ public abstract class AEntityD_Definable<JSONDefinition extends AJSONMultiModelP
         world.endProfiling();
     }
 
-    @Override
-    public boolean shouldSave() {
-        return true;
-    }
-
     /**
      * Called to perform supplemental update logic on this entity.  This is called after the main {@link #update()}
      * loop, and is used to do updates that require the new state to be ready.  At this point, all "prior" values
@@ -403,16 +398,6 @@ public abstract class AEntityD_Definable<JSONDefinition extends AJSONMultiModelP
      */
     public IWrapperItemStack getStack() {
         return cachedItem.getNewStack(null);
-    }
-
-    /**
-     * Normally, entities are saved and loaded to world data individually.  However, if one has
-     * entities on other entities, the data should be saved as one block.  As such, this should
-     * return false on any sub-entity of that block.  This is set to false by default as most
-     * entities don't load directly from world data and are either sub-components or non-synced.
-     */
-    public boolean loadFromWorldData() {
-        return false;
     }
 
     /**

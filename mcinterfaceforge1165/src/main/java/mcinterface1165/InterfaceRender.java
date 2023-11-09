@@ -581,7 +581,7 @@ public class InterfaceRender implements IInterfaceRender {
     
 
     /** Blank render class used to bypass rendering for all other builders.**/
-    private static class BlankRender<T extends ABuilderEntityBase> extends EntityRenderer<T> {
+    private static class BlankRender<T extends BuilderEntityExisting> extends EntityRenderer<T> {
 
         protected BlankRender(EntityRendererManager p_i46179_1_) {
             super(p_i46179_1_);

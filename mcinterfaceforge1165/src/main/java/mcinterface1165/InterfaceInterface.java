@@ -1,7 +1,6 @@
 package mcinterface1165;
 
 import minecrafttransportsimulator.blocks.tileentities.components.ATileEntityBase;
-import minecrafttransportsimulator.entities.components.AEntityB_Existing;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.IInventory;
@@ -26,31 +25,6 @@ public class InterfaceInterface {
 
     public static World toExternal(WrapperWorld world) {
         return world.world;
-    }
-
-    public static AEntityB_Existing toInternal(BuilderEntityExisting entity) {
-        return entity.entity;
-    }
-
-    public static BuilderEntityExisting toExternal(AEntityB_Existing entity) {
-        if (((WrapperWorld) entity.world).world instanceof net.minecraft.world.server.ServerWorld) {
-            for (Entity mcEntity : ((net.minecraft.world.server.ServerWorld) ((WrapperWorld) entity.world).world).getAllEntities()) {
-                if (mcEntity instanceof BuilderEntityExisting) {
-                    if (entity.equals(((BuilderEntityExisting) mcEntity).entity)) {
-                        return (BuilderEntityExisting) mcEntity;
-                    }
-                }
-            }
-        } else {
-            for (Entity mcEntity : ((net.minecraft.client.world.ClientWorld) ((WrapperWorld) entity.world).world).entitiesForRendering()) {
-                if (mcEntity instanceof BuilderEntityExisting) {
-                    if (entity.equals(((BuilderEntityExisting) mcEntity).entity)) {
-                        return (BuilderEntityExisting) mcEntity;
-                    }
-                }
-            }
-        }
-        return null;
     }
 
     public static ATileEntityBase<?> toInternal(BuilderTileEntity tile) {

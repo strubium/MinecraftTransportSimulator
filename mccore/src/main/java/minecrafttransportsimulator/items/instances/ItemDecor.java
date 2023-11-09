@@ -1,6 +1,7 @@
 package minecrafttransportsimulator.items.instances;
 
 import minecrafttransportsimulator.blocks.components.ABlockBase;
+import minecrafttransportsimulator.blocks.components.ABlockBaseTileEntity;
 import minecrafttransportsimulator.blocks.instances.BlockBeacon;
 import minecrafttransportsimulator.blocks.instances.BlockCharger;
 import minecrafttransportsimulator.blocks.instances.BlockChest;
@@ -10,10 +11,14 @@ import minecrafttransportsimulator.blocks.instances.BlockFuelPump;
 import minecrafttransportsimulator.blocks.instances.BlockItemLoader;
 import minecrafttransportsimulator.blocks.instances.BlockRadio;
 import minecrafttransportsimulator.blocks.instances.BlockSignalController;
+import minecrafttransportsimulator.blocks.tileentities.instances.TileEntityChest;
+import minecrafttransportsimulator.blocks.tileentities.instances.TileEntityDecor;
 import minecrafttransportsimulator.items.components.AItemSubTyped;
 import minecrafttransportsimulator.items.components.IItemBlock;
 import minecrafttransportsimulator.jsondefs.JSONDecor;
 import minecrafttransportsimulator.jsondefs.JSONSubDefinition;
+import minecrafttransportsimulator.mcinterface.AWrapperWorld;
+import minecrafttransportsimulator.mcinterface.IWrapperNBT;
 
 /**
  * Decor item.  Note that while this item can (and does) spawn decor blocks,
@@ -57,5 +62,10 @@ public class ItemDecor extends AItemSubTyped<JSONDecor> implements IItemBlock {
 
         //We won't ever get here, but this makes the compiler happy.
         return null;
+    }
+
+    @Override
+    public TileEntityDecor createEntityFromData(AWrapperWorld world, IWrapperNBT data) {
+        return (TileEntityDecor) ((ABlockBaseTileEntity) getBlock()).createTileEntity(world, data.getPoint3d("position"), null, data);
     }
 }

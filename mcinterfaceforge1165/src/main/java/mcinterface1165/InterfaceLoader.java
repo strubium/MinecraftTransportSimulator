@@ -70,7 +70,7 @@ public class InterfaceLoader {
         BuilderItem.ITEMS.register(FMLJavaModLoadingContext.get().getModEventBus());
         BuilderBlock.BLOCKS.register(FMLJavaModLoadingContext.get().getModEventBus());
         BuilderTileEntity.TILE_ENTITIES.register(FMLJavaModLoadingContext.get().getModEventBus());
-        ABuilderEntityBase.ENTITIES.register(FMLJavaModLoadingContext.get().getModEventBus());
+        BuilderEntityExisting.ENTITIES.register(FMLJavaModLoadingContext.get().getModEventBus());
 
         //Need to do pack parsing first, since that generates items which have to be registered prior to any other events.
         boolean isClient = FMLEnvironment.dist.isClient();
@@ -208,7 +208,7 @@ public class InterfaceLoader {
         BuilderTileEntityEnergyCharger.TE_TYPE2 = BuilderTileEntity.TILE_ENTITIES.register("builder_charger", () -> TileEntityType.Builder.of(BuilderTileEntityEnergyCharger::new, chargerBlocks.toArray(new BuilderBlock[0])).build(null));
 
         //Init entities.
-        BuilderEntityExisting.E_TYPE2 = ABuilderEntityBase.ENTITIES.register("builder_existing", () -> EntityType.Builder.<BuilderEntityExisting>of(BuilderEntityExisting::new, EntityClassification.MISC).sized(0.05F, 0.05F).clientTrackingRange(32 * 16).updateInterval(5).build("builder_existing"));
+        BuilderEntityExisting.E_TYPE2 = BuilderEntityExisting.ENTITIES.register("builder_existing", () -> EntityType.Builder.<BuilderEntityExisting>of(BuilderEntityExisting::new, EntityClassification.MISC).sized(0.05F, 0.05F).clientTrackingRange(32 * 16).updateInterval(5).build("builder_existing"));
 
         //Init networking interface.  This will register packets as well.
         InterfacePacket.init();

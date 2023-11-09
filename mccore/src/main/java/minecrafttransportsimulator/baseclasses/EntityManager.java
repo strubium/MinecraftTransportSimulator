@@ -65,7 +65,7 @@ public abstract class EntityManager {
             //Update the rider at the start of the cycle to ensure no other things moved them prior to our next update.
             entitiesWithRiders.forEach(entity -> {
                 if (entity.rider != null) {
-                    entity.rider.setPosition(entity.riderPosition, false);
+                    //entity.rider.setPosition(entity.riderPosition, false);
                 }
             });
             entitiesWithRiders.clear();
@@ -166,16 +166,14 @@ public abstract class EntityManager {
         } else if (entity.getUpdateType() == EntityUpdateType.LAST) {
             allLastTickableEntities.add(entity);
         }
+        if (!entity.world.isClient() && entity.shouldSendDataToClients()) {
+            System.out.println("ADDING ENT TO CLIENT " + entity);
+            InterfaceManager.packetInterface.sendToAllClients(new PacketWorldEntityData(entity));
+        }
         if (entity instanceof AEntityC_Renderable) {
             renderableEntities.add((AEntityC_Renderable) entity);
-            if (entity instanceof AEntityD_Definable) {
-                AEntityD_Definable<?> definable = (AEntityD_Definable<?>) entity;
-                if (!entity.world.isClient() && definable.loadFromWorldData()) {
-                    InterfaceManager.packetInterface.sendToAllClients(new PacketWorldEntityData(definable));
-                }
-                if (entity instanceof AEntityE_Interactable && ((AEntityE_Interactable<?>) entity).canCollide()) {
-                    collidableEntities.add((AEntityE_Interactable<?>) entity);
-                }
+            if (entity instanceof AEntityE_Interactable && ((AEntityE_Interactable<?>) entity).canCollide()) {
+                collidableEntities.add((AEntityE_Interactable<?>) entity);
             }
         }
         if (entity instanceof PartGun) {
@@ -202,12 +200,14 @@ public abstract class EntityManager {
      */
     public void addEntityByData(AWrapperWorld world, IWrapperNBT data) {
         AItemPack<?> packItem = PackParser.getItem(data.getString("packID"), data.getString("systemName"), data.getString("subName"));
+        System.out.println("GOT PACKET TO ADD " + packItem);
         if (packItem instanceof AItemSubTyped) {
             AEntityD_Definable<?> entity = ((AItemSubTyped<?>) packItem).createEntityFromData(world, data);
             if (entity != null) {
                 if (entity instanceof AEntityF_Multipart) {
                     ((AEntityF_Multipart<?>) entity).addPartsPostConstruction(null, data);
                 }
+                System.out.println("Adding " + entity);
                 addEntity(entity);
             }
         } else if (packItem == null) {
@@ -357,7 +357,7 @@ public abstract class EntityManager {
         } else {
             //Send data to the client.
             for (AEntityA_Base entity : trackedEntityMap.values()) {
-                if (entity.shouldSave()) {
+                if (entity.shouldSendDataToClients()) {
                     player.sendPacket(new PacketWorldEntityData(entity));
                 }
             }
