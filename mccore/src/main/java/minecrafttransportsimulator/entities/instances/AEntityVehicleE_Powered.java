@@ -89,6 +89,7 @@ public abstract class AEntityVehicleE_Powered extends AEntityVehicleD_Moving {
     public void update() {
         super.update();
         world.beginProfiling("VehicleE_Level", true);
+
         //Get throttle and reverse state.
         throttle = getVariable(THROTTLE_VARIABLE);
         reverseThrust = isVariableActive(REVERSE_THRUST_VARIABLE);

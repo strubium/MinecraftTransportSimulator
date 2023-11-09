@@ -8,7 +8,6 @@ import minecrafttransportsimulator.baseclasses.BoundingBox;
 import minecrafttransportsimulator.baseclasses.Damage;
 import minecrafttransportsimulator.baseclasses.Point3D;
 import minecrafttransportsimulator.baseclasses.RotationMatrix;
-import minecrafttransportsimulator.entities.components.AEntityB_Existing;
 import minecrafttransportsimulator.entities.components.AEntityE_Interactable;
 import minecrafttransportsimulator.entities.instances.PartSeat;
 import minecrafttransportsimulator.jsondefs.JSONPotionEffect;
@@ -111,9 +110,8 @@ public class WrapperEntity implements IWrapperEntity {
 
     @Override
     public double getVerticalScale() {
-        AEntityB_Existing riding = getEntityRiding();
-        if (riding instanceof PartSeat) {
-            PartSeat seat = (PartSeat) riding;
+        if (entityRiding instanceof PartSeat) {
+            PartSeat seat = (PartSeat) entityRiding;
             if (seat != null) {
                 if (seat.placementDefinition.playerScale != null) {
                     if (seat.definition.seat.playerScale != null) {

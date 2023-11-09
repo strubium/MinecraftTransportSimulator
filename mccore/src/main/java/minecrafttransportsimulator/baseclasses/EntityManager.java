@@ -357,11 +357,8 @@ public abstract class EntityManager {
         } else {
             //Send data to the client.
             for (AEntityA_Base entity : trackedEntityMap.values()) {
-                if (entity instanceof AEntityD_Definable) {
-                    AEntityD_Definable<?> definable = (AEntityD_Definable<?>) entity;
-                    if (definable.loadFromWorldData()) {
-                        player.sendPacket(new PacketWorldEntityData(definable));
-                    }
+                if (entity.shouldSave()) {
+                    player.sendPacket(new PacketWorldEntityData(entity));
                 }
             }
 
@@ -384,13 +381,12 @@ public abstract class EntityManager {
         IWrapperNBT entityData = InterfaceManager.coreInterface.getNewNBTWrapper();
         int entityCount = 0;
         for (AEntityA_Base entity : trackedEntityMap.values()) {
-            if (entity instanceof AEntityD_Definable) {
-                AEntityD_Definable<?> definable = (AEntityD_Definable<?>) entity;
-                if (definable.loadFromWorldData()) {
-                    entityData.setData("entity" + entityCount++, entity.save(InterfaceManager.coreInterface.getNewNBTWrapper()));
-                }
+            if (entity.shouldSave()) {
+                System.out.println("Trying to save " + "entity" + entityCount + " " + entity);
+                entityData.setData("entity" + entityCount++, entity.save(InterfaceManager.coreInterface.getNewNBTWrapper()));
             }
         }
+        System.out.println("Found X ents to save " + entityCount);
         entityData.setInteger("entityCount", entityCount);
         world.setData("entities", entityData);
     }

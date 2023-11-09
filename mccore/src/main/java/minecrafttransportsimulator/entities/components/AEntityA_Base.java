@@ -102,6 +102,15 @@ public abstract class AEntityA_Base {
     }
 
     /**
+     * Normally, all entities will be removed from the world when it unloads.  Set this to true to cause this entity to be
+     * saved in world data on world save and unload operations.  Note: entities must return true from {@link #shouldSync()},
+     * as un-synced entities cannot be saved since they aren't even synced.
+     */
+    public boolean shouldSave() {
+        return false;
+    }
+
+    /**
      * Called to remove this entity from the world.  Removal should perform any and all logic required to ensure
      * no references are left to this entity in any objects.  This ensures memory can be freed for use elsewhere,
      * and lingering references do not exist.  After removal, the entity should be removed from the world map

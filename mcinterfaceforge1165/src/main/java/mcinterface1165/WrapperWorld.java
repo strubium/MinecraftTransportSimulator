@@ -75,17 +75,18 @@ import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.util.math.shapes.VoxelShapes;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.Explosion;
+import net.minecraft.world.IWorld;
 import net.minecraft.world.LightType;
 import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraft.world.storage.DimensionSavedDataManager;
 import net.minecraftforge.common.IPlantable;
-import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.TickEvent.Phase;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 
@@ -98,7 +99,7 @@ import net.minecraftforge.items.IItemHandler;
  *
  * @author don_bruce
  */
-
+@EventBusSubscriber
 public class WrapperWorld extends AWrapperWorld {
     private static final Map<World, WrapperWorld> worldWrappers = new HashMap<>();
     private final List<AxisAlignedBB> mutableCollidingAABBs = new ArrayList<>();
@@ -144,7 +145,8 @@ public class WrapperWorld extends AWrapperWorld {
                 throw new IllegalStateException("Could not load saved data from disk!  This will result in data loss if we continue!");
             }
         }
-        MinecraftForge.EVENT_BUS.register(this);
+        //FIXME make this not required.
+        //MinecraftForge.EVENT_BUS.register(this);
     }
 
     @Override
@@ -918,14 +920,14 @@ public class WrapperWorld extends AWrapperWorld {
      * This handles players leaving.  We could use events for this, but they're not reliable.
      */
     @SubscribeEvent
-    public void on(TickEvent.WorldTickEvent event) {
-        //Need to check if it's our world, because Forge is stupid like that.
+    public static void on(TickEvent.WorldTickEvent event) {
         //Note that the client world never calls this method: to do client ticks we need to use the client interface.
-        if (!event.world.isClientSide && event.world.equals(world)) {
+        if (!event.world.isClientSide) {
+            WrapperWorld world = WrapperWorld.getWrapperFor(event.world);
             if (event.phase.equals(Phase.START)) {
-                runTick(this, true);
+                world.runTick(world, true);
             } else {
-                runTick(this, false);
+                world.runTick(world, false);
             }
         }
     }
@@ -934,10 +936,12 @@ public class WrapperWorld extends AWrapperWorld {
      * Forward event to processor, and rmeove us as a wrapper to free up the world objects.
      */
     @SubscribeEvent
-    public void on(WorldEvent.Save event) {
-        //Need to check if it's our world, because Forge is stupid like that.
-        if (event.getWorld() == world) {
-            saveEntities(this);
+    public static void on(WorldEvent.Save event) {
+        IWorld mcWorld = event.getWorld();
+        if (!mcWorld.isClientSide() && mcWorld instanceof World) {
+            System.out.println("SAVE");
+            AWrapperWorld world = WrapperWorld.getWrapperFor((World) mcWorld);
+            world.saveEntities(world);
         }
     }
 
@@ -945,11 +949,13 @@ public class WrapperWorld extends AWrapperWorld {
      * Forward event to processor, and rmeove us as a wrapper to free up the world objects.
      */
     @SubscribeEvent
-    public void on(WorldEvent.Unload event) {
-        //Need to check if it's our world, because Forge is stupid like that.
-        if (event.getWorld() == world) {
-            close(this);
-            worldWrappers.remove(world);
+    public static void on(WorldEvent.Unload event) {
+        IWorld mcWorld = event.getWorld();
+        if (mcWorld instanceof World) {
+            System.out.println("CLOSE");
+            AWrapperWorld world = WrapperWorld.getWrapperFor((World) mcWorld);
+            world.close(world);
+            worldWrappers.remove(mcWorld);
         }
     }
 
@@ -957,11 +963,25 @@ public class WrapperWorld extends AWrapperWorld {
      * Forward to event processor.
      */
     @SubscribeEvent
-    public void on(EntityJoinWorldEvent event) {
-        //Need to check if it's our world, because Forge is stupid like that.
-        //Also make sure we're on the client here.
-        if (event.getWorld() == world && event.getWorld().isClientSide() && event.getEntity() instanceof PlayerEntity) {
-            onPlayerJoin(WrapperPlayer.getWrapperFor((PlayerEntity) event.getEntity()));
+    public static void on(WorldEvent.Load event) {
+        IWorld mcWorld = event.getWorld();
+        if (!mcWorld.isClientSide() && mcWorld instanceof World) {
+            System.out.println("LOAD");
+            AWrapperWorld world = WrapperWorld.getWrapperFor((World) mcWorld);
+            world.loadEntities(world);
+        }
+    }
+
+    /**
+     * Forward to event processor.
+     */
+    @SubscribeEvent
+    public static void on(EntityJoinWorldEvent event) {
+        IWorld mcWorld = event.getWorld();
+        if (mcWorld.isClientSide() && mcWorld instanceof World && event.getEntity() instanceof PlayerEntity) {
+            System.out.println("JOIN");
+            AWrapperWorld world = WrapperWorld.getWrapperFor((World) mcWorld);
+            world.onPlayerJoin(WrapperPlayer.getWrapperFor((PlayerEntity) event.getEntity()));
         }
     }
 }

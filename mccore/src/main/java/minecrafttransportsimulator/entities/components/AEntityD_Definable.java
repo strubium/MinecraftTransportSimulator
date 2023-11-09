@@ -229,6 +229,11 @@ public abstract class AEntityD_Definable<JSONDefinition extends AJSONMultiModelP
         world.endProfiling();
     }
 
+    @Override
+    public boolean shouldSave() {
+        return true;
+    }
+
     /**
      * Called to perform supplemental update logic on this entity.  This is called after the main {@link #update()}
      * loop, and is used to do updates that require the new state to be ready.  At this point, all "prior" values

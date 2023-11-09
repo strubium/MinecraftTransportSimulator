@@ -97,13 +97,6 @@ public class WrapperWorld extends AWrapperWorld {
     protected final World world;
     private final IWrapperNBT savedData;
 
-    @Override
-    public void runTick(AWrapperWorld world, boolean mainUpdate) {
-        super.runTick(world, mainUpdate);
-        //Check all vehicles and placed parts to see if they need a builder.
-        //Builders are spawned if the 
-    }
-
     /**
      * Returns a wrapper instance for the passed-in world instance.
      * Wrapper is cached to avoid re-creating the wrapper each time it is requested.

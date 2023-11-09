@@ -1,7 +1,7 @@
 package minecrafttransportsimulator.packets.instances;
 
 import io.netty.buffer.ByteBuf;
-import minecrafttransportsimulator.entities.components.AEntityD_Definable;
+import minecrafttransportsimulator.entities.components.AEntityA_Base;
 import minecrafttransportsimulator.mcinterface.AWrapperWorld;
 import minecrafttransportsimulator.mcinterface.IWrapperNBT;
 import minecrafttransportsimulator.mcinterface.InterfaceManager;
@@ -17,7 +17,7 @@ import minecrafttransportsimulator.packets.components.APacketBase;
 public class PacketWorldEntityData extends APacketBase {
     private final IWrapperNBT data;
 
-    public PacketWorldEntityData(AEntityD_Definable<?> entity) {
+    public PacketWorldEntityData(AEntityA_Base entity) {
         super(null);
         this.data = entity.save(InterfaceManager.coreInterface.getNewNBTWrapper());
     }

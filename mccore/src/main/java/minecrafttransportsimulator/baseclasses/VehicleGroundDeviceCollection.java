@@ -252,7 +252,7 @@ public class VehicleGroundDeviceCollection {
      * since those functions wouldn't change anything.  Though other functions can also be skipped if needed. 
      */
     public boolean isResting() {
-        return cachedRestingState || !vehicle.inLoadedChunk;
+        return cachedRestingState;
     }
 
     /**

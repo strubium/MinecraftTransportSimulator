@@ -52,7 +52,6 @@ abstract class AEntityVehicleD_Moving extends AEntityVehicleC_Colliding {
     public static final double MAX_BRAKE = 1D;
 
     //Internal states.
-    public boolean inLoadedChunk;
     public boolean goingInReverse;
     public boolean slipping;
     public boolean skidSteerActive;
@@ -181,7 +180,6 @@ abstract class AEntityVehicleD_Moving extends AEntityVehicleC_Colliding {
         //Now do update calculations and logic.
         if (!ConfigSystem.settings.general.noclipVehicles.value || groundDeviceCollective.isReady()) {
             world.beginProfiling("GroundForces", false);
-            inLoadedChunk = groundDeviceCollective.areAllChunksLoaded();
             getForcesAndMotions();
             world.beginProfiling("GroundOperations", false);
             if (towedByConnection == null || !towedByConnection.hitchConnection.mounted) {

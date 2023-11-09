@@ -104,7 +104,8 @@ public class BuilderEntityExisting extends ABuilderEntityBase {
             //If we have NBT, and haven't loaded it, do so now.
             if (!loadedFromSavedNBT && loadFromSavedNBT) {
                 WrapperWorld worldWrapper = WrapperWorld.getWrapperFor(level);
-                entity = worldWrapper.getEntity(lastLoadedNBT.getUUID("entityid"));
+                //FIXME this was INT before, need some way to recover?
+                //entity = worldWrapper.getEntity(lastLoadedNBT.getUUID("entityid"));
                 if (entity == null && !worldWrapper.isClient()) {
                     //Entity doesn't exist, die.
                     remove();
