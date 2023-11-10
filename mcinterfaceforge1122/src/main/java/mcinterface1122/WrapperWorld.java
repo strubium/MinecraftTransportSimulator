@@ -955,20 +955,24 @@ public class WrapperWorld extends AWrapperWorld {
     @SubscribeEvent
     public static void on(GetCollisionBoxesEvent event) {
         //We want to handle this both on server and client worlds.
-        AxisAlignedBB box = event.getAabb();
-        WrapperWorld world = WrapperWorld.getWrapperFor(event.getWorld());
-        world.mutableCollisionBounds.widthRadius = (box.maxX - box.minX) / 2D;
-        world.mutableCollisionBounds.heightRadius = (box.maxY - box.minY) / 2D;
-        world.mutableCollisionBounds.depthRadius = (box.maxZ - box.minZ) / 2D;
-        world.mutableCollisionBounds.globalCenter.x = box.minX + world.mutableCollisionBounds.widthRadius;
-        world.mutableCollisionBounds.globalCenter.y = box.minY + world.mutableCollisionBounds.heightRadius;
-        world.mutableCollisionBounds.globalCenter.z = box.minZ + world.mutableCollisionBounds.depthRadius;
+        Entity mcEntity = event.getEntity();
+        WrapperEntity entity = WrapperEntity.getWrapperFor(mcEntity);
+        if (entity == null || entity.getEntityRiding() == null) {
+            AxisAlignedBB box = event.getAabb();
+            WrapperWorld world = WrapperWorld.getWrapperFor(event.getWorld());
+            world.mutableCollisionBounds.widthRadius = (box.maxX - box.minX) / 2D;
+            world.mutableCollisionBounds.heightRadius = (box.maxY - box.minY) / 2D;
+            world.mutableCollisionBounds.depthRadius = (box.maxZ - box.minZ) / 2D;
+            world.mutableCollisionBounds.globalCenter.x = box.minX + world.mutableCollisionBounds.widthRadius;
+            world.mutableCollisionBounds.globalCenter.y = box.minY + world.mutableCollisionBounds.heightRadius;
+            world.mutableCollisionBounds.globalCenter.z = box.minZ + world.mutableCollisionBounds.depthRadius;
 
-        for (AEntityE_Interactable<?> entity : world.collidableEntities) {
-            if (entity.encompassingBox.intersects(world.mutableCollisionBounds)) {
-                for (BoundingBox testBox : entity.getCollisionBoxes()) {
-                    if (testBox.intersects(world.mutableCollisionBounds)) {
-                        event.getCollisionBoxesList().add(convert(testBox));
+            for (AEntityE_Interactable<?> testEntity : world.collidableEntities) {
+                if (testEntity.encompassingBox.intersects(world.mutableCollisionBounds)) {
+                    for (BoundingBox testBox : testEntity.getCollisionBoxes()) {
+                        if (testBox.intersects(world.mutableCollisionBounds)) {
+                            event.getCollisionBoxesList().add(convert(testBox));
+                        }
                     }
                 }
             }

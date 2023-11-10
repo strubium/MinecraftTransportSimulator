@@ -1023,6 +1023,7 @@ abstract class AEntityVehicleD_Moving extends AEntityVehicleC_Colliding {
                 tempBoxPosition.set(box.globalCenter).subtract(position).rotate(rotation).add(position).addScaled(motion, speedFactor);
                 if (box.updateCollisions(world, tempBoxPosition.subtract(box.globalCenter), CollisionMovementType.ZERO)) {
                     rotation.setToZero();
+                    rotation.angles.set(0, 0, 0);
                     break;
                 }
             }

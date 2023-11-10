@@ -19,8 +19,7 @@ import net.minecraft.util.math.vector.Vector3d;
 
 @Mixin(Entity.class)
 public abstract class EntityMixin {
-    private final BoundingBox mutableCollisionBounds = new BoundingBox(new Point3D(), 0);
-    private final List<BoundingBox> collidingBoxes = new ArrayList<>();
+    private static final Point3D ZERO = new Point3D();
 
     /**
      * Need this to force eye position while in vehicles.
@@ -41,30 +40,33 @@ public abstract class EntityMixin {
     private void inject_collide(Vector3d movement, CallbackInfoReturnable<Vector3d> ci) {
         if (WrapperEntity.getWrapperFor((Entity) ((Object) this)).getEntityRiding() == null) {
             Entity mcEntity = (Entity) ((Object) this);
-            WrapperWorld world = WrapperWorld.getWrapperFor(mcEntity.level);
-            AxisAlignedBB box = mcEntity.getBoundingBox().expandTowards(movement);
+            WrapperEntity entity = WrapperEntity.getWrapperFor(mcEntity);
+            if (entity.getEntityRiding() == null) {
+                WrapperWorld world = WrapperWorld.getWrapperFor(mcEntity.level);
+                AxisAlignedBB box = mcEntity.getBoundingBox().expandTowards(movement);
 
-            mutableCollisionBounds.widthRadius = (box.maxX - box.minX) / 2D;
-            mutableCollisionBounds.heightRadius = (box.maxY - box.minY) / 2D;
-            mutableCollisionBounds.depthRadius = (box.maxZ - box.minZ) / 2D;
-            mutableCollisionBounds.globalCenter.x = box.minX + mutableCollisionBounds.widthRadius;
-            mutableCollisionBounds.globalCenter.y = box.minY + mutableCollisionBounds.heightRadius;
-            mutableCollisionBounds.globalCenter.z = box.minZ + mutableCollisionBounds.depthRadius;
+                BoundingBox collisionBounds = new BoundingBox(ZERO, 0);
+                collisionBounds.widthRadius = (box.maxX - box.minX) / 2D;
+                collisionBounds.heightRadius = (box.maxY - box.minY) / 2D;
+                collisionBounds.depthRadius = (box.maxZ - box.minZ) / 2D;
+                collisionBounds.globalCenter.x = box.minX + collisionBounds.widthRadius;
+                collisionBounds.globalCenter.y = box.minY + collisionBounds.heightRadius;
+                collisionBounds.globalCenter.z = box.minZ + collisionBounds.depthRadius;
 
-            collidingBoxes.clear();
-            for (AEntityE_Interactable<?> entity : world.collidableEntities) {
-                if (entity.encompassingBox.intersects(mutableCollisionBounds)) {
-                    for (BoundingBox testBox : entity.getCollisionBoxes()) {
-                        if (testBox.intersects(mutableCollisionBounds)) {
-                            collidingBoxes.add(testBox);
+                List<BoundingBox> collidingBoxes = new ArrayList<>();
+                for (AEntityE_Interactable<?> testEntity : world.collidableEntities) {
+                    if (testEntity.encompassingBox.intersects(collisionBounds)) {
+                        for (BoundingBox testBox : testEntity.getCollisionBoxes()) {
+                            if (testBox.intersects(collisionBounds)) {
+                                collidingBoxes.add(testBox);
+                            }
                         }
                     }
                 }
-            }
 
-            if (!collidingBoxes.isEmpty()) {
-                getCollision(movement, box);
-                ci.setReturnValue(movement);
+                if (!collidingBoxes.isEmpty()) {
+                    ci.setReturnValue(getCollision(movement, mcEntity.getBoundingBox(), collidingBoxes));
+                }
             }
         }
     }
@@ -73,14 +75,14 @@ public abstract class EntityMixin {
      * Helper method that's akin to MC's older collision methods in 1.12.2, just here rather than
      * in a VoxelShape.
      */
-    public Vector3d getCollision(Vector3d movement, AxisAlignedBB testBox) {
-        double x = movement.x != 0 ? calculateXOffset(testBox, movement.x) : 0;
-        double y = movement.y != 0 ? calculateYOffset(testBox, movement.y) : 0;
-        double z = movement.z != 0 ? calculateZOffset(testBox, movement.z) : 0;
+    private static Vector3d getCollision(Vector3d movement, AxisAlignedBB testBox, List<BoundingBox> collidingBoxes) {
+        double x = movement.x != 0 ? calculateXOffset(testBox, movement.x, collidingBoxes) : 0;
+        double y = movement.y != 0 ? calculateYOffset(testBox, movement.y, collidingBoxes) : 0;
+        double z = movement.z != 0 ? calculateZOffset(testBox, movement.z, collidingBoxes) : 0;
         return new Vector3d(x, y, z);
     }
 
-    private double calculateXOffset(AxisAlignedBB box, double offset) {
+    private static double calculateXOffset(AxisAlignedBB box, double offset, List<BoundingBox> collidingBoxes) {
         for (BoundingBox testBox : collidingBoxes) {
             if (box.maxY > testBox.globalCenter.y - testBox.heightRadius && box.minY < testBox.globalCenter.y + testBox.heightRadius && box.maxZ > testBox.globalCenter.z - testBox.depthRadius && box.minZ < testBox.globalCenter.z + testBox.depthRadius) {
                 if (offset > 0.0D) {
@@ -101,7 +103,7 @@ public abstract class EntityMixin {
         return offset;
     }
 
-    private double calculateYOffset(AxisAlignedBB box, double offset) {
+    private static double calculateYOffset(AxisAlignedBB box, double offset, List<BoundingBox> collidingBoxes) {
         for (BoundingBox testBox : collidingBoxes) {
             if (box.maxX > testBox.globalCenter.x - testBox.widthRadius && box.minX < testBox.globalCenter.x + testBox.widthRadius && box.maxZ > testBox.globalCenter.z - testBox.depthRadius && box.minZ < testBox.globalCenter.z + testBox.depthRadius) {
                 if (offset > 0.0D) {
@@ -122,7 +124,7 @@ public abstract class EntityMixin {
         return offset;
     }
 
-    private double calculateZOffset(AxisAlignedBB box, double offset) {
+    private static double calculateZOffset(AxisAlignedBB box, double offset, List<BoundingBox> collidingBoxes) {
         for (BoundingBox testBox : collidingBoxes) {
             if (box.maxX > testBox.globalCenter.x - testBox.widthRadius && box.minX < testBox.globalCenter.x + testBox.widthRadius && box.maxY > testBox.globalCenter.y - testBox.heightRadius && box.minY < testBox.globalCenter.y + testBox.heightRadius) {
                 if (offset > 0.0D) {
