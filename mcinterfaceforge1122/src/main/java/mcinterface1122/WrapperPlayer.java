@@ -66,13 +66,11 @@ public class WrapperPlayer extends WrapperEntity implements IWrapperPlayer {
     @Override
     public double getSeatOffset() {
         AEntityB_Existing riding = getEntityRiding();
-        if (riding != null) {
-            if (riding instanceof PartSeat) {
-                PartSeat seat = (PartSeat) riding;
-                if (!seat.definition.seat.standing) {
-                    //Player legs are 12 pixels.
-                    return -12D / 16D;
-                }
+        if (riding instanceof PartSeat) {
+            PartSeat seat = (PartSeat) riding;
+            if (!seat.definition.seat.standing) {
+                //Player legs are 12 pixels.
+                return -12D / 16D;
             }
         }
         return 0;
