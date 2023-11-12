@@ -357,7 +357,7 @@ public class EntityVehicleF_Physics extends AEntityVehicleE_Powered {
                 } else if (part instanceof PartPropeller) {
                     PartPropeller propeller = (PartPropeller) part;
                     thrustForceValue += propeller.addToForceOutput(thrustForce, thrustTorque);
-                    if (propeller.definition.propeller.isRotor && groundDeviceCollective.isAnythingOnGround()) {
+                    if (propeller.definition.propeller.isRotor && !groundDeviceCollective.isAnythingOnGround()) {
                         hasRotors = true;
                         if (autopilotSetting == 0 && getVariable(AUTOLEVEL_VARIABLE) != 0) {
                             rotorRotation.set((-(elevatorAngle + elevatorTrim) - orientation.angles.x) / MAX_ELEVATOR_ANGLE, -5D * rudderAngle / MAX_RUDDER_ANGLE, ((aileronAngle + aileronTrim) - orientation.angles.z) / MAX_AILERON_ANGLE);
@@ -511,7 +511,7 @@ public class EntityVehicleF_Physics extends AEntityVehicleE_Powered {
 
             //As a special case, if the vehicle is a stalled plane, add a forwards pitch to allow the plane to right itself.
             //This is needed to prevent the plane from getting stuck in a vertical position and crashing.
-            if (currentWingArea > 0 && trackAngle > 40 && orientation.angles.x < 45 && motion.y < -0.1 && groundDeviceCollective.isAnythingOnGround()) {
+            if (currentWingArea > 0 && trackAngle > 40 && orientation.angles.x < 45 && motion.y < -0.1 && !groundDeviceCollective.isAnythingOnGround()) {
                 elevatorTorque += 100;
             }
 

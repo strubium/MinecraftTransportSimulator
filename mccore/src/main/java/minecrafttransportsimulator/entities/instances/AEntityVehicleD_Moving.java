@@ -56,7 +56,6 @@ abstract class AEntityVehicleD_Moving extends AEntityVehicleC_Colliding {
     public boolean slipping;
     public boolean skidSteerActive;
     public boolean lockedOnRoad;
-    private boolean updateGroundDevicesRequest;
     public double groundVelocity;
     public double weightTransfer = 0;
     public final RotationMatrix rotation = new RotationMatrix();
@@ -203,19 +202,18 @@ abstract class AEntityVehicleD_Moving extends AEntityVehicleC_Colliding {
     @Override
     protected void updateAllpartList() {
         super.updateAllpartList();
-        if (ticksExisted > 1) {
-            updateGroundDevicesRequest = true;
-        }
+        groundDeviceCollective.updateMembers();
+        groundDeviceCollective.updateBounds();
+        groundDeviceCollective.updateCollisions();
     }
 
     @Override
     protected void updateEncompassingBox() {
         super.updateEncompassingBox();
-        if (ticksExisted == 1 || updateGroundDevicesRequest) {
+        if (ticksExisted == 1) {
             groundDeviceCollective.updateMembers();
             groundDeviceCollective.updateBounds();
             groundDeviceCollective.updateCollisions();
-            updateGroundDevicesRequest = false;
         }
     }
 
@@ -256,15 +254,18 @@ abstract class AEntityVehicleD_Moving extends AEntityVehicleC_Colliding {
     /**
      * Helper function to perform syncing operations.  May either be called in the middle of movement, or 
      * as its own function on the CLIENT if this entity has skipped updating via {@link #canUpdate()} 
-     * to allow the client to sync it despite it not actively moving.
+     * to allow the client to sync it despite it not actively moving.  If updates were skipped, set
+     * wasUpdated to false.
      */
-    protected void performSyncingOperations() {
+    protected void performSyncingOperations(boolean wasUpdated) {
         if (serverSyncOperationCooldown > 0) {
             //Get the delta difference, and square it.  Then divide it by 25.
             //This gives us a good "rubberbanding correction" formula for deltas.
             //We add this correction motion to the existing motion applied.
             //We need to keep the sign after squaring, however, as that tells us what direction to apply the deltas in.
-            clientDeltaM.add(motionApplied);
+            if(wasUpdated) {
+                clientDeltaM.add(motionApplied);
+            }
             clientDeltaMApplied.set(serverDeltaM).subtract(clientDeltaM);
             if (!clientDeltaMApplied.isZero()) {
                 clientDeltaMApplied.x *= Math.abs(clientDeltaMApplied.x);
@@ -280,7 +281,7 @@ abstract class AEntityVehicleD_Moving extends AEntityVehicleC_Colliding {
             //yaw rotation in the XZ plane, but instead in that relative-rotated plane.
             //To account for this, we get the angle delta between the prior and current orientation, and use that for the delta. 
             //Though before we do this we check if those angles were non-zero, as no need to do math if they are.
-            if (!rotationApplied.angles.isZero()) {
+            if (wasUpdated && !rotationApplied.angles.isZero()) {
                 rotationApplied.angles.set(orientation.angles).subtract(prevOrientation.angles).clamp180();
                 clientDeltaR.add(rotationApplied.angles);
             }
@@ -295,7 +296,9 @@ abstract class AEntityVehicleD_Moving extends AEntityVehicleC_Colliding {
                 orientation.updateToAngles();
             }
 
-            clientDeltaP += pathingApplied;
+            if(wasUpdated) {
+                clientDeltaP += pathingApplied;
+            }
             clientDeltaPApplied = serverDeltaP - clientDeltaP;
             if (clientDeltaPApplied != 0) {
                 clientDeltaPApplied *= Math.abs(clientDeltaPApplied);
@@ -309,6 +312,17 @@ abstract class AEntityVehicleD_Moving extends AEntityVehicleC_Colliding {
                 totalPathDelta += clientDeltaPApplied;
             }
             --serverSyncOperationCooldown;
+
+            if (!wasUpdated) {
+                //Set priors, since they won't be set during the main update call.
+                prevPosition.set(position);
+                prevOrientation.set(orientation);
+
+                //Set ground device 
+                if (world.isChunkLoaded(position)) {
+                    groundDeviceCollective.updateCollisions();
+                }
+            }
         }
     }
 
@@ -908,7 +922,7 @@ abstract class AEntityVehicleD_Moving extends AEntityVehicleC_Colliding {
             if (!world.isClient()) {
                 addToServerDeltas(null, null, 0);
             } else {
-                performSyncingOperations();
+                performSyncingOperations(true);
             }
         } else {
             //Mounted vehicles don't do most motions, only a sub-set of them.

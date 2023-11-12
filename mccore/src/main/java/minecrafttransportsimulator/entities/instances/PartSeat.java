@@ -91,7 +91,7 @@ public final class PartSeat extends APart {
                                    ((PartSeat) entityPlayerRiding).riderChangingSeats = true;
                                    InterfaceManager.packetInterface.sendToAllClients(new PacketPartSeat(((PartSeat) entityPlayerRiding), SeatAction.RIDER_CHANGE));
                                 }
-                                entityPlayerRiding.removeRider(false);
+                                entityPlayerRiding.removeRider(true);
                             }
                             setRider(player, !(entityPlayerRiding instanceof PartSeat) || ((PartSeat) entityPlayerRiding).vehicleOn != vehicleOn, false);
 
@@ -229,58 +229,60 @@ public final class PartSeat extends APart {
     }
 
     @Override
-    public void removeRider(boolean unloaded) {
-        if (vehicleOn != null) {
-            removeRiderFromVehicle();
-        }
-
-        //De-select active gun if required.
-        if (placementDefinition.canDisableGun) {
-            activeGunItem = null;
-        }
-
-        //Get rid of any potion effects that were caused by the seat
-        if (placementDefinition.seatEffects != null) {
-            for (JSONPotionEffect effect : placementDefinition.seatEffects) {
-                rider.removePotionEffect(effect);
+    public void removeRider(boolean dismounted) {
+        if (rider != null) {
+            if (vehicleOn != null) {
+                removeRiderFromVehicle();
             }
-        }
 
-        //If we, and we aren't changing seats to another of the same vehicle, handle things.
-        if (!riderChangingSeats) {
-            //Set the rider dismount position.
-            //If we have a dismount position in the JSON.  Use it.
-            //Otherwise, put us to the right or left of the seat depending on x-offset.
-            //Make sure to take into the movement of the seat we were riding if it had moved.
-            //This ensures the dismount moves with the seat.
-            //Need to tell the rider to not ride us before we do this.
-            //This'll get called in super again, but it won't hurt anything.
-            rider.setRiding(null);
-            if (placementDefinition.dismountPos != null) {
-                rider.setPosition(placementDefinition.dismountPos.copy().rotate(entityOn.orientation).add(entityOn.position), false);
-            } else if (vehicleOn != null) {
-                Point3D dismountPosition = position.copy().subtract(vehicleOn.position).reOrigin(vehicleOn.orientation);
-                if (dismountPosition.x < 0) {
-                    dismountPosition.add(-2D, 0D, 0D).rotate(vehicleOn.orientation).add(vehicleOn.position);
-                } else {
-                    dismountPosition.add(2D, 0D, 0D).rotate(vehicleOn.orientation).add(vehicleOn.position);
+            //De-select active gun if required.
+            if (placementDefinition.canDisableGun) {
+                activeGunItem = null;
+            }
+
+            //Get rid of any potion effects that were caused by the seat
+            if (placementDefinition.seatEffects != null) {
+                for (JSONPotionEffect effect : placementDefinition.seatEffects) {
+                    rider.removePotionEffect(effect);
                 }
-                rider.setPosition(dismountPosition, false);
-            } else {
-                rider.setPosition(position, false);
             }
-            rider.setOrientation(orientation);
     
-            //Auto-open doors for the rider in this seat, if such doors exist.
-            if (!world.isClient() && placementDefinition.interactableVariables != null) {
-                placementDefinition.interactableVariables.forEach(variableList -> variableList.forEach(variable -> {
-                    entityOn.setVariable(variable, 1);
-                    InterfaceManager.packetInterface.sendToAllClients(new PacketEntityVariableSet(entityOn, variable, 1));
-                }));
+            //If we, and we aren't changing seats to another of the same vehicle, handle things.
+            if (!riderChangingSeats && dismounted) {
+                //Set the rider dismount position.
+                //If we have a dismount position in the JSON.  Use it.
+                //Otherwise, put us to the right or left of the seat depending on x-offset.
+                //Make sure to take into the movement of the seat we were riding if it had moved.
+                //This ensures the dismount moves with the seat.
+                //Need to tell the rider to not ride us before we do this.
+                //This'll get called in super again, but it won't hurt anything.
+                rider.setRiding(null);
+                if (placementDefinition.dismountPos != null) {
+                    rider.setPosition(placementDefinition.dismountPos.copy().rotate(entityOn.orientation).add(entityOn.position), false);
+                } else if (vehicleOn != null) {
+                    Point3D dismountPosition = position.copy().subtract(vehicleOn.position).reOrigin(vehicleOn.orientation);
+                    if (dismountPosition.x < 0) {
+                        dismountPosition.add(-2D, 0D, 0D).rotate(vehicleOn.orientation).add(vehicleOn.position);
+                    } else {
+                        dismountPosition.add(2D, 0D, 0D).rotate(vehicleOn.orientation).add(vehicleOn.position);
+                    }
+                    rider.setPosition(dismountPosition, false);
+                } else {
+                    rider.setPosition(position, false);
+                }
+                rider.setOrientation(orientation);
+
+                //Auto-open doors for the rider in this seat, if such doors exist.
+                if (!world.isClient() && placementDefinition.interactableVariables != null) {
+                    placementDefinition.interactableVariables.forEach(variableList -> variableList.forEach(variable -> {
+                        entityOn.setVariable(variable, 1);
+                        InterfaceManager.packetInterface.sendToAllClients(new PacketEntityVariableSet(entityOn, variable, 1));
+                    }));
+                }
             }
+            riderChangingSeats = false;
         }
-        riderChangingSeats = false;
-        super.removeRider(unloaded);
+        super.removeRider(dismounted);
     }
 
     private void removeRiderFromVehicle() {

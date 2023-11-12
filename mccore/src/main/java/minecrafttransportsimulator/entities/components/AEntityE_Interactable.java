@@ -373,17 +373,12 @@ public abstract class AEntityE_Interactable<JSONDefinition extends AJSONInteract
         }
 
         //Check for saved rider, if we need to get one.
-        if (savedRiderUUID != null) {
+        //We only check once every second.  Eventually we will get the rider for this entity...
+        if (savedRiderUUID != null && rider == null) {
             if (ticksExisted % 20 == 0) {
-                if (ticksExisted <= 100) {
-                    IWrapperEntity newRider = world.getExternalEntity(savedRiderUUID);
-                    if (newRider != null) {
-                        setRider(newRider, false, true);
-                        savedRiderUUID = null;
-                    }
-                } else {
-                    savedRiderUUID = null;
-                    InterfaceManager.coreInterface.logError("Could not load a saved rider on an entity.  Something might be going wrong here?");
+                IWrapperEntity newRider = world.getExternalEntity(savedRiderUUID);
+                if (newRider != null) {
+                    setRider(newRider, false, true);
                 }
             }
         }
@@ -403,7 +398,7 @@ public abstract class AEntityE_Interactable<JSONDefinition extends AJSONInteract
 
             //Remove rider to allow post-removal logic.
             if (rider != null) {
-                removeRider(false);
+                removeRider(true);
             }
         }
     }
@@ -466,6 +461,7 @@ public abstract class AEntityE_Interactable<JSONDefinition extends AJSONInteract
             rider.getYawDelta();
             rider.getPitchDelta();
             rider.setRiding(this);
+            savedRiderUUID = rider.getID();
             if (!loadedFromData && !world.isClient()) {
                 InterfaceManager.packetInterface.sendToAllClients(new PacketEntityRiderChange(this, rider, facesForwards));
             }
@@ -475,21 +471,25 @@ public abstract class AEntityE_Interactable<JSONDefinition extends AJSONInteract
 
     /**
      * Called to remove the rider that is currently riding this entity.
-     * Call this from code only on the server; clients will get packets to call this method.
-     * If this remove is from general entity loading, set unloaded to true.  This will have
-     * the rider be removed, but will keep their data saved for when this entity is re-loaded
-     * into the world to make the rider re-ride it. 
+     * You may call this on both servers and clients.  Servers will send packets
+     * to clients to auto-call this method, but there is no harm in calling this method
+     * if the rider has already been removed.  Therefore, rider can be null when this is called.
+     * If the rider is confirmed to be removed, set dismounted to true.  Otherwise, leave it false
+     * to allow the system to pick up the rider in a future update call.  Note that dismounted riders
+     * will send packets to clients, but non-dismounted ones won't.
      */
-    public void removeRider(boolean unloaded) {
-        rider.setRiding(null);
-        if (!world.isClient()) {
-            InterfaceManager.packetInterface.sendToAllClients(new PacketEntityRiderChange(this, rider));
+    public void removeRider(boolean dismounted) {
+        if (rider != null) {
+            rider.setRiding(null);
+            if (!world.isClient() && dismounted) {
+                InterfaceManager.packetInterface.sendToAllClients(new PacketEntityRiderChange(this, rider));
+            }
+            rider = null;
+            riderIsClient = false;
+            if (dismounted) {
+                savedRiderUUID = null;
+            }
         }
-        if (unloaded) {
-            savedRiderUUID = rider.getID();
-        }
-        rider = null;
-        riderIsClient = false;
     }
 
     /**
@@ -504,7 +504,7 @@ public abstract class AEntityE_Interactable<JSONDefinition extends AJSONInteract
         if (rider.isValid()) {
             //Remove sneaking rider on servers; clients get packets.
             if (!world.isClient() && rider instanceof IWrapperPlayer && ((IWrapperPlayer) rider).isSneaking()) {
-                removeRider(false);
+                removeRider(true);
                 return false;
             }
 
@@ -560,10 +560,7 @@ public abstract class AEntityE_Interactable<JSONDefinition extends AJSONInteract
             return true;
         } else {
             //Remove invalid rider.
-            //Don't call this on the client; they will get a removal packet from this method.
-            if (!world.isClient()) {
-                removeRider(false);
-            }
+            removeRider(false);
             return false;
         }
     }

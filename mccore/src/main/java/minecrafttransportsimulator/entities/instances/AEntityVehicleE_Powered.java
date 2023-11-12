@@ -201,9 +201,14 @@ public abstract class AEntityVehicleE_Powered extends AEntityVehicleD_Moving {
 
     @Override
     public boolean canUpdate() {
-        boolean result = super.canUpdate() && (world.isChunkLoaded(position) || enginesRunning || !groundDeviceCollective.isAnythingOnGround());
+        boolean result = super.canUpdate();
+        //Don't update if we have run more than 1 tick and aren't loaded in a chunk.
+        //Need to run at least 1 tick to load parts from saved data to see if they're in a loaded chunk period.
+        if (result && !groundDeviceCollective.areAllChunksLoaded() && ticksExisted > 1) {
+            result = !groundDeviceCollective.isAnythingOnGround() && enginesRunning;
+        }
         if (!result && world.isClient()) {
-            performSyncingOperations();
+            performSyncingOperations(false);
         }
         return result;
     }

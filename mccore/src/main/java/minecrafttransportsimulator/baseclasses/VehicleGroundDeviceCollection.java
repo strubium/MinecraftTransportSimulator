@@ -267,7 +267,7 @@ public class VehicleGroundDeviceCollection {
      * Returns true if any devices are on the ground.
      */
     public boolean isAnythingOnGround() {
-        return !frontLeftGDB.isGrounded && !frontRightGDB.isGrounded && !rearLeftGDB.isGrounded && !rearRightGDB.isGrounded;
+        return frontLeftGDB.isGrounded || frontRightGDB.isGrounded || rearLeftGDB.isGrounded || rearRightGDB.isGrounded;
     }
 
     /**

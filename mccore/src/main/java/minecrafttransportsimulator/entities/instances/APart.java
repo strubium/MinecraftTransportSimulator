@@ -180,7 +180,7 @@ public abstract class APart extends AEntityF_Multipart<JSONPart> {
         }
         if (!world.isClient() && !isActive && rider != null) {
             //Kick out rider from inactive seat.
-            removeRider(false);
+            removeRider(true);
         }
 
         //Set initial offsets.

@@ -45,6 +45,7 @@ import net.minecraft.block.FarmlandBlock;
 import net.minecraft.block.IGrowable;
 import net.minecraft.block.SlabBlock;
 import net.minecraft.block.material.Material;
+import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.item.ItemEntity;
@@ -974,9 +975,12 @@ public class WrapperWorld extends AWrapperWorld {
     public static void on(EntityJoinWorldEvent event) {
         IWorld mcWorld = event.getWorld();
         if (mcWorld.isClientSide() && mcWorld instanceof World && event.getEntity() instanceof PlayerEntity) {
-            System.out.println("JOIN");
-            AWrapperWorld world = WrapperWorld.getWrapperFor((World) mcWorld);
-            world.onPlayerJoin(WrapperPlayer.getWrapperFor((PlayerEntity) event.getEntity()));
+            //Have a client player, but make sure it's actually ourselves, and not another client player.
+            if (event.getEntity() == Minecraft.getInstance().player) {
+                System.out.println("JOIN");
+                AWrapperWorld world = WrapperWorld.getWrapperFor((World) mcWorld);
+                world.onPlayerJoin(WrapperPlayer.getWrapperFor((PlayerEntity) event.getEntity()));
+            }
         }
     }
 }

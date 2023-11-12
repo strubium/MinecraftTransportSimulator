@@ -53,7 +53,7 @@ public class PacketEntityRiderChange extends APacketEntityInteract<AEntityE_Inte
         if (mount) {
             entity.setRider(rider, facesForwards, false);
         } else {
-            entity.removeRider(false);
+            entity.removeRider(true);
         }
         return true;
     }

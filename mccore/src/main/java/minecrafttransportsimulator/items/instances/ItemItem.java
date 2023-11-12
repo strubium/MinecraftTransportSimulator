@@ -249,7 +249,7 @@ public class ItemItem extends AItemPack<JSONItem> implements IItemEntityInteract
                     if (entity instanceof PartSeat) {
                         if (player.isSneaking()) {
                             if (entity.rider != null) {
-                                entity.removeRider(false);
+                                entity.removeRider(true);
                             }
                         } else {
                             if (entity.rider == null) {
@@ -261,7 +261,7 @@ public class ItemItem extends AItemPack<JSONItem> implements IItemEntityInteract
                         if (player.isSneaking()) {
                             for (APart otherPart : master.allParts) {
                                 if (otherPart.rider != null) {
-                                    otherPart.removeRider(false);
+                                    otherPart.removeRider(true);
                                 }
                             }
                         } else {
